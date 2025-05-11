@@ -12,7 +12,7 @@
       "tsconfigPaths": true
     },
 
-    "plugins": [],
+    "plugins": ["expo-router"],
 
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -28,6 +28,8 @@
     "ios": {
       "supportsTablet": true
     },
+    "scheme": "acuanet",
+
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
