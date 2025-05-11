@@ -1,25 +1,22 @@
-import { Stack, Slot } from "expo-router"
-import { StatusBar } from "expo-status-bar"
-import { Image } from "react-native"
+import { Stack, Slot } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { Image } from 'react-native';
 
-import "global.css"
+import 'global.css';
 
 export default function RootLayout() {
   return (
     <>
-      <StatusBar
-        style="dark"
-        backgroundColor="#effcf3"
-      />
+      <StatusBar style="dark" backgroundColor="#effcf3" />
       <Stack
         screenOptions={{
           headerStyle: {
-            backgroundColor: "#effcf3",
+            backgroundColor: '#effcf3',
           },
-          title: "",
+          title: '',
           headerLeft: () => (
             <Image
-              source={require("../assets/LogoBlack.png")}
+              source={require('../assets/LogoBlack.png')}
               style={{
                 width: 150,
                 height: 40,
@@ -27,10 +24,9 @@ export default function RootLayout() {
               }}
             />
           ),
-        }}
-      >
+        }}>
         <Slot />
       </Stack>
     </>
-  )
+  );
 }
