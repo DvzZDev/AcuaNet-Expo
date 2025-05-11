@@ -77,10 +77,7 @@ export default function SearchModal({ isVisible, setIsModalVisible }: SearchModa
               FilteredNames.map((e) => (
                 <Link
                   key={e.nombre}
-                  href={{
-                    pathname: '/embalse/[embalse]',
-                    params: { embalse: e.nombre },
-                  }}
+                  href={`/embalse/${encodeURIComponent(e.nombre)}`}
                   onPress={() => setIsModalVisible(false)}>
                   <Animated.View
                     key={e.nombre}
