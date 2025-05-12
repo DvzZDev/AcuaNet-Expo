@@ -66,7 +66,7 @@ export default function SearchModal({ isVisible, setIsModalVisible }: SearchModa
             <Drop />
             <TextInput
               onChange={(e) => setSearchText(e.nativeEvent.text)}
-              className="ml-2 h-40 flex-1 text-[#93ffb7]"
+              className="ml-2 h-40 flex-1 font-Inter text-[#93ffb7]"
               placeholder="Buscar Embalse..."
               placeholderTextColor="#93ffb796"
               value={searchText}
@@ -90,7 +90,7 @@ export default function SearchModal({ isVisible, setIsModalVisible }: SearchModa
                     entering={FadeIn.duration(250)}
                     exiting={FadeOut.duration(250)}
                     layout={LinearTransition}>
-                    <Text className="text-xl text-[#93ffb7]">{e.nombre}</Text>
+                    <Text className="text-xl font-Inter text-[#93ffb7]">{e.nombre}</Text>
                   </Animated.View>
                 </Link>
               ))}

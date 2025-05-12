@@ -10,11 +10,11 @@ import SearchModal from 'components/Search/SearchModal';
 import 'global.css';
 
 export default function Layout() {
-  const [isModalVisible, setIsModalVisible] = useState(true);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   return (
     <>
-      <StatusBar style="dark" backgroundColor="#effcf3" />
+      <StatusBar style="dark" backgroundColor="#f0fdf4" />
       <Tabs
         screenOptions={{
           headerShown: false,
@@ -25,6 +25,7 @@ export default function Layout() {
           },
           tabBarLabelStyle: {
             color: '#b3e8ba',
+            fontFamily: 'Inter',
           },
         }}>
         <Tabs.Screen
@@ -45,9 +46,7 @@ export default function Layout() {
                 accessibilityState={accessibilityState}
                 accessibilityLabel={accessibilityLabel}
                 testID={testID}
-                onPress={(e) => {
-                  setIsModalVisible(true);
-                }}
+                onPress={() => setIsModalVisible(true)}
                 style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                 <Search />
                 <Text className="text-xs text-[#bcf2c2]">Search</Text>
@@ -62,7 +61,6 @@ export default function Layout() {
             tabBarIcon: () => <Map />,
           }}
         />
-
         <Tabs.Screen
           name="account"
           options={{
