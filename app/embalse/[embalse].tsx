@@ -36,12 +36,8 @@ export default function Embalse() {
     <>
       <Stack.Screen
         options={{
-          title: embalse ? (Array.isArray(embalse) ? embalse[0] : embalse) : 'N/D',
-          headerTitleStyle: {
-            fontSize: 25,
-            fontWeight: 'bold',
-            fontFamily: 'Inter',
-          },
+          title: '',
+          headerTitleAlign: 'center',
           contentStyle: {
             backgroundColor: 'transparent',
             padding: 10,
@@ -49,17 +45,41 @@ export default function Embalse() {
           headerStyle: {
             backgroundColor: '#effcf3',
           },
+          headerBackVisible: true,
+          headerBackButtonDisplayMode: 'minimal',
           headerRight: () => (
             <Image
-              source={require('../../assets/LogoBlack.png')}
+              source={require('../../assets/Logo.png')}
               style={{
-                width: 140,
-                height: 35,
+                width: 40,
+                height: 40,
                 marginLeft: 'auto',
               }}
             />
           ),
-          headerLeft: () => null,
+          headerLeft: () => {
+            const headerTitle = embalse ? (Array.isArray(embalse) ? embalse[0] : embalse) : 'N/D';
+            const truncateText = (text: string, maxLength: number = 18) => {
+              return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+            };
+
+            return (
+              <Text
+                style={{
+                  fontSize: 25,
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter',
+                  color: '#032E15',
+                  paddingLeft: 'auto',
+                  maxWidth: 360,
+                  lineHeight: 32,
+                }}
+                numberOfLines={1}
+                ellipsizeMode="tail">
+                {truncateText(headerTitle)}
+              </Text>
+            );
+          },
         }}
       />
       <LinearGradient
@@ -71,7 +91,7 @@ export default function Embalse() {
           <Text className="font-Inter text-2xl text-[#032E15]">
             Cuanca del {data && data[0].cuenca}{' '}
           </Text>
-          <View className="flex flex-row gap-2">
+          <View className="flex flex-row items-center justify-center gap-2">
             <Calendar />
             <Text className="font-Inter">
               Ult. Actualización -{' '}
@@ -84,10 +104,10 @@ export default function Embalse() {
             </Text>
           </View>
         </View>
-        <HugeiconsIcon icon={StarIcon} size={30} fill="yellow" color={'orange'} />
+        <HugeiconsIcon icon={StarIcon} size={40} fill="yellow" color={'orange'} />
       </View>
 
-      <View className="mt-5 p-2 h-[12rem] w-full rounded-lg bg-green-300">
+      <View className="mt-5 h-[12rem] w-full rounded-lg bg-green-300 p-2">
         <ScrollView>
           <Text className="font-Inter text-base">
             En los próximos días en la zona de El Atazar, las temperaturas oscilarán entre los 6°C y

@@ -5,9 +5,9 @@ export default function Calendar() {
   return (
      <Svg
       viewBox="0 0 24 24"
-      width={20}
-      height={20}
-      color="#032E15"
+      width={15}
+      height={15}
+      color="red"
       fill="none"
     >
       <Path
