@@ -45,8 +45,7 @@ export default function RootLayout() {
                 }}
               />
             ),
-          }}
-        >
+          }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: true }} />
           <Stack.Screen name="embalse/[embalse]" options={{ headerShown: true }} />
         </Stack>
