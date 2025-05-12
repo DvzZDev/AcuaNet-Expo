@@ -45,7 +45,10 @@ export default function SearchModal({ isVisible, setIsModalVisible }: SearchModa
       <TouchableOpacity
         activeOpacity={1}
         className="flex-1 items-center justify-center p-3"
-        onPressOut={() => setIsModalVisible(false)}
+        onPressOut={() => {
+          setIsModalVisible(false);
+          setSearchText('');
+        }}
         style={{ flex: 1 }}>
         <BlurView
           intensity={20}
@@ -72,13 +75,16 @@ export default function SearchModal({ isVisible, setIsModalVisible }: SearchModa
           </View>
           <Animated.View
             layout={LinearTransition}
-            className={`mt-2 w-full rounded-xl bg-[#6e7d74] p-2 ${searchText.length > 0 ? 'opacity-100' : 'opacity-0'}`}>
+            className={`mt-2 w-full gap-1 rounded-xl bg-[#6e7d74] p-2 ${searchText.length > 0 ? 'opacity-100' : 'opacity-0'}`}>
             {searchText.length > 0 &&
               FilteredNames.map((e) => (
                 <Link
                   key={e.nombre}
                   href={`/embalse/${encodeURIComponent(e.nombre)}`}
-                  onPress={() => setIsModalVisible(false)}>
+                  onPress={() => {
+                    setIsModalVisible(false);
+                    setSearchText('');
+                  }}>
                   <Animated.View
                     key={e.nombre}
                     entering={FadeIn.duration(250)}
