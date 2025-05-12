@@ -1,7 +1,7 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { fetchData } from 'querys';
 import { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { EmbalseData } from '../../types';
 import Calendar from '@assets/icons/calendar';
@@ -84,10 +84,21 @@ export default function Embalse() {
             </Text>
           </View>
         </View>
-        <HugeiconsIcon icon={StarIcon} size={30} color={'black'} />
+        <HugeiconsIcon icon={StarIcon} size={30} fill="yellow" color={'orange'} />
       </View>
 
-      <View className="mt-5 h-[8rem] w-full rounded-lg bg-green-300"></View>
+      <View className="mt-5 p-2 h-[12rem] w-full rounded-lg bg-green-300">
+        <ScrollView>
+          <Text className="font-Inter text-base">
+            En los próximos días en la zona de El Atazar, las temperaturas oscilarán entre los 6°C y
+            los 22°C. Prepárate para posibles lluvias el lunes y miércoles, con vientos que podrían
+            alcanzar los 30 km/h el lunes por la tarde. A partir del jueves, el tiempo mejora con
+            cielos parcialmente nublados y vientos más suaves. La luna llena de estos días favorece
+            la actividad, especialmente hasta el miércoles. El embalse está casi a su máxima
+            capacidad, con un 98% de llenado, lo que podría afectar el acceso a algunas áreas.
+          </Text>
+        </ScrollView>
+      </View>
       <View className="ml-auto flex flex-row items-center justify-center gap-1 text-xs">
         <Ai />
         <Text className="font-Inter">AcuaNet AI puede cometer errores</Text>
