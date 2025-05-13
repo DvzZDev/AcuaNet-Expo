@@ -1,12 +1,14 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { fetchData } from 'querys';
+import { HistoricalData, LiveData } from 'querys';
 import { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import type { EmbalseData } from '../../types';
+import type { EmbalseDataHistorical, EmbalseDataLive } from '../../types';
 import Calendar from '@assets/icons/calendar';
 import Ai from '@assets/icons/ai';
 import { HugeiconsIcon } from '@hugeicons/react-native';
+import DataModal from 'components/Embalse/DataMoldal';
 import {
   CalendarCheckIn01Icon,
   ChartLineData02FreeIcons,
@@ -18,19 +20,20 @@ import {
 } from '@hugeicons/core-free-icons';
 
 export default function Embalse() {
-  const [data, setData] = useState<EmbalseData[] | null>(null);
+  const [hData, setHData] = useState<EmbalseDataHistorical[] | null>(null);
+  const [liveData, setLiveData] = useState<EmbalseDataLive[] | null>(null);
+  const [ContentKey, setContentKey] = useState<string>('');
+  const [isOpen, setIsOpen] = useState(false);
   const { embalse } = useLocalSearchParams();
   const codedEmbalse = Array.isArray(embalse) ? embalse[0] : embalse;
-  console.log('Embalse:', codedEmbalse);
 
   useEffect(() => {
     const fetchDataAsync = async () => {
-      await fetchData(embalse, codedEmbalse, setData);
+      await HistoricalData(embalse, codedEmbalse, setHData);
+      await LiveData(embalse, codedEmbalse, setLiveData);
     };
     fetchDataAsync();
-  }, [codedEmbalse, embalse]);
-
-  console.log('Data:', data);
+  }, []);
 
   return (
     <>
@@ -89,14 +92,14 @@ export default function Embalse() {
       <View className="flex flex-row items-center justify-between">
         <View className="flex flex-col justify-center gap-1">
           <Text className="font-Inter text-2xl text-[#032E15]">
-            Cuanca del {data && data[0].cuenca}{' '}
+            Cuanca del {hData && hData[0].cuenca}{' '}
           </Text>
           <View className="flex flex-row items-center justify-center gap-2">
             <Calendar />
             <Text className="font-Inter">
               Ult. Actualización -{' '}
-              {data &&
-                new Date(data[0].fecha).toLocaleDateString('es-ES', {
+              {hData &&
+                new Date(hData[0].fecha).toLocaleDateString('es-ES', {
                   day: 'numeric',
                   month: 'long',
                   year: 'numeric',
@@ -125,7 +128,12 @@ export default function Embalse() {
       </View>
 
       <View className="mt-10 flex flex-col gap-5">
-        <TouchableOpacity className="h-fit self-start rounded-lg border border-[#019FFF]/50 bg-[#bae5ff] p-2">
+        <TouchableOpacity
+          onPress={() => {
+            setContentKey('livedata');
+            setIsOpen(true);
+          }}
+          className="h-fit self-start rounded-lg border border-[#019FFF]/50 bg-[#bae5ff] p-2">
           <View className="flex flex-row items-center gap-2">
             <HugeiconsIcon icon={LiveStreaming02Icon} size={30} color={'#019FFF'} />
             <Text className="font-Inter text-xl text-[#019FFF]">Datos en Tiempo Real</Text>
@@ -169,6 +177,14 @@ export default function Embalse() {
           </View>
         </TouchableOpacity>
       </View>
+
+      <DataModal
+        LiveData={liveData}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        contentKey={ContentKey}
+        setContentKey={setContentKey}
+      />
     </>
   );
 }
