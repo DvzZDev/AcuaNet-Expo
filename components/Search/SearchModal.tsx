@@ -49,6 +49,7 @@ export default function SearchModal({ isVisible, setIsModalVisible }: SearchModa
           setIsModalVisible(false);
           setSearchText('');
         }}
+        
         style={{ flex: 1 }}>
         <BlurView
           intensity={20}
