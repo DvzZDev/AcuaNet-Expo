@@ -70,8 +70,7 @@ export default function Embalse() {
               <Text
                 style={{
                   fontSize: 25,
-                  fontWeight: 'bold',
-                  fontFamily: 'Inter',
+                  fontFamily: 'Inter-Black',
                   color: '#032E15',
                   paddingLeft: 'auto',
                   maxWidth: 360,
@@ -140,7 +139,12 @@ export default function Embalse() {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity className="h-fit self-start rounded-lg border border-[#008F06]/50 bg-[#BAFFBD] p-2">
+        <TouchableOpacity
+          onPress={() => {
+            setContentKey('weekdata');
+            setIsOpen(true);
+          }}
+          className="h-fit self-start rounded-lg border border-[#008F06]/50 bg-[#BAFFBD] p-2">
           <View className="flex flex-row items-center gap-2">
             <HugeiconsIcon icon={CalendarCheckIn01Icon} size={30} color={'#008F06'} />
             <Text className="font-Inter text-xl text-[#008F06]">Datos Semanales</Text>
@@ -180,6 +184,7 @@ export default function Embalse() {
 
       <DataModal
         LiveData={liveData}
+        HistoricalData={hData}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
         contentKey={ContentKey}
