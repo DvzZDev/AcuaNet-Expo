@@ -151,10 +151,15 @@ export default function Embalse() {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity className="h-fit self-start rounded-lg border border-[#C09400]/50 bg-[#EFFFBA] p-2">
+        <TouchableOpacity
+          onPress={() => {
+            setContentKey('historicaldata');
+            setIsOpen(true);
+          }}
+          className="h-fit self-start rounded-lg border border-[#C09400]/50 bg-[#EFFFBA] p-2">
           <View className="flex flex-row items-center gap-2">
             <HugeiconsIcon icon={ChartLineData02FreeIcons} size={30} color={'#C09400'} />
-            <Text className="font-Inter text-xl text-[#C09400]">Datos Semanales</Text>
+            <Text className="font-Inter text-xl text-[#C09400]">Datos Historicos</Text>
           </View>
         </TouchableOpacity>
 

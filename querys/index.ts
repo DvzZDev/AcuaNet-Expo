@@ -10,8 +10,7 @@ export const HistoricalData = async (
     .from('embalses2025')
     .select()
     .eq('embalse', typeof embalseStr === 'string' ? codedEmbalse : embalseStr)
-    .order('fecha', { ascending: false })
-    .limit(1);
+    .order('fecha', { ascending: false });
   setHData(data);
 };
 

@@ -10,6 +10,7 @@ import { BlurView } from 'expo-blur';
 import { Modal, TouchableOpacity, View, StyleSheet, Text } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 import type { EmbalseDataLive, EmbalseDataHistorical } from 'types';
+import Chart from './Chart';
 
 interface DataModalProps {
   LiveData?: EmbalseDataLive[] | null;
@@ -28,8 +29,6 @@ export default function DataModal({
   setContentKey,
   contentKey,
 }: DataModalProps) {
-  console.log(contentKey);
-  console.log(LiveData);
   const title =
     contentKey === 'livedata'
       ? 'Datos en Tiempo Real'
@@ -47,9 +46,17 @@ export default function DataModal({
       ? LiveStreaming02Icon
       : contentKey === 'weekdata'
         ? ChartLineData02FreeIcons
-        : null;
+        : contentKey === 'historicaldata'
+          ? ChartLineData02FreeIcons
+          : null;
   const iconColor =
-    contentKey === 'livedata' ? '#019FFF' : contentKey === 'weekdata' ? '#008f00' : '';
+    contentKey === 'livedata'
+      ? '#019FFF'
+      : contentKey === 'weekdata'
+        ? '#008f00'
+        : contentKey === 'historicaldata'
+          ? '#C09400'
+          : '';
   return (
     <Modal
       visible={isOpen}
@@ -80,18 +87,22 @@ export default function DataModal({
               ? 'bg-[#003352]'
               : contentKey === 'weekdata'
                 ? 'bg-[#dbfce7]'
-                : 'bg-gray-700'
+                : contentKey === 'historicaldata'
+                  ? 'bg-[#141602]'
+                  : 'bg-gray-700'
           )}>
           {/* Title */}
           <View className="flex flex-row gap-2">
             <View
               className={twMerge(
-                'h-fit self-start rounded-lg border  p-1',
+                'h-fit self-start rounded-lg border p-1',
                 contentKey === 'livedata'
                   ? 'border-[#019FFF]/50 bg-[#bae5ff]'
                   : contentKey === 'weekdata'
                     ? 'border-[#008F06]/50 bg-[#baffbd]'
-                    : ''
+                    : contentKey === 'historicaldata'
+                      ? 'border-[#C09400]/50 bg-[#EFFFBA]'
+                      : ''
               )}>
               <View className="flex flex-row items-center gap-2">
                 <HugeiconsIcon icon={icon} size={20} color={iconColor} />
@@ -102,7 +113,9 @@ export default function DataModal({
                       ? 'text-[#008F06]'
                       : contentKey === 'livedata'
                         ? 'text-[#019FFF]'
-                        : 'text-[#D9F5FF]'
+                        : contentKey === 'historicaldata'
+                          ? 'text-[#C09400]'
+                          : 'text-[#D9F5FF]'
                   )}>
                   {title}
                 </Text>
@@ -215,7 +228,9 @@ export default function DataModal({
                   Agua Embalsada
                 </Text>
                 <Text className="font-Inter-Black text-4xl  text-[#032e15]">
-                  {HistoricalData && HistoricalData[0].volumen_actual}
+                  {HistoricalData && HistoricalData.length > 0
+                    ? HistoricalData[0].volumen_actual
+                    : 'N/A'}
                   <Text className="font-Inter-SemiBold text-base "> hm³</Text>
                 </Text>
                 <View
@@ -238,7 +253,9 @@ export default function DataModal({
                   />
                 </View>
                 <Text className="font-Inter-Bold mt-2 text-lg text-[#3D7764] ">
-                  {HistoricalData && HistoricalData[0].porcentaje}
+                  {HistoricalData && HistoricalData.length > 0
+                    ? HistoricalData[0].porcentaje
+                    : 'N/A'}
                   <Text className="font-Inter-Medium text-base"> % capacidad total</Text>
                 </Text>
               </View>
@@ -253,7 +270,9 @@ export default function DataModal({
                   Capacidad Total
                 </Text>
                 <Text className="font-Inter-Black text-4xl  text-[#032e15]">
-                  {HistoricalData && HistoricalData[0].capacidad_total}
+                  {HistoricalData && HistoricalData.length > 0
+                    ? HistoricalData[0].capacidad_total
+                    : 'N/A'}
                   <Text className="font-Inter-Medium text-base"> hm³</Text>
                 </Text>
               </View>
@@ -268,12 +287,20 @@ export default function DataModal({
                   Nivel (Cota)
                 </Text>
                 <Text className="font-Inter-Black text-4xl  text-[#032e15]">
-                  {LiveData && LiveData[0].cota}
+                  {LiveData && LiveData.length > 0 ? LiveData[0].cota : 'N/A'}
                   <Text className="font-Inter-Medium text-base"> msnm</Text>
                 </Text>
               </View>
             </View>
           </View>
+
+          {/*CHART*/}
+          <View
+            className={`${contentKey === 'weekdata' ? 'flex' : 'hidden'} mt-3 flex-col items-center justify-center gap-6 `}></View>
+
+          {/* Historical Data Section */}
+
+          {HistoricalData && <Chart data={HistoricalData} />}
         </View>
       </TouchableOpacity>
     </Modal>
