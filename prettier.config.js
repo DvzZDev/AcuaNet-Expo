@@ -1,16 +1,19 @@
-export default {
+/** @type {import("prettier").Config} */
+const config = {
   printWidth: 120,
   useTabs: false,
   tabWidth: 2,
-  trailingComma: 'es5',
+  trailingComma: "es5",
   semi: false,
   singleQuote: false,
   bracketSpacing: true,
-  arrowParens: 'always',
+  arrowParens: "always",
   jsxSingleQuote: false,
   bracketSameLine: false,
-  endOfLine: 'lf',
+  endOfLine: "lf",
   singleAttributePerLine: true,
-  plugins: [require.resolve('prettier-plugin-tailwindcss')],
-  tailwindAttributes: ['className'],
-};
+  plugins: ["prettier-plugin-tailwindcss"],
+  tailwindAttributes: ["className"],
+}
+
+module.exports = config
