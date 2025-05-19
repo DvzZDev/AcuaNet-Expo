@@ -1,8 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+import weatherData from "../../components/Embalse/data.json"
 import { Stack, useLocalSearchParams } from "expo-router"
 import { HistoricalData, LiveData } from "querys"
 import { useEffect, useState } from "react"
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
 import type { EmbalseDataHistorical, EmbalseDataLive } from "../../types"
 import Calendar from "@assets/icons/calendar"
@@ -18,6 +19,8 @@ import {
   RainbowIcon,
   StarIcon,
 } from "@hugeicons/core-free-icons"
+import Animated, { FadeIn } from "react-native-reanimated"
+// import { useWeather } from "lib/getWeather"
 
 export default function Embalse() {
   const [hData, setHData] = useState<EmbalseDataHistorical[]>([])
@@ -27,6 +30,12 @@ export default function Embalse() {
   const { embalse } = useLocalSearchParams()
   const codedEmbalse = Array.isArray(embalse) ? embalse[0] : embalse
 
+  const weatherLoading = false
+
+  // const [embalseWeatherName, setEmbalseWeatherName] = useState<string>("")
+
+  // const { weather: weatherData, loading: weatherLoading } = useWeather(embalseWeatherName)
+
   useEffect(() => {
     const fetchDataAsync = async () => {
       try {
@@ -34,13 +43,18 @@ export default function Embalse() {
         await LiveData(embalse, codedEmbalse, setLiveData)
       } catch (error) {
         console.error("Error fetching data:", error)
-        // Asegurar que los estados tengan valores válidos en caso de error
         setHData([])
         setLiveData([])
       }
     }
     fetchDataAsync()
   }, [])
+
+  // useEffect(() => {
+  //   if (hData && hData.length > 0) {
+  //     setEmbalseWeatherName(hData[0].embalse)
+  //   }
+  // }, [hData])
 
   return (
     <>
@@ -139,95 +153,163 @@ export default function Embalse() {
         <Text className="font-Inter">AcuaNet AI puede cometer errores</Text>
       </View>
 
-      <View className="mt-10 flex flex-col gap-5">
-        <TouchableOpacity
-          onPress={() => {
-            setContentKey("livedata")
-            setIsOpen(true)
-          }}
-          className="h-fit self-start rounded-lg border border-[#019FFF]/50 bg-[#bae5ff] p-2"
-        >
-          <View className="flex flex-row items-center gap-2">
-            <HugeiconsIcon
-              icon={LiveStreaming02Icon}
-              size={30}
-              color={"#019FFF"}
-            />
-            <Text className="font-Inter text-xl text-[#019FFF]">Datos en Tiempo Real</Text>
+      <Animated.View className="mt-10 flex flex-col gap-5">
+        {liveData.length > 0 ? (
+          <Animated.View entering={FadeIn}>
+            <TouchableOpacity
+              onPress={() => {
+                setContentKey("livedata")
+                setIsOpen(true)
+              }}
+              className="h-fit self-start rounded-lg border border-[#019FFF]/50 bg-[#bae5ff] p-2"
+            >
+              <View className="flex flex-row items-center gap-2">
+                <HugeiconsIcon
+                  icon={LiveStreaming02Icon}
+                  size={30}
+                  color={"#019FFF"}
+                />
+                <Text className="font-Inter text-xl text-[#019FFF]">Datos en Tiempo Real</Text>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        ) : (
+          <View className="flex w-20">
+            <ActivityIndicator size="small" />
           </View>
-        </TouchableOpacity>
+        )}
 
-        <TouchableOpacity
-          onPress={() => {
-            setContentKey("weekdata")
-            setIsOpen(true)
-          }}
-          className="h-fit self-start rounded-lg border border-[#008F06]/50 bg-[#BAFFBD] p-2"
-        >
-          <View className="flex flex-row items-center gap-2">
-            <HugeiconsIcon
-              icon={CalendarCheckIn01Icon}
-              size={30}
-              color={"#008F06"}
-            />
-            <Text className="font-Inter text-xl text-[#008F06]">Datos Semanales</Text>
+        {hData.length > 0 ? (
+          <Animated.View entering={FadeIn}>
+            <TouchableOpacity
+              onPress={() => {
+                setContentKey("weekdata")
+                setIsOpen(true)
+              }}
+              className="h-fit self-start rounded-lg border border-[#008F06]/50 bg-[#BAFFBD] p-2"
+            >
+              <View className="flex flex-row items-center gap-2">
+                <HugeiconsIcon
+                  icon={CalendarCheckIn01Icon}
+                  size={30}
+                  color={"#008F06"}
+                />
+                <Text className="font-Inter text-xl text-[#008F06]">Datos Semanales</Text>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        ) : (
+          <View className="flex w-20">
+            <ActivityIndicator size="small" />
           </View>
-        </TouchableOpacity>
+        )}
 
-        <TouchableOpacity
-          onPress={() => {
-            setContentKey("historicaldata")
-            setIsOpen(true)
-          }}
-          className="h-fit self-start rounded-lg border border-[#C09400]/50 bg-[#EFFFBA] p-2"
-        >
-          <View className="flex flex-row items-center gap-2">
-            <HugeiconsIcon
-              icon={ChartLineData02FreeIcons}
-              size={30}
-              color={"#C09400"}
-            />
-            <Text className="font-Inter text-xl text-[#C09400]">Datos Historicos</Text>
+        {hData.length > 0 ? (
+          <Animated.View entering={FadeIn}>
+            <TouchableOpacity
+              onPress={() => {
+                setContentKey("historicaldata")
+                setIsOpen(true)
+              }}
+              className="h-fit self-start rounded-lg border border-[#C09400]/50 bg-[#EFFFBA] p-2"
+            >
+              <View className="flex flex-row items-center gap-2">
+                <HugeiconsIcon
+                  icon={ChartLineData02FreeIcons}
+                  size={30}
+                  color={"#C09400"}
+                />
+                <Text className="font-Inter text-xl text-[#C09400]">Datos Historicos</Text>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        ) : (
+          <View className="flex w-20">
+            <ActivityIndicator size="small" />
           </View>
-        </TouchableOpacity>
+        )}
 
-        <TouchableOpacity className="h-fit self-start rounded-lg border border-[#9000FF]/50 bg-[#E1BAFF] p-2">
-          <View className="flex flex-row items-center gap-2">
-            <HugeiconsIcon
-              icon={RainbowIcon}
-              size={30}
-              color={"#9000FF"}
-            />
-            <Text className="font-Inter text-xl text-[#9000FF]">Predicción Meteorológica</Text>
+        {!weatherLoading ? (
+          <Animated.View entering={FadeIn}>
+            <TouchableOpacity
+              onPress={() => {
+                setContentKey("weatherForecast")
+                setIsOpen(true)
+              }}
+              className="h-fit self-start rounded-lg border border-[#9000FF]/50 bg-[#E1BAFF] p-2"
+            >
+              <View className="flex flex-row items-center gap-2">
+                <HugeiconsIcon
+                  icon={RainbowIcon}
+                  size={30}
+                  color={"#9000FF"}
+                />
+                <Text className="font-Inter text-xl text-[#9000FF]">Predicción Meteorológica</Text>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        ) : (
+          <View className="flex w-20">
+            <ActivityIndicator size="small" />
           </View>
-        </TouchableOpacity>
+        )}
 
-        <TouchableOpacity className="h-fit self-start rounded-lg border border-[#FF8900]/50 bg-[#FFDFBA] p-2">
-          <View className="flex flex-row items-center gap-2">
-            <HugeiconsIcon
-              icon={MapsLocation01Icon}
-              size={30}
-              color={"#FF8900"}
-            />
-            <Text className="font-Inter text-xl text-[#FF8900]">Mapas: Topográfico y de Viento</Text>
+        {hData.length > 0 ? (
+          <Animated.View entering={FadeIn}>
+            <TouchableOpacity
+              onPress={() => {
+                setContentKey("maps")
+                setIsOpen(true)
+              }}
+              className="h-fit self-start rounded-lg border border-[#FF8900]/50 bg-[#FFDFBA] p-2"
+            >
+              <View className="flex flex-row items-center gap-2">
+                <HugeiconsIcon
+                  icon={MapsLocation01Icon}
+                  size={30}
+                  color={"#FF8900"}
+                />
+                <Text className="font-Inter text-xl text-[#FF8900]">Mapas: Topográfico y de Viento</Text>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        ) : (
+          <View className="flex w-20">
+            <ActivityIndicator size="small" />
           </View>
-        </TouchableOpacity>
+        )}
 
-        <TouchableOpacity className="h-fit self-start rounded-lg border border-[#0051FF]/50 bg-[#BAD0FF] p-2">
-          <View className="flex flex-row items-center gap-2">
-            <HugeiconsIcon
-              icon={MoonIcon}
-              size={30}
-              color={"#0051FF"}
-            />
-            <Text className="font-Inter text-xl text-[#0051FF]">Tabla Lunar</Text>
+        {hData.length > 0 ? (
+          <Animated.View entering={FadeIn}>
+            <TouchableOpacity
+              onPress={() => {
+                setContentKey("lunarTable")
+                setIsOpen(true)
+              }}
+              className="h-fit self-start rounded-lg border border-[#0051FF]/50 bg-[#BAD0FF] p-2"
+            >
+              <View className="flex flex-row items-center gap-2">
+                <HugeiconsIcon
+                  icon={MoonIcon}
+                  size={30}
+                  color={"#0051FF"}
+                />
+                <Text className="font-Inter text-xl text-[#0051FF]">Tabla Lunar</Text>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        ) : (
+          <View className="flex w-20">
+            <ActivityIndicator size="small" />
           </View>
-        </TouchableOpacity>
-      </View>
+        )}
+      </Animated.View>
 
       <DataModal
+        Location={hData && hData.length > 0 ? hData[0].embalse : "N/A"}
         LiveData={liveData && liveData.length > 0 ? liveData : []}
         HistoricalData={hData && hData.length > 0 ? hData : []}
+        weatherData={weatherData}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
         contentKey={ContentKey}
