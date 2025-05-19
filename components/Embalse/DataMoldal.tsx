@@ -60,15 +60,22 @@ export default function DataModal({
       className="flex items-center justify-center"
       transparent={true}
       onRequestClose={() => {
+        // Cerramos el modal y limpiamos el contenido con un pequeño retraso
         setIsOpen(false)
+        setTimeout(() => {
+          setContentKey("")
+        }, 300)
       }}
     >
       <TouchableOpacity
         activeOpacity={1}
         className="flex-1 items-center justify-center p-3"
         onPressOut={() => {
+          // Primero cerramos el modal y luego limpiamos el contentKey después de un pequeño retraso
           setIsOpen(false)
-          setContentKey("")
+          setTimeout(() => {
+            setContentKey("")
+          }, 300)
         }}
         style={{ flex: 1 }}
       >
@@ -89,6 +96,10 @@ export default function DataModal({
                   ? "bg-[#141602]"
                   : "bg-gray-700"
           )}
+          onStartShouldSetResponder={() => true}
+          onTouchEnd={(e) => {
+            e.stopPropagation()
+          }}
         >
           {/* Title */}
           <View className="flex flex-row gap-2">
@@ -179,7 +190,7 @@ export default function DataModal({
               }
             </View>
             {/* Table Rows */}
-            {LiveData &&
+            {LiveData && Array.isArray(LiveData) && LiveData.length > 0 ? (
               LiveData.map((d) => (
                 <View
                   key={d.id}
@@ -205,7 +216,12 @@ export default function DataModal({
                     <Text className="text-center font-Inter text-base text-[#D9F5FF]">{d.cota}</Text>
                   </View>
                 </View>
-              ))}
+              ))
+            ) : (
+              <View className="p-2">
+                <Text className="text-center font-Inter text-base text-[#D9F5FF]">No hay datos disponibles</Text>
+              </View>
+            )}
           </View>
           {/* End contante Live Data */}
 
@@ -224,7 +240,9 @@ export default function DataModal({
               <View className="flex-1 flex-col justify-center">
                 <Text className="font-Inter text-xl font-semibold text-[#3D7764]">Agua Embalsada</Text>
                 <Text className="font-Inter-Black text-4xl  text-[#032e15]">
-                  {HistoricalData && HistoricalData.length > 0 ? HistoricalData[0].volumen_actual : "N/A"}
+                  {HistoricalData && Array.isArray(HistoricalData) && HistoricalData.length > 0
+                    ? HistoricalData[0].volumen_actual
+                    : "N/A"}
                   <Text className="font-Inter-SemiBold text-base "> hm³</Text>
                 </Text>
                 <View
@@ -248,7 +266,9 @@ export default function DataModal({
                   />
                 </View>
                 <Text className="mt-2 font-Inter-Bold text-lg text-[#3D7764] ">
-                  {HistoricalData && HistoricalData.length > 0 ? HistoricalData[0].porcentaje : "N/A"}
+                  {HistoricalData && Array.isArray(HistoricalData) && HistoricalData.length > 0
+                    ? HistoricalData[0].porcentaje
+                    : "N/A"}
                   <Text className="font-Inter-Medium text-base"> % capacidad total</Text>
                 </Text>
               </View>
@@ -265,7 +285,9 @@ export default function DataModal({
               <View className="flex-1 flex-col justify-center">
                 <Text className="font-Inter text-xl font-semibold text-[#3D7764]">Capacidad Total</Text>
                 <Text className="font-Inter-Black text-4xl  text-[#032e15]">
-                  {HistoricalData && HistoricalData.length > 0 ? HistoricalData[0].capacidad_total : "N/A"}
+                  {HistoricalData && Array.isArray(HistoricalData) && HistoricalData.length > 0
+                    ? HistoricalData[0].capacidad_total
+                    : "N/A"}
                   <Text className="font-Inter-Medium text-base"> hm³</Text>
                 </Text>
               </View>
@@ -282,8 +304,8 @@ export default function DataModal({
               <View className="flex-1 flex-col justify-center">
                 <Text className="font-Inter text-xl font-semibold text-[#3D7764]">Nivel (Cota)</Text>
                 <Text className="font-Inter-Black text-4xl  text-[#032e15]">
-                  {LiveData && LiveData.length > 0 ? LiveData[0].cota : "N/A"}
-                  <Text className="font-Inter-Medium text-base">msnm</Text>
+                  {LiveData && Array.isArray(LiveData) && LiveData.length > 0 ? LiveData[0].cota : "N/A"}
+                  <Text className="font-Inter-Medium text-base"> msnm</Text>
                 </Text>
               </View>
             </View>
@@ -295,8 +317,16 @@ export default function DataModal({
           ></View>
 
           {/* Historical Data Section */}
-
-          {contentKey === "historicaldata" && HistoricalData && <Chart data={HistoricalData} />}
+          {contentKey === "historicaldata" &&
+          HistoricalData &&
+          Array.isArray(HistoricalData) &&
+          HistoricalData.length > 0 ? (
+            <Chart data={HistoricalData} />
+          ) : contentKey === "historicaldata" ? (
+            <View className="mt-4 p-2">
+              <Text className="text-center font-Inter text-base text-white">No hay datos históricos disponibles</Text>
+            </View>
+          ) : null}
         </View>
       </TouchableOpacity>
     </Modal>

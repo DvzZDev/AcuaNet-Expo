@@ -20,8 +20,8 @@ import {
 } from "@hugeicons/core-free-icons"
 
 export default function Embalse() {
-  const [hData, setHData] = useState<EmbalseDataHistorical[] | null>(null)
-  const [liveData, setLiveData] = useState<EmbalseDataLive[] | null>(null)
+  const [hData, setHData] = useState<EmbalseDataHistorical[]>([])
+  const [liveData, setLiveData] = useState<EmbalseDataLive[]>([])
   const [ContentKey, setContentKey] = useState<string>("")
   const [isOpen, setIsOpen] = useState(false)
   const { embalse } = useLocalSearchParams()
@@ -29,8 +29,15 @@ export default function Embalse() {
 
   useEffect(() => {
     const fetchDataAsync = async () => {
-      await HistoricalData(embalse, codedEmbalse, setHData)
-      await LiveData(embalse, codedEmbalse, setLiveData)
+      try {
+        await HistoricalData(embalse, codedEmbalse, setHData)
+        await LiveData(embalse, codedEmbalse, setLiveData)
+      } catch (error) {
+        console.error("Error fetching data:", error)
+        // Asegurar que los estados tengan valores válidos en caso de error
+        setHData([])
+        setLiveData([])
+      }
     }
     fetchDataAsync()
   }, [])
@@ -91,17 +98,20 @@ export default function Embalse() {
       />
       <View className="flex flex-row items-center justify-between">
         <View className="flex flex-col justify-center gap-1">
-          <Text className="font-Inter text-2xl text-[#032E15]">Cuanca del {hData && hData[0].cuenca} </Text>
+          <Text className="font-Inter text-2xl text-[#032E15]">
+            Cuanca del {hData && hData.length > 0 ? hData[0].cuenca : "N/A"}{" "}
+          </Text>
           <View className="flex flex-row items-center justify-center gap-2">
             <Calendar />
             <Text className="font-Inter">
               Ult. Actualización -{" "}
-              {hData &&
-                new Date(hData[0].fecha).toLocaleDateString("es-ES", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
+              {hData && hData.length > 0
+                ? new Date(hData[0].fecha).toLocaleDateString("es-ES", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })
+                : "N/A"}
             </Text>
           </View>
         </View>
@@ -216,8 +226,8 @@ export default function Embalse() {
       </View>
 
       <DataModal
-        LiveData={liveData}
-        HistoricalData={hData}
+        LiveData={liveData && liveData.length > 0 ? liveData : []}
+        HistoricalData={hData && hData.length > 0 ? hData : []}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
         contentKey={ContentKey}
