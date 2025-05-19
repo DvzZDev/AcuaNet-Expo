@@ -3,6 +3,7 @@ import {
   ChartLineData02FreeIcons,
   DropletIcon,
   LiveStreaming02Icon,
+  RainbowIcon,
   RulerIcon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react-native"
@@ -11,6 +12,7 @@ import { Modal, TouchableOpacity, View, StyleSheet, Text } from "react-native"
 import { twMerge } from "tailwind-merge"
 import type { EmbalseDataLive, EmbalseDataHistorical } from "types"
 import Chart from "./Chart"
+import Weather from "./Weather"
 
 interface DataModalProps {
   LiveData?: EmbalseDataLive[] | null
@@ -19,9 +21,12 @@ interface DataModalProps {
   contentKey: string
   setIsOpen: (isOpen: boolean) => void
   setContentKey: (contentKey: string) => void
+  Location: string
+  weatherData?: any
 }
 
 export default function DataModal({
+  weatherData,
   LiveData,
   HistoricalData,
   isOpen,
@@ -34,7 +39,11 @@ export default function DataModal({
       ? "Datos en Tiempo Real"
       : contentKey === "weekdata"
         ? "Datos Semanales"
-        : "Datos Históricos"
+        : contentKey === "historicaldata"
+          ? "Datos Históricos"
+          : contentKey === "weatherForecast"
+            ? "Predicción Meteorológica"
+            : "Datos"
   const wildcard =
     contentKey === "livedata" ? "Datos no contrastados" : contentKey === "weekdata" ? "Datos Contrastados" : null
   const icon =
@@ -44,7 +53,9 @@ export default function DataModal({
         ? ChartLineData02FreeIcons
         : contentKey === "historicaldata"
           ? ChartLineData02FreeIcons
-          : null
+          : contentKey === "weatherForecast"
+            ? RainbowIcon
+            : null
   const iconColor =
     contentKey === "livedata"
       ? "#019FFF"
@@ -52,7 +63,9 @@ export default function DataModal({
         ? "#008f00"
         : contentKey === "historicaldata"
           ? "#C09400"
-          : ""
+          : contentKey === "weatherForecast"
+            ? "#9000FF"
+            : ""
   return (
     <Modal
       visible={isOpen}
@@ -60,7 +73,6 @@ export default function DataModal({
       className="flex items-center justify-center"
       transparent={true}
       onRequestClose={() => {
-        // Cerramos el modal y limpiamos el contenido con un pequeño retraso
         setIsOpen(false)
         setTimeout(() => {
           setContentKey("")
@@ -71,7 +83,6 @@ export default function DataModal({
         activeOpacity={1}
         className="flex-1 items-center justify-center p-3"
         onPressOut={() => {
-          // Primero cerramos el modal y luego limpiamos el contentKey después de un pequeño retraso
           setIsOpen(false)
           setTimeout(() => {
             setContentKey("")
@@ -94,7 +105,9 @@ export default function DataModal({
                 ? "bg-[#dbfce7]"
                 : contentKey === "historicaldata"
                   ? "bg-[#141602]"
-                  : "bg-gray-700"
+                  : contentKey === "weatherForecast"
+                    ? "bg-[#380063]"
+                    : "bg-gray-700"
           )}
           onStartShouldSetResponder={() => true}
           onTouchEnd={(e) => {
@@ -112,7 +125,9 @@ export default function DataModal({
                     ? "border-[#008F06]/50 bg-[#baffbd]"
                     : contentKey === "historicaldata"
                       ? "border-[#C09400]/50 bg-[#EFFFBA]"
-                      : ""
+                      : contentKey === "weatherForecast"
+                        ? "border-[#9000FF]/50 bg-[#E1BAFF]"
+                        : ""
               )}
             >
               <View className="flex flex-row items-center gap-2">
@@ -130,7 +145,9 @@ export default function DataModal({
                         ? "text-[#019FFF]"
                         : contentKey === "historicaldata"
                           ? "text-[#C09400]"
-                          : "text-[#D9F5FF]"
+                          : contentKey === "weatherForecast"
+                            ? "text-[#9000FF]"
+                            : "text-[#D9F5FF]"
                   )}
                 >
                   {title}
@@ -325,6 +342,18 @@ export default function DataModal({
           ) : contentKey === "historicaldata" ? (
             <View className="mt-4 p-2">
               <Text className="text-center font-Inter text-base text-white">No hay datos históricos disponibles</Text>
+            </View>
+          ) : null}
+
+          {/* Weather Forecast Section */}
+          {contentKey === "weatherForecast" ? (
+            <View className="mt-4 p-2">
+              <View className="mt-4 rounded-lg bg-[#f3e2ff] p-4">
+                <Text className="text-center font-Inter text-base text-[#3D0075]">
+                  Estamos trabajando para añadir la predicción meteorológica a esta sección.
+                </Text>
+                <Weather data={weatherData} />
+              </View>
             </View>
           ) : null}
         </View>
