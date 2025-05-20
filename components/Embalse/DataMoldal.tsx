@@ -34,6 +34,11 @@ export default function DataModal({
   setContentKey,
   contentKey,
 }: DataModalProps) {
+  if (!isOpen) return null
+  // Ensure arrays are not null
+  const liveData = LiveData ?? []
+  const historicalData = HistoricalData ?? []
+
   const title =
     contentKey === "livedata"
       ? "Datos en Tiempo Real"
@@ -81,7 +86,7 @@ export default function DataModal({
     >
       <TouchableOpacity
         activeOpacity={1}
-        className="flex-1 items-center justify-center p-3"
+        className="flex-1 items-center justify-center p-2"
         onPressOut={() => {
           setIsOpen(false)
           setTimeout(() => {
@@ -98,7 +103,7 @@ export default function DataModal({
         />
         <View
           className={twMerge(
-            "h-fit w-full rounded-xl p-4",
+            "h-fit w-full rounded-xl p-3",
             contentKey === "livedata"
               ? "bg-[#003352]"
               : contentKey === "weekdata"
@@ -207,8 +212,8 @@ export default function DataModal({
               }
             </View>
             {/* Table Rows */}
-            {LiveData && Array.isArray(LiveData) && LiveData.length > 0 ? (
-              LiveData.map((d) => (
+            {liveData?.length > 0 ? (
+              liveData?.map((d) => (
                 <View
                   key={d.id}
                   className="mb-1 flex w-full flex-row items-center justify-between rounded-lg border-b border-blue-800 bg-[#044c77] p-1"
@@ -257,9 +262,7 @@ export default function DataModal({
               <View className="flex-1 flex-col justify-center">
                 <Text className="font-Inter text-xl font-semibold text-[#3D7764]">Agua Embalsada</Text>
                 <Text className="font-Inter-Black text-4xl  text-[#032e15]">
-                  {HistoricalData && Array.isArray(HistoricalData) && HistoricalData.length > 0
-                    ? HistoricalData[0].volumen_actual
-                    : "N/A"}
+                  {historicalData.length > 0 ? historicalData[0].volumen_actual : "N/A"}
                   <Text className="font-Inter-SemiBold text-base "> hm³</Text>
                 </Text>
                 <View
@@ -283,9 +286,7 @@ export default function DataModal({
                   />
                 </View>
                 <Text className="mt-2 font-Inter-Bold text-lg text-[#3D7764] ">
-                  {HistoricalData && Array.isArray(HistoricalData) && HistoricalData.length > 0
-                    ? HistoricalData[0].porcentaje
-                    : "N/A"}
+                  {historicalData.length > 0 ? historicalData[0].porcentaje : "N/A"}
                   <Text className="font-Inter-Medium text-base"> % capacidad total</Text>
                 </Text>
               </View>
@@ -302,9 +303,7 @@ export default function DataModal({
               <View className="flex-1 flex-col justify-center">
                 <Text className="font-Inter text-xl font-semibold text-[#3D7764]">Capacidad Total</Text>
                 <Text className="font-Inter-Black text-4xl  text-[#032e15]">
-                  {HistoricalData && Array.isArray(HistoricalData) && HistoricalData.length > 0
-                    ? HistoricalData[0].capacidad_total
-                    : "N/A"}
+                  {historicalData.length > 0 ? historicalData[0].capacidad_total : "N/A"}
                   <Text className="font-Inter-Medium text-base"> hm³</Text>
                 </Text>
               </View>
@@ -321,7 +320,7 @@ export default function DataModal({
               <View className="flex-1 flex-col justify-center">
                 <Text className="font-Inter text-xl font-semibold text-[#3D7764]">Nivel (Cota)</Text>
                 <Text className="font-Inter-Black text-4xl  text-[#032e15]">
-                  {LiveData && Array.isArray(LiveData) && LiveData.length > 0 ? LiveData[0].cota : "N/A"}
+                  {liveData.length > 0 ? liveData[0].cota : "N/A"}
                   <Text className="font-Inter-Medium text-base"> msnm</Text>
                 </Text>
               </View>
@@ -334,11 +333,8 @@ export default function DataModal({
           ></View>
 
           {/* Historical Data Section */}
-          {contentKey === "historicaldata" &&
-          HistoricalData &&
-          Array.isArray(HistoricalData) &&
-          HistoricalData.length > 0 ? (
-            <Chart data={HistoricalData} />
+          {contentKey === "historicaldata" && historicalData.length > 0 ? (
+            <Chart data={historicalData} />
           ) : contentKey === "historicaldata" ? (
             <View className="mt-4 p-2">
               <Text className="text-center font-Inter text-base text-white">No hay datos históricos disponibles</Text>
@@ -346,14 +342,13 @@ export default function DataModal({
           ) : null}
 
           {/* Weather Forecast Section */}
-          {contentKey === "weatherForecast" ? (
+          {contentKey === "weatherForecast" && weatherData ? (
+            <Weather data={weatherData ?? null} />
+          ) : contentKey === "weatherForecast" ? (
             <View className="mt-4 p-2">
-              <View className="mt-4 rounded-lg bg-[#f3e2ff] p-4">
-                <Text className="text-center font-Inter text-base text-[#3D0075]">
-                  Estamos trabajando para añadir la predicción meteorológica a esta sección.
-                </Text>
-                <Weather data={weatherData} />
-              </View>
+              <Text className="text-center font-Inter text-base text-white">
+                No hay datos meteorológicos disponibles
+              </Text>
             </View>
           ) : null}
         </View>
