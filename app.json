@@ -14,27 +14,44 @@
       [
         "expo-font",
         {
-          "fonts": ["./assets/fonts/Inter.ttf"]
+          "fonts": [
+            "./assets/fonts/Inter.ttf"
+          ]
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/LogoE.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#16151a"
         }
       ]
     ],
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Icon-Ios.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.dvzz.AcuaNet",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "scheme": "acuanet",
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/Icon-Android.png"
+      },
+      "package": "com.dvzz.AcuaNet"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "cbd687c4-483a-4df3-b443-94debaf44880"
       }
     }
   }
