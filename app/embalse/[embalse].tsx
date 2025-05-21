@@ -73,7 +73,7 @@ export default function Embalse() {
           headerBackButtonDisplayMode: "minimal",
           headerRight: () => (
             <Image
-              source={require("../../assets/Logo.png")}
+              source={require("@assets/LogoE.png")}
               style={{
                 width: 40,
                 height: 40,
