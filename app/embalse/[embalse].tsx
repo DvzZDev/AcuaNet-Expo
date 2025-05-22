@@ -140,11 +140,10 @@ export default function Embalse() {
       <View className="mt-5 h-[12rem] w-full rounded-lg bg-green-300 p-2">
         <ScrollView>
           <Text className="font-Inter text-base">
-            En los próximos días en la zona de El Atazar, las temperaturas oscilarán entre los 6°C y los 22°C. Prepárate
-            para posibles lluvias el lunes y miércoles, con vientos que podrían alcanzar los 30 km/h el lunes por la
-            tarde. A partir del jueves, el tiempo mejora con cielos parcialmente nublados y vientos más suaves. La luna
-            llena de estos días favorece la actividad, especialmente hasta el miércoles. El embalse está casi a su
-            máxima capacidad, con un 98% de llenado, lo que podría afectar el acceso a algunas áreas.
+            En los próximos días, el embalse de Orellana se mantiene alto, al 86%, lo que podría influir en el acceso a
+            algunas zonas de pesca. La fase lunar será favorable con actividad alta. El clima será mayormente soleado y
+            caluroso, con temperaturas máximas que superarán los 30°C a partir del domingo. El viento soplará con fuerza
+            el jueves y viernes, especialmente por la tarde, pero disminuirá gradualmente durante el fin de semana.
           </Text>
         </ScrollView>
       </View>

@@ -185,6 +185,7 @@ export default function Weather({ data }: { data: WeatherData | null | undefined
           <BlurView
             intensity={30}
             tint="dark"
+            experimentalBlurMethod="dimezisBlurView"
             className="absolute inset-0"
             style={{ borderRadius: 12 }}
           />
