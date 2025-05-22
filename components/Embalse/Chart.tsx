@@ -191,9 +191,6 @@ export default function Chart({ data = [], filterMode = "monthly" }: ChartProps)
     })
   }, [weeklyProcessedData])
 
-  // dynamic width for weekly chart: each item approx 40px or screen width
-  const weeklyChartWidth = Math.max(chartWidth, groupedWeeklyData.length * 40)
-
   if (!data || data.length === 0) {
     return (
       <View style={{ alignItems: "center", justifyContent: "center", padding: 20 }}>
@@ -273,7 +270,7 @@ export default function Chart({ data = [], filterMode = "monthly" }: ChartProps)
                   )}
                   {typeof items[1]?.value === "number" && (
                     <View className="flex-row items-center">
-                      <View className="mr-1.5 h-2 w-2 bg-[#008be7]" />
+                      <View className="bg-[# ] mr-1.5 h-2 w-2 bg-[#008be7]" />
                       <Text className="text-[10px] text-white">2024: {items[1].value.toFixed(2)}%</Text>
                     </View>
                   )}

@@ -1,5 +1,6 @@
 import React, { useState } from "react"
-import { Image, Text, TouchableOpacity, View } from "react-native"
+import { LineChart, yAxisSides } from "react-native-gifted-charts"
+import { Dimensions, Image, Text, TouchableOpacity, View } from "react-native"
 import Animated, { ZoomIn, ZoomOut } from "react-native-reanimated"
 import { ScrollView, GestureHandlerRootView } from "react-native-gesture-handler"
 
@@ -8,10 +9,12 @@ import { getWeatherIcon } from "../../lib/weatherIcon"
 import { BlurView } from "expo-blur"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import { ArrowTurnBackwardIcon } from "@hugeicons/core-free-icons"
+import { LinearGradient, Stop } from "react-native-svg"
 
 export default function Weather({ data }: { data: WeatherData | null | undefined }) {
   const [selectedDay, setSelectedDay] = useState<Date>(new Date())
   const [active, setActive] = useState(false)
+  const chartWidth = Dimensions.get("window").width - 75
   const targetDate = data?.days.find((day) => day.datetime === selectedDay)
   if (!data || !data.days || data.days.length === 0) {
     return (
@@ -158,7 +161,7 @@ export default function Weather({ data }: { data: WeatherData | null | undefined
                           />
                         </View>
                         <Text className="text-md font-Inter-SemiBold text-pink-200/60">{day.tempmin.toFixed(0)}º</Text>
-                        <Text className="text-md font-Inter-SemiBold text-pink-200">{day.temp.toFixed(0)}º</Text>
+                        <Text className="text-md font-Inter-SemiBold text-pink-200">{day.tempmax.toFixed(0)}º</Text>
                         <Text className="text-md font-Inter-SemiBold text-teal-100">
                           {day.windspeed.toFixed(0)} <Text className="text-xs">km/h</Text>
                         </Text>
@@ -208,7 +211,7 @@ export default function Weather({ data }: { data: WeatherData | null | undefined
               </Text>
             </View>
             <View className="mt-7 h-fit w-full flex-row items-center gap-1">
-              <Text className="font-Inter-SemiBold text-4xl text-pink-200">{targetDate?.temp.toFixed(0)}º</Text>
+              <Text className="font-Inter-SemiBold text-4xl text-pink-200">{targetDate?.tempmax.toFixed(0)}º</Text>
               <Text className="font-Inter-SemiBold text-4xl text-pink-200/70">{targetDate?.tempmin.toFixed(0)}º</Text>
               <Image
                 source={{
@@ -218,7 +221,119 @@ export default function Weather({ data }: { data: WeatherData | null | undefined
                 style={{ width: 40, height: 40 }}
               />
             </View>
-            <Text className="w-full font-Inter-Medium text-sm text-pink-100">Celsius (ºC)</Text>
+            <Text className="w-full font-Inter-Medium text-base text-pink-100">Celsius (ºC)</Text>
+
+            <View className="h-fit w-full">
+              <LineChart
+                data={
+                  targetDate?.hours?.map((h) => ({
+                    value: h.temp,
+                    icon: h.icon,
+                    date: h.datetime,
+                    labelTextStyle: { color: "#c99fb7", fontFamily: "Inter", width: 35, fontSize: 12 },
+                  })) || []
+                }
+                overflowTop={50}
+                rulesType="solid"
+                rulesColor="rgba(201, 159, 183, 0.2)"
+                rulesThickness={1}
+                showYAxisIndices={true}
+                yAxisIndicesHeight={2}
+                curved
+                lineGradientDirection="vertical"
+                lineGradientStartColor="#f556b0"
+                lineGradientEndColor="#c99fb7"
+                thickness={5}
+                disableScroll
+                color="#f556b0"
+                yAxisIndicesWidth={10}
+                verticalLinesColor={"rgba(201, 159, 183, 0.2)"}
+                verticalLinesThickness={1}
+                xAxisColor={"#fff"}
+                yAxisColor={"#fff"}
+                areaChart
+                areaGradientId="ggrd"
+                isAnimated
+                areaGradientComponent={() => {
+                  return (
+                    <LinearGradient
+                      id="ggrd"
+                      x1="0"
+                      y1="1"
+                      x2="0"
+                      y2="0"
+                    >
+                      <Stop
+                        offset="0"
+                        stopColor={"#ffe4fa"}
+                        stopOpacity={0.2}
+                      />
+                      <Stop
+                        offset="0.8"
+                        stopColor={"#a4547e"}
+                        stopOpacity={0.7}
+                      />
+                      <Stop
+                        offset="1"
+                        stopColor={"#66003a"}
+                      />
+                    </LinearGradient>
+                  )
+                }}
+                hideDataPoints
+                initialSpacing={5}
+                adjustToWidth
+                endSpacing={10}
+                width={chartWidth}
+                height={250}
+                yAxisLabelSuffix="º"
+                yAxisSide={yAxisSides.RIGHT}
+                yAxisTextStyle={{ color: "#c99fb7", fontFamily: "Inter" }}
+                xAxisLabelTexts={
+                  targetDate?.hours?.map((h) => {
+                    const hour = parseInt(h.datetime.slice(0, 2))
+                    return [0, 6, 12, 18].includes(hour) ? h.datetime.slice(0, 5) : ""
+                  }) || []
+                }
+                maxValue={45}
+                stepValue={5}
+                pointerConfig={{
+                  pointerStripHeight: 160,
+                  pointerStripColor: "#c99fb7",
+                  pointerStripWidth: 2,
+                  hidePointers: false,
+                  stripOverPointer: true,
+                  pointerColor: "#f556b0",
+                  radius: 6,
+                  pointerLabelWidth: 100,
+                  pointerLabelHeight: 90,
+                  activatePointersOnLongPress: true,
+                  autoAdjustPointerLabelPosition: true,
+                  pointerLabelComponent: (items: any) => {
+                    return (
+                      <View className="mt-[-4rem] h-fit w-[8.6rem] justify-center">
+                        <View className="flex-col items-center justify-center gap-1 rounded-xl bg-[#23053a] p-3">
+                          <Text className="mb-1.5 text-center font-Inter-SemiBold text-lg text-pink-200/60">
+                            {items[0].date.slice(0, 5)}
+                          </Text>
+
+                          <View className="flex-row items-center justify-center gap-1">
+                            <Image
+                              source={{
+                                uri: Image.resolveAssetSource(getWeatherIcon(items[0].icon)).uri,
+                                cache: "force-cache",
+                              }}
+                              style={{ width: 40, height: 40 }}
+                            />
+                            <Text className="font-Inter-Bold text-4xl text-pink-200">{items[0].value.toFixed(0)}º</Text>
+                          </View>
+                        </View>
+                      </View>
+                    )
+                  },
+                }}
+              />
+            </View>
           </View>
         </Animated.View>
       )}
