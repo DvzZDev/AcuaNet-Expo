@@ -154,7 +154,7 @@ export default function Embalse() {
 
       <Animated.View className="mt-10 flex flex-col gap-5">
         {liveData.length > 0 ? (
-          <Animated.View entering={FadeIn}>
+          <Animated.View entering={FadeIn.duration(150)}>
             <TouchableOpacity
               onPress={() => {
                 setContentKey("livedata")
@@ -179,7 +179,7 @@ export default function Embalse() {
         )}
 
         {hData.length > 0 ? (
-          <Animated.View entering={FadeIn}>
+          <Animated.View entering={FadeIn.duration(150)}>
             <TouchableOpacity
               onPress={() => {
                 setContentKey("weekdata")
@@ -204,7 +204,7 @@ export default function Embalse() {
         )}
 
         {hData.length > 0 ? (
-          <Animated.View entering={FadeIn}>
+          <Animated.View entering={FadeIn.duration(150)}>
             <TouchableOpacity
               onPress={() => {
                 setContentKey("historicaldata")
@@ -229,7 +229,7 @@ export default function Embalse() {
         )}
 
         {!weatherLoading ? (
-          <Animated.View entering={FadeIn}>
+          <Animated.View entering={FadeIn.duration(150)}>
             <TouchableOpacity
               onPress={() => {
                 setContentKey("weatherForecast")
@@ -254,7 +254,7 @@ export default function Embalse() {
         )}
 
         {hData.length > 0 ? (
-          <Animated.View entering={FadeIn}>
+          <Animated.View entering={FadeIn.duration(150)}>
             <TouchableOpacity
               onPress={() => {
                 setContentKey("maps")
@@ -279,7 +279,7 @@ export default function Embalse() {
         )}
 
         {hData.length > 0 ? (
-          <Animated.View entering={FadeIn}>
+          <Animated.View entering={FadeIn.duration(150)}>
             <TouchableOpacity
               onPress={() => {
                 setContentKey("lunarTable")

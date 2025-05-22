@@ -61,7 +61,7 @@ export default function Layout() {
         <Tabs.Screen
           name="geocode"
           options={{
-            title: "GeoCode",
+            title: "CatchMap",
             tabBarIcon: () => <Map />,
           }}
         />
