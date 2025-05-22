@@ -129,7 +129,7 @@ export default function DataModal({
                   : contentKey === "weekdata"
                     ? "border-[#008F06]/50 bg-[#baffbd]"
                     : contentKey === "historicaldata"
-                      ? "border-[#C09400]/50 bg-[#4896ef53] bg-[#EFFFBA]"
+                      ? "border-[#C09400]/50 bg-[#EFFFBA]"
                       : contentKey === "weatherForecast"
                         ? "border-[#9000FF]/50 bg-[#E1BAFF]"
                         : ""
