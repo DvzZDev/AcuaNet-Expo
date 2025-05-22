@@ -3,6 +3,7 @@ import { LineChart, yAxisSides } from "react-native-gifted-charts"
 import { Dimensions, Image, Text, TouchableOpacity, View } from "react-native"
 import Animated, { ZoomIn, ZoomOut } from "react-native-reanimated"
 import { ScrollView, GestureHandlerRootView } from "react-native-gesture-handler"
+import SegmentedControl from "@react-native-segmented-control/segmented-control"
 
 import type { WeatherData } from "types"
 import { getWeatherIcon } from "../../lib/weatherIcon"
@@ -14,6 +15,7 @@ import { LinearGradient, Stop } from "react-native-svg"
 export default function Weather({ data }: { data: WeatherData | null | undefined }) {
   const [selectedDay, setSelectedDay] = useState<Date>(new Date())
   const [active, setActive] = useState(false)
+  const [selectedIndex, setSelectedIndex] = useState(0)
   const chartWidth = Dimensions.get("window").width - 75
   const targetDate = data?.days.find((day) => day.datetime === selectedDay)
   if (!data || !data.days || data.days.length === 0) {
@@ -178,13 +180,15 @@ export default function Weather({ data }: { data: WeatherData | null | undefined
         <Animated.View
           entering={ZoomIn.duration(150)}
           exiting={ZoomOut.duration(150)}
-          className="absolute inset-0 z-20"
+          className="absolute inset-0 z-20 overflow-hidden rounded-xl"
         >
           <BlurView
-            intensity={300}
+            intensity={30}
+            tint="dark"
             className="absolute inset-0"
+            style={{ borderRadius: 12 }}
           />
-          <View className="relative flex h-[34rem] w-full items-center rounded-xl bg-[#380063] px-4 py-7 shadow-lg">
+          <View className="relative flex h-[34rem] w-full items-center  bg-[#380063a1] px-4 py-7 shadow-lg">
             <TouchableOpacity
               className="absolute right-2 top-4 z-10 p-1"
               onPress={() => setActive(false)}
@@ -227,19 +231,19 @@ export default function Weather({ data }: { data: WeatherData | null | undefined
               <LineChart
                 data={
                   targetDate?.hours?.map((h) => ({
-                    value: h.temp,
+                    value: selectedIndex === 0 ? h.temp : h.feelslike,
                     icon: h.icon,
                     date: h.datetime,
                     labelTextStyle: { color: "#c99fb7", fontFamily: "Inter", width: 35, fontSize: 12 },
                   })) || []
                 }
                 overflowTop={50}
+                animateOnDataChange
                 rulesType="solid"
                 rulesColor="rgba(201, 159, 183, 0.2)"
                 rulesThickness={1}
                 showYAxisIndices={true}
                 yAxisIndicesHeight={2}
-                curved
                 lineGradientDirection="vertical"
                 lineGradientStartColor="#f556b0"
                 lineGradientEndColor="#c99fb7"
@@ -332,6 +336,17 @@ export default function Weather({ data }: { data: WeatherData | null | undefined
                     )
                   },
                 }}
+              />
+              <SegmentedControl
+                values={["Real", "Sensación"]}
+                style={{ width: "100%", marginTop: 10, borderRadius: 10 }}
+                backgroundColor="#7636a6"
+                tintColor="#f556b0"
+                fontStyle={{ fontFamily: "Inter", color: "#fce7f3" }}
+                activeFontStyle={{ fontFamily: "Inter", color: "#fce7f3" }}
+                enabled={true}
+                selectedIndex={selectedIndex}
+                onChange={(event) => setSelectedIndex(event.nativeEvent.selectedSegmentIndex)}
               />
             </View>
           </View>
