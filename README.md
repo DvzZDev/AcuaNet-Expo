@@ -1,7 +1,8 @@
 # AcuaNet-APP
-[![wakatime](https://wakatime.com/badge/user/6bd06c8f-e8ed-4ccd-aead-9566f25b3a8b/project/4e74419d-edae-411e-923e-a70e7497896e.svg)](https://wakatime.com/badge/user/6bd06c8f-e8ed-4ccd-aead-9566f25b3a8b/project/4e74419d-edae-411e-923e-a70e7497896e)
-
-![Descripción de la imagen](https://i.imgur.com/5lZm1Hj.png)
+<p>
+  <img src="https://raw.githubusercontent.com/DvzZDev/AcuaNet-Expo/refs/heads/master/assets/Icon-Ios-Rounded.png" alt="iOS Icon" width="300" style="margin-right: 20px;" />
+  <img src="https://raw.githubusercontent.com/DvzZDev/AcuaNet-Expo/refs/heads/master/assets/Icon-Android-Rounded.png" alt="Android Icon" width="300" />
+</p>
 
 Bienvenido al repositorio de **AcuaNet-Expo**. Aquí se desarrollará la aplicación móvil de AcuaNet, diseñada para plataformas **Android** e **iOS**.
 
