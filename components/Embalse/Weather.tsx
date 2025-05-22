@@ -11,11 +11,13 @@ import { BlurView } from "expo-blur"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import { ArrowTurnBackwardIcon } from "@hugeicons/core-free-icons"
 import { LinearGradient, Stop } from "react-native-svg"
+import DropDown from "../Embalse/ContentModal/Dropdown"
 
 export default function Weather({ data }: { data: WeatherData | null | undefined }) {
   const [selectedDay, setSelectedDay] = useState<Date>(new Date())
   const [active, setActive] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [selectedDropDown, setSelectedDropDown] = useState<string>("Condiciones")
   const chartWidth = Dimensions.get("window").width - 75
   const targetDate = data?.days.find((day) => day.datetime === selectedDay)
   if (!data || !data.days || data.days.length === 0) {
@@ -33,6 +35,8 @@ export default function Weather({ data }: { data: WeatherData | null | undefined
   const sunrise = currentDay.sunrise
   const sunset = currentDay.sunset
 
+  // DropDrown content
+
   // Convertir hora de sunrise y sunset a formato numérico para comparación
   const sunriseHour = parseInt(sunrise.slice(0, 2))
   const sunsetHour = parseInt(sunset.slice(0, 2))
@@ -40,8 +44,8 @@ export default function Weather({ data }: { data: WeatherData | null | undefined
   return (
     <>
       <View className="h-fit w-full">
-        <View className="mt-4 h-fit w-full rounded-2xl bg-[#380063]">
-          <View className="text-bg-pink-200 mb-3 h-fit w-fit items-center justify-center rounded-md rounded-t-2xl bg-[#7636a6] p-2">
+        <View className="mt-4 h-fit w-full rounded-2xl">
+          <View className="text-bg-pink-200 mb-3 h-fit w-fit items-center justify-center rounded-md rounded-t-2xl bg-[#7636a6]/80 p-2">
             <Text className="font-Inter-Medium text-pink-200">{data.days[0].description}</Text>
           </View>
           <GestureHandlerRootView style={{ width: "100%", height: "auto" }}>
@@ -215,18 +219,26 @@ export default function Weather({ data }: { data: WeatherData | null | undefined
                   })()}
               </Text>
             </View>
-            <View className="mt-7 h-fit w-full flex-row items-center gap-1">
-              <Text className="font-Inter-SemiBold text-4xl text-pink-200">{targetDate?.tempmax.toFixed(0)}º</Text>
-              <Text className="font-Inter-SemiBold text-4xl text-pink-200/70">{targetDate?.tempmin.toFixed(0)}º</Text>
-              <Image
-                source={{
-                  uri: Image.resolveAssetSource(getWeatherIcon(targetDate?.icon || "default")).uri,
-                  cache: "force-cache",
-                }}
-                style={{ width: 40, height: 40 }}
-              />
+
+            <View className="mx-4 w-full flex-row items-center justify-between">
+              <View className="flex-col justify-center">
+                <View className="mt-7 h-fit w-full flex-row items-center gap-1">
+                  <Text className="font-Inter-SemiBold text-4xl text-pink-200">{targetDate?.tempmax.toFixed(0)}º</Text>
+                  <Text className="font-Inter-SemiBold text-4xl text-pink-200/70">
+                    {targetDate?.tempmin.toFixed(0)}º
+                  </Text>
+                  <Image
+                    source={{
+                      uri: Image.resolveAssetSource(getWeatherIcon(targetDate?.icon || "default")).uri,
+                      cache: "force-cache",
+                    }}
+                    style={{ width: 40, height: 40 }}
+                  />
+                </View>
+                <Text className="w-full font-Inter-Medium text-base text-pink-100">Celsius (ºC)</Text>
+              </View>
+              <DropDown onSelect={(option: string) => setSelectedDropDown(option)} />
             </View>
-            <Text className="w-full font-Inter-Medium text-base text-pink-100">Celsius (ºC)</Text>
 
             <View className="h-fit w-full">
               <LineChart

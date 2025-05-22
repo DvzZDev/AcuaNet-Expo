@@ -1,18 +1,13 @@
-import {
-  Analytics03Icon,
-  ChartLineData02FreeIcons,
-  DropletIcon,
-  LiveStreaming02Icon,
-  RainbowIcon,
-  RulerIcon,
-} from "@hugeicons/core-free-icons"
+import { ChartLineData02FreeIcons, LiveStreaming02Icon, RainbowIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import { BlurView } from "expo-blur"
+import LiveDataTable from "./ContentModal/LiveDataTable"
 import { Modal, TouchableOpacity, View, StyleSheet, Text } from "react-native"
 import { twMerge } from "tailwind-merge"
-import type { EmbalseDataLive, EmbalseDataHistorical } from "types"
-import Chart from "./Chart"
 import Weather from "./Weather"
+import type { EmbalseDataLive, EmbalseDataHistorical } from "types"
+import WeekData from "./ContentModal/WeekData"
+import Chart from "./ContentModal/Chart"
 
 interface DataModalProps {
   LiveData?: EmbalseDataLive[] | null
@@ -105,13 +100,13 @@ export default function DataModal({
           className={twMerge(
             "h-fit w-full rounded-xl p-3",
             contentKey === "livedata"
-              ? "bg-[#003352]"
+              ? "bg-[#003352]/80"
               : contentKey === "weekdata"
-                ? "bg-[#dbfce7]"
+                ? "bg-[#dbfce7]/80"
                 : contentKey === "historicaldata"
-                  ? "bg-[#141602]"
+                  ? "bg-[#141602]/80"
                   : contentKey === "weatherForecast"
-                    ? "bg-[#380063]"
+                    ? "bg-[#270541]/80"
                     : "bg-gray-700"
           )}
           onStartShouldSetResponder={() => true}
@@ -159,6 +154,7 @@ export default function DataModal({
                 </Text>
               </View>
             </View>
+
             {/* Wildcard */}
             <View
               className={twMerge(
@@ -188,151 +184,19 @@ export default function DataModal({
           </View>
 
           {/* Content Livc Data */}
-          <View className={`mt-4 flex w-full flex-col ${contentKey === "livedata" ? "block" : "hidden"}`}>
-            {/* Table Header */}
-            <View className="mb-2 flex w-full flex-row justify-between">
-              {
-                <>
-                  <View className="flex-1">
-                    <Text className="text-center font-Inter text-lg font-bold text-[#D9F5FF]">Hora</Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-center font-Inter text-lg font-bold text-[#D9F5FF]">Volumen</Text>
-                    <Text className="text-center font-Inter text-xs text-[#D9F5FF]">(hm3)</Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-center font-Inter text-lg font-bold text-[#D9F5FF]">Capacidad</Text>
-                    <Text className="text-center font-Inter text-xs text-[#D9F5FF]">(%)</Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-center font-Inter text-lg font-bold text-[#D9F5FF]">Cota</Text>
-                    <Text className="text-center font-Inter text-xs text-[#D9F5FF]">(msnm)</Text>
-                  </View>
-                </>
-              }
-            </View>
-            {/* Table Rows */}
-            {liveData?.length > 0 ? (
-              liveData?.map((d) => (
-                <View
-                  key={d.id}
-                  className="mb-1 flex w-full flex-row items-center justify-between rounded-lg border-b border-blue-800 bg-[#044c77] p-1"
-                >
-                  <View className="flex-1">
-                    <Text className="text-center font-Inter text-base text-[#D9F5FF]">
-                      {new Date(d.timestamp).toLocaleTimeString("es-ES", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        day: "2-digit",
-                        month: "2-digit",
-                      })}
-                    </Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-center font-Inter text-base text-[#D9F5FF]">{d.volumen}</Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-center font-Inter text-base text-[#D9F5FF]">{d.porcentaje}%</Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-center font-Inter text-base text-[#D9F5FF]">{d.cota}</Text>
-                  </View>
-                </View>
-              ))
-            ) : (
-              <View className="p-2">
-                <Text className="text-center font-Inter text-base text-[#D9F5FF]">No hay datos disponibles</Text>
-              </View>
-            )}
-          </View>
-          {/* End contante Live Data */}
+          <LiveDataTable
+            liveData={liveData}
+            contentKey={contentKey}
+          />
 
           {/* Week data */}
-          <View
-            className={`${contentKey === "weekdata" ? "flex" : "hidden"} mt-3 flex-col items-center justify-center gap-6 `}
-          >
-            <View className="flex w-full flex-row items-center gap-6">
-              <View className="h-16 w-16 flex-none items-center justify-center rounded-lg bg-[#6feeac] p-2">
-                <HugeiconsIcon
-                  icon={DropletIcon}
-                  size={40}
-                  color="black"
-                />
-              </View>
-              <View className="flex-1 flex-col justify-center">
-                <Text className="font-Inter text-xl font-semibold text-[#3D7764]">Agua Embalsada</Text>
-                <Text className="font-Inter-Black text-4xl  text-[#032e15]">
-                  {historicalData.length > 0 ? historicalData[0].volumen_actual : "N/A"}
-                  <Text className="font-Inter-SemiBold text-base "> hm³</Text>
-                </Text>
-                <View
-                  style={{
-                    marginTop: 4,
-                    height: 12,
-                    backgroundColor: "#00c740",
-                    borderRadius: 999,
-                    position: "relative",
-                  }}
-                >
-                  <View
-                    style={{
-                      position: "absolute",
-                      right: 0,
-                      height: "100%",
-                      width: 8,
-                      backgroundColor: "black",
-                      borderRadius: 999,
-                    }}
-                  />
-                </View>
-                <Text className="mt-2 font-Inter-Bold text-lg text-[#3D7764] ">
-                  {historicalData.length > 0 ? historicalData[0].porcentaje : "N/A"}
-                  <Text className="font-Inter-Medium text-base"> % capacidad total</Text>
-                </Text>
-              </View>
-            </View>
+          <WeekData
+            liveData={liveData}
+            historicalData={historicalData}
+            contentKey={contentKey}
+          />
 
-            <View className="flex w-full flex-row items-center gap-6">
-              <View className="h-16 w-16 flex-none items-center justify-center rounded-lg bg-[#6feeac] p-2">
-                <HugeiconsIcon
-                  icon={RulerIcon}
-                  size={40}
-                  color="black"
-                />
-              </View>
-              <View className="flex-1 flex-col justify-center">
-                <Text className="font-Inter text-xl font-semibold text-[#3D7764]">Capacidad Total</Text>
-                <Text className="font-Inter-Black text-4xl  text-[#032e15]">
-                  {historicalData.length > 0 ? historicalData[0].capacidad_total : "N/A"}
-                  <Text className="font-Inter-Medium text-base"> hm³</Text>
-                </Text>
-              </View>
-            </View>
-
-            <View className="flex w-full flex-row items-center gap-6">
-              <View className="h-16 w-16 flex-none items-center justify-center rounded-lg bg-[#6feeac] p-2">
-                <HugeiconsIcon
-                  icon={Analytics03Icon}
-                  size={40}
-                  color="black"
-                />
-              </View>
-              <View className="flex-1 flex-col justify-center">
-                <Text className="font-Inter text-xl font-semibold text-[#3D7764]">Nivel (Cota)</Text>
-                <Text className="font-Inter-Black text-4xl  text-[#032e15]">
-                  {liveData.length > 0 ? liveData[0].cota : "N/A"}
-                  <Text className="font-Inter-Medium text-base"> msnm</Text>
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/*CHART*/}
-          <View
-            className={`${contentKey === "weekdata" ? "flex" : "hidden"} mt-3 flex-col items-center justify-center gap-6 `}
-          ></View>
-
-          {/* Historical Data Section */}
+          {/* Historical Data */}
           {contentKey === "historicaldata" && historicalData.length > 0 ? (
             <Chart data={historicalData} />
           ) : contentKey === "historicaldata" ? (
@@ -341,7 +205,7 @@ export default function DataModal({
             </View>
           ) : null}
 
-          {/* Weather Forecast Section */}
+          {/* Weather Forecast */}
           {contentKey === "weatherForecast" && weatherData ? (
             <Weather data={weatherData ?? null} />
           ) : contentKey === "weatherForecast" ? (
