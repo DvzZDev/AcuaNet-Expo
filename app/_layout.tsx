@@ -6,6 +6,8 @@ import { StatusBar } from "expo-status-bar"
 import { Image } from "react-native"
 import { useFonts } from "expo-font"
 import { ThemeProvider } from "../components/Theme/theme"
+import { GestureHandlerRootView } from "react-native-gesture-handler" // 👈 Importa esto
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
 
 SplashScreen.preventAutoHideAsync()
 
@@ -32,38 +34,42 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider>
-      <SafeAreaProvider>
-        <StatusBar style="dark" />
-        <Stack
-          screenOptions={{
-            headerStyle: {
-              backgroundColor: "#f0fdf4",
-            },
-            headerShadowVisible: false,
-            title: "",
-            headerLeft: () => (
-              <Image
-                source={require("../assets/LogoBlack.png")}
-                style={{
-                  width: 150,
-                  height: 40,
-                  marginLeft: 10,
-                }}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <BottomSheetModalProvider>
+        <ThemeProvider>
+          <SafeAreaProvider>
+            <StatusBar style="dark" />
+            <Stack
+              screenOptions={{
+                headerStyle: {
+                  backgroundColor: "#f0fdf4",
+                },
+                headerShadowVisible: false,
+                title: "",
+                headerLeft: () => (
+                  <Image
+                    source={require("../assets/LogoBlack.png")}
+                    style={{
+                      width: 150,
+                      height: 40,
+                      marginLeft: 10,
+                    }}
+                  />
+                ),
+              }}
+            >
+              <Stack.Screen
+                name="(tabs)"
+                options={{ headerShown: true }}
               />
-            ),
-          }}
-        >
-          <Stack.Screen
-            name="(tabs)"
-            options={{ headerShown: true }}
-          />
-          <Stack.Screen
-            name="embalse/[embalse]"
-            options={{ headerShown: true }}
-          />
-        </Stack>
-      </SafeAreaProvider>
-    </ThemeProvider>
+              <Stack.Screen
+                name="embalse/[embalse]"
+                options={{ headerShown: true }}
+              />
+            </Stack>
+          </SafeAreaProvider>
+        </ThemeProvider>
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
   )
 }
