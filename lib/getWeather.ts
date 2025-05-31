@@ -1,4 +1,3 @@
-// filepath: /home/dvzz/Repositories/AcuaNet-App/lib/getWeather.ts
 import { useState, useEffect } from "react"
 
 export type WeatherData = {
@@ -61,8 +60,7 @@ export function useWeather(loc: string) {
         const key = process.env.EXPO_PUBLIC_WEATHER_KEY
         const [lat, lon] = location
         if (!lat || !lon) return
-
-        const url = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${lat},${lon}?unitGroup=metric&elements=datetime%2CdatetimeEpoch%2Cname%2Caddress%2CresolvedAddress%2Clatitude%2Clongitude%2Ctempmin%2Ctemp%2Cfeelslike%2Chumidity%2Cprecip%2Cprecipprob%2Cwindspeed%2Cwindspeedmax%2Cwindspeedmean%2Cwindspeedmin%2Cwinddir%2Cpressure%2Cvisibility%2Csolarradiation%2Cuvindex%2Csevererisk%2Csunrise%2Csunset%2Cconditions%2Cdescription%2Cicon%2Csource&include=days%2Chours%2Ccurrent%2Cfcst%2Cobs%2Cremote%2Cstats%2Cstatsfcst&key=${key}&contentType=json`
+        const url = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${lat},${lon}/next7days/next15days?unitGroup=metric&elements=datetime%2CdatetimeEpoch%2Ctempmax%2Ctempmin%2Ctemp%2Cfeelslikemax%2Cfeelslikemin%2Cfeelslike%2Cdew%2Chumidity%2Cprecip%2Cprecipprob%2Cprecipcover%2Cpreciptype%2Cwindgust%2Cwindspeed%2Cwindspeedmax%2Cwindspeedmean%2Cwindspeedmin%2Cwinddir%2Cpressure%2Csunrise%2Csunset%2Cconditions%2Cdescription%2Cicon&key=${key}&contentType=json`
 
         const response = await fetch(url)
         const weatherData = await response.json()

@@ -8,7 +8,8 @@
     "paths": {
       "~/*": ["src/*"],
       "@assets/*": ["assets/*"],
-      "lib/*": ["lib/*"]
+      "lib/*": ["lib/*"],
+      "types/*": ["types/*"]
     }
   }
 }
