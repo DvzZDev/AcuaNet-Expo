@@ -119,3 +119,11 @@ export interface Day {
   normal: { [key: string]: number[] }
   hours?: CurrentConditions[]
 }
+
+export interface EmbalseCoordinate {
+  embalse: string
+  lat: number | null
+  long: number | null
+}
+
+export type EmbalseCoordinates = EmbalseCoordinate[]

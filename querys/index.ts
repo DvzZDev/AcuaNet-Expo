@@ -46,3 +46,28 @@ export const LiveData = async (embalse: string | string[], codedEmbalse: string,
     setLiveData([])
   }
 }
+
+export const CheckCoords = async (embalse: string | string[], setCheckCoords: (data: any) => void) => {
+  try {
+    const embalseStr = Array.isArray(embalse) ? embalse[0] : embalse
+
+    // For now, we'll use the embalses2025 table to get coordinates if available
+    // You may need to create the embalse_coords table or use a different approach
+    const { data, error } = await supabase
+      .from("embalses_coords")
+      .select()
+      .eq("embalse", typeof embalseStr === "string" ? embalse : embalseStr)
+      .limit(1)
+
+    if (error) {
+      console.error("Error fetching coords:", error)
+      setCheckCoords([])
+      return
+    }
+
+    setCheckCoords(data || [])
+  } catch (err) {
+    console.error("Exception in CheckCoords:", err)
+    setCheckCoords([])
+  }
+}
