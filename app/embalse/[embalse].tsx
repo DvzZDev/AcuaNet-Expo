@@ -1,11 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-// import weatherData from "../../components/Embalse/data.json"
+import type { EmbalseDataHistorical, EmbalseDataLive } from "../../types"
 import { Stack, useLocalSearchParams } from "expo-router"
 import { HistoricalData, LiveData } from "querys"
 import { useEffect, useState } from "react"
-import { ActivityIndicator, Image, TouchableOpacity, ScrollView, StyleSheet, Text, View } from "react-native"
+import { ActivityIndicator, TouchableOpacity, ScrollView, StyleSheet, Text, View } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
-import type { EmbalseDataHistorical, EmbalseDataLive } from "../../types"
 import Calendar from "@assets/icons/calendar"
 import Ai from "@assets/icons/ai"
 import { HugeiconsIcon } from "@hugeicons/react-native"
@@ -29,17 +28,21 @@ export default function Embalse() {
   const [bottomSheetOpen, SetBottomSheetOpen] = useState(false)
   const [isLoadingHistorical, setIsLoadingHistorical] = useState(true)
   const [isLoadingLive, setIsLoadingLive] = useState(true)
-  const { embalse } = useLocalSearchParams()
-  const codedEmbalse = Array.isArray(embalse) ? embalse[0] : embalse
 
-  const { weather: weatherData, loading: weatherLoading } = useWeather(embalse[0])
+  const { embalse } = useLocalSearchParams()
+  const emb = Array.isArray(embalse) ? embalse[0] : embalse
+  const embalseCoded = Array.isArray(embalse)
+    ? embalse[0]?.toLowerCase().replace(/ /g, "-") || ""
+    : (embalse || "").toLowerCase().replace(/ /g, "-")
+  const { weather: weatherData, loading: weatherLoading, coordinates } = useWeather(emb, embalseCoded)
+
   useEffect(() => {
     const fetchDataAsync = async () => {
       try {
         setIsLoadingHistorical(true)
         setIsLoadingLive(true)
 
-        const historicalPromise = HistoricalData(embalse, codedEmbalse, setHData)
+        const historicalPromise = HistoricalData(embalse, emb, setHData)
           .then(() => setIsLoadingHistorical(false))
           .catch((error) => {
             console.error("Error fetching historical data:", error)
@@ -47,7 +50,7 @@ export default function Embalse() {
             setIsLoadingHistorical(false)
           })
 
-        const livePromise = LiveData(embalse, codedEmbalse, setLiveData)
+        const livePromise = LiveData(embalse, emb, setLiveData)
           .then(() => setIsLoadingLive(false))
           .catch((error) => {
             console.error("Error fetching live data:", error)
@@ -170,7 +173,7 @@ export default function Embalse() {
                   setContentKey("livedata")
                   SetBottomSheetOpen(true)
                 }}
-                className="h-fit self-start rounded-lg border border-[#019FFF]/50 bg-[#bae5ff] p-2"
+                className="h-fit self-start rounded-2xl border border-[#019FFF]/50 bg-[#bae5ff] p-2"
               >
                 <View className="flex flex-row items-center gap-2">
                   <HugeiconsIcon
@@ -199,7 +202,7 @@ export default function Embalse() {
                   setContentKey("weekdata")
                   SetBottomSheetOpen(true)
                 }}
-                className="h-fit self-start rounded-lg border border-[#008F06]/50 bg-[#BAFFBD] p-2"
+                className="h-fit self-start rounded-2xl border border-[#008F06]/50 bg-[#BAFFBD] p-2"
               >
                 <View className="flex flex-row items-center gap-2">
                   <HugeiconsIcon
@@ -228,7 +231,7 @@ export default function Embalse() {
                   setContentKey("historicaldata")
                   SetBottomSheetOpen(true)
                 }}
-                className="h-fit self-start rounded-lg border border-[#C09400]/50 bg-[#EFFFBA] p-2"
+                className="h-fit self-start rounded-2xl border border-[#C09400]/50 bg-[#EFFFBA] p-2"
               >
                 <View className="flex flex-row items-center gap-2">
                   <HugeiconsIcon
@@ -257,7 +260,7 @@ export default function Embalse() {
                   setContentKey("weatherForecast")
                   SetBottomSheetOpen(true)
                 }}
-                className="h-fit self-start rounded-lg border border-[#9000FF]/50 bg-[#E1BAFF] p-2"
+                className="h-fit self-start rounded-2xl border border-[#9000FF]/50 bg-[#E1BAFF] p-2"
               >
                 <View className="flex flex-row items-center gap-2">
                   <HugeiconsIcon
@@ -286,7 +289,7 @@ export default function Embalse() {
                   setContentKey("maps")
                   SetBottomSheetOpen(true)
                 }}
-                className="h-fit self-start rounded-lg border border-[#FF8900]/50 bg-[#FFDFBA] p-2"
+                className="h-fit self-start rounded-2xl border border-[#FF8900]/50 bg-[#FFDFBA] p-2"
               >
                 <View className="flex flex-row items-center gap-2">
                   <HugeiconsIcon
@@ -315,7 +318,7 @@ export default function Embalse() {
                   setContentKey("lunarTable")
                   SetBottomSheetOpen(true)
                 }}
-                className="h-fit self-start rounded-lg border border-[#0051FF]/50 bg-[#BAD0FF] p-2"
+                className="h-fit self-start rounded-2xl border border-[#0051FF]/50 bg-[#BAD0FF] p-2"
               >
                 <View className="flex flex-row items-center gap-2">
                   <HugeiconsIcon
@@ -346,6 +349,11 @@ export default function Embalse() {
         LiveData={liveData && liveData.length > 0 ? liveData : []}
         HistoricalData={hData && hData.length > 0 ? hData : []}
         weatherData={weatherData}
+        coords={
+          coordinates.lat !== null && coordinates.lng !== null
+            ? { latitude: coordinates.lat, longitude: coordinates.lng }
+            : undefined
+        }
       />
     </>
   )
