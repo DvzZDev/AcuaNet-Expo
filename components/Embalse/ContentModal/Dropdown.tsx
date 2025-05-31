@@ -88,7 +88,7 @@ export default function DropDown({
               }}
               key={index}
             >
-              <View className={`flex-row items-center gap-2 border-[#7b5e8f] p-2 ${index === 3 ? "" : "border-b"}`}>
+                <View className={`flex-row items-center gap-2 border-[#7b5e8f] p-2 ${index === 3 ? "" : "border-b"}`}>
                 {selectedOption === item.label ? (
                   <HugeiconsIcon
                     icon={Tick01Icon}

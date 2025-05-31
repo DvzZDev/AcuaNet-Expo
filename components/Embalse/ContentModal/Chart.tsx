@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useMemo } from "react"
-import type { EmbalseDataHistorical } from "../../types"
+import type { EmbalseDataHistorical } from "types"
 import { getISOWeek } from "date-fns"
 import { View, Text, useWindowDimensions, Platform, StyleSheet } from "react-native"
 import { ScrollView, GestureHandlerRootView } from "react-native-gesture-handler"
@@ -8,7 +8,6 @@ import { LineChart } from "react-native-gifted-charts"
 
 interface ChartProps {
   data: EmbalseDataHistorical[]
-  /** 'monthly' (default) or 'weekly' */
   filterMode?: "monthly" | "weekly"
 }
 
@@ -26,12 +25,10 @@ interface ProcessedData {
 }
 
 export default function Chart({ data = [], filterMode = "monthly" }: ChartProps) {
-  // get screen width for responsive charts
   const { width } = useWindowDimensions()
   const chartWidth = width - 90
   const refChart = React.createRef()
 
-  // Define custom styles for chart labels
   const styles = StyleSheet.create({
     xAxisLabel: {
       fontSize: 8,
@@ -101,13 +98,11 @@ export default function Chart({ data = [], filterMode = "monthly" }: ChartProps)
     return monthsData
   }, [data])
 
-  // computed weekly series for separate chart
   const weeklyProcessedData = useMemo(() => {
     const currentYear = 2025
     const lastYear = 2024
     const startAverageYear = 2015
 
-    // calculate max ISO week across full historical range
     const allWeeksItems = data.filter((item) => {
       const y = new Date(item.fecha).getFullYear()
       return y >= startAverageYear && y <= currentYear
@@ -126,8 +121,7 @@ export default function Chart({ data = [], filterMode = "monthly" }: ChartProps)
       const y = new Date(item.fecha).getFullYear()
       return y >= startAverageYear && y <= lastYear
     })
-    // fill data for each week
-    // add current year values
+
     data
       .filter((item) => new Date(item.fecha).getFullYear() === currentYear)
       .forEach((item) => {
@@ -167,7 +161,6 @@ export default function Chart({ data = [], filterMode = "monthly" }: ChartProps)
     return weeks
   }, [data])
 
-  // agrupar semanas de 2 en 2 para ajuste en el gráfico
   const groupedWeeklyData = useMemo(() => {
     const size = 2
     if (weeklyProcessedData.length === 0) return []

@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import weatherData from "../../components/Embalse/data.json"
+// import weatherData from "../../components/Embalse/data.json"
 import { Stack, useLocalSearchParams } from "expo-router"
 import { HistoricalData, LiveData } from "querys"
 import { useEffect, useState } from "react"
@@ -20,66 +20,66 @@ import {
 } from "@hugeicons/core-free-icons"
 import Animated, { FadeIn } from "react-native-reanimated"
 import BottomSheetModalComponent from "components/Embalse/BottomSheet/BottomSheet"
-// import { useWeather } from "lib/getWeather"
+import { useWeather } from "lib/getWeather"
 
 export default function Embalse() {
   const [hData, setHData] = useState<EmbalseDataHistorical[]>([])
   const [liveData, setLiveData] = useState<EmbalseDataLive[]>([])
   const [ContentKey, setContentKey] = useState<string>("")
   const [bottomSheetOpen, SetBottomSheetOpen] = useState(false)
+  const [isLoadingHistorical, setIsLoadingHistorical] = useState(true)
+  const [isLoadingLive, setIsLoadingLive] = useState(true)
   const { embalse } = useLocalSearchParams()
   const codedEmbalse = Array.isArray(embalse) ? embalse[0] : embalse
 
-  const weatherLoading = false
-
-  // const [embalseWeatherName, setEmbalseWeatherName] = useState<string>("")
-
-  // const { weather: weatherData, loading: weatherLoading } = useWeather(embalseWeatherName)
-
+  const { weather: weatherData, loading: weatherLoading } = useWeather(embalse[0])
   useEffect(() => {
     const fetchDataAsync = async () => {
       try {
-        await HistoricalData(embalse, codedEmbalse, setHData)
-        await LiveData(embalse, codedEmbalse, setLiveData)
+        setIsLoadingHistorical(true)
+        setIsLoadingLive(true)
+
+        const historicalPromise = HistoricalData(embalse, codedEmbalse, setHData)
+          .then(() => setIsLoadingHistorical(false))
+          .catch((error) => {
+            console.error("Error fetching historical data:", error)
+            setHData([])
+            setIsLoadingHistorical(false)
+          })
+
+        const livePromise = LiveData(embalse, codedEmbalse, setLiveData)
+          .then(() => setIsLoadingLive(false))
+          .catch((error) => {
+            console.error("Error fetching live data:", error)
+            setLiveData([])
+            setIsLoadingLive(false)
+          })
+
+        await Promise.all([historicalPromise, livePromise])
       } catch (error) {
         console.error("Error fetching data:", error)
-        setHData([])
-        setLiveData([])
+        setIsLoadingHistorical(false)
+        setIsLoadingLive(false)
       }
     }
     fetchDataAsync()
   }, [])
-
-  // useEffect(() => {
-  //   if (hData && hData.length > 0) {
-  //     setEmbalseWeatherName(hData[0].embalse)
-  //   }
-  // }, [hData])
 
   return (
     <>
       <Stack.Screen
         options={{
           title: "",
-          headerTitleAlign: "center",
+          headerTitleAlign: "left",
           headerStyle: {
             backgroundColor: "#effcf3",
           },
           headerBackVisible: true,
           headerBackButtonDisplayMode: "minimal",
-          headerRight: () => (
-            <Image
-              source={require("@assets/LogoE.png")}
-              style={{
-                width: 40,
-                height: 40,
-                marginLeft: "auto",
-              }}
-            />
-          ),
+          headerRight: () => "",
           headerLeft: () => {
             const headerTitle = embalse ? (Array.isArray(embalse) ? embalse[0] : embalse) : "N/D"
-            const truncateText = (text: string, maxLength: number = 18) => {
+            const truncateText = (text: string, maxLength: number = 26) => {
               return text.length > maxLength ? text.substring(0, maxLength) + "..." : text
             }
 
@@ -90,7 +90,7 @@ export default function Embalse() {
                   fontFamily: "Inter-Black",
                   color: "#032E15",
                   paddingLeft: "auto",
-                  maxWidth: 360,
+                  maxWidth: 600,
                   lineHeight: 32,
                 }}
                 numberOfLines={1}
@@ -103,26 +103,38 @@ export default function Embalse() {
         }}
       />
       <LinearGradient
-        colors={["#effcf3", "#acd9af"]}
+        colors={["#effcf3", "#9affa1"]}
         style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]}
       />
       <View className="mx-3">
         <View className="flex flex-row items-center justify-between">
           <View className="flex flex-col justify-center gap-1">
             <Text className="font-Inter text-2xl text-[#032E15]">
-              Cuanca del {hData && hData.length > 0 ? hData[0].cuenca : "N/A"}{" "}
+              {isLoadingHistorical ? (
+                <View className="flex flex-row items-center gap-2">
+                  <ActivityIndicator
+                    size="small"
+                    color="#032E15"
+                  />
+                  <Text>Cargando...</Text>
+                </View>
+              ) : (
+                `Cuanca del ${hData && hData.length > 0 ? hData[0].cuenca : "N/A"}`
+              )}
             </Text>
             <View className="flex flex-row items-center justify-center gap-2">
               <Calendar />
               <Text className="font-Inter">
                 Ult. Actualización -{" "}
-                {hData && hData.length > 0
-                  ? new Date(hData[0].fecha).toLocaleDateString("es-ES", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })
-                  : "N/A"}
+                {isLoadingHistorical
+                  ? "Cargando..."
+                  : hData && hData.length > 0
+                    ? new Date(hData[0].fecha).toLocaleDateString("es-ES", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })
+                    : "N/A"}
               </Text>
             </View>
           </View>
@@ -151,7 +163,7 @@ export default function Embalse() {
         </View>
 
         <Animated.View className="mt-10 flex flex-col gap-5">
-          {liveData.length > 0 ? (
+          {!isLoadingLive && liveData.length > 0 ? (
             <Animated.View entering={FadeIn.duration(150)}>
               <TouchableOpacity
                 onPress={() => {
@@ -170,13 +182,17 @@ export default function Embalse() {
                 </View>
               </TouchableOpacity>
             </Animated.View>
-          ) : (
-            <View className="flex w-20">
-              <ActivityIndicator size="small" />
+          ) : isLoadingLive ? (
+            <View className="flex w-full items-center justify-center py-4">
+              <ActivityIndicator
+                size="large"
+                color="#019FFF"
+              />
+              <Text className="mt-2 font-Inter text-sm text-gray-600">Cargando datos en tiempo real...</Text>
             </View>
-          )}
+          ) : null}
 
-          {hData.length > 0 ? (
+          {!isLoadingHistorical && hData.length > 0 ? (
             <Animated.View entering={FadeIn.duration(150)}>
               <TouchableOpacity
                 onPress={() => {
@@ -195,13 +211,17 @@ export default function Embalse() {
                 </View>
               </TouchableOpacity>
             </Animated.View>
-          ) : (
-            <View className="flex w-20">
-              <ActivityIndicator size="small" />
+          ) : isLoadingHistorical ? (
+            <View className="flex w-full items-center justify-center py-4">
+              <ActivityIndicator
+                size="large"
+                color="#008F06"
+              />
+              <Text className="mt-2 font-Inter text-sm text-gray-600">Cargando datos semanales...</Text>
             </View>
-          )}
+          ) : null}
 
-          {hData.length > 0 ? (
+          {!isLoadingHistorical && hData.length > 0 ? (
             <Animated.View entering={FadeIn.duration(150)}>
               <TouchableOpacity
                 onPress={() => {
@@ -220,11 +240,15 @@ export default function Embalse() {
                 </View>
               </TouchableOpacity>
             </Animated.View>
-          ) : (
-            <View className="flex w-20">
-              <ActivityIndicator size="small" />
+          ) : isLoadingHistorical ? (
+            <View className="flex w-full items-center justify-center py-4">
+              <ActivityIndicator
+                size="large"
+                color="#C09400"
+              />
+              <Text className="mt-2 font-Inter text-sm text-gray-600">Cargando datos históricos...</Text>
             </View>
-          )}
+          ) : null}
 
           {!weatherLoading ? (
             <Animated.View entering={FadeIn.duration(150)}>
@@ -246,12 +270,16 @@ export default function Embalse() {
               </TouchableOpacity>
             </Animated.View>
           ) : (
-            <View className="flex w-20">
-              <ActivityIndicator size="small" />
+            <View className="flex w-full items-center justify-center py-4">
+              <ActivityIndicator
+                size="large"
+                color="#9000FF"
+              />
+              <Text className="mt-2 font-Inter text-sm text-gray-600">Cargando predicción meteorológica...</Text>
             </View>
           )}
 
-          {hData.length > 0 ? (
+          {!isLoadingHistorical && hData.length > 0 ? (
             <Animated.View entering={FadeIn.duration(150)}>
               <TouchableOpacity
                 onPress={() => {
@@ -270,13 +298,17 @@ export default function Embalse() {
                 </View>
               </TouchableOpacity>
             </Animated.View>
-          ) : (
-            <View className="flex w-20">
-              <ActivityIndicator size="small" />
+          ) : isLoadingHistorical ? (
+            <View className="flex w-full items-center justify-center py-4">
+              <ActivityIndicator
+                size="large"
+                color="#FF8900"
+              />
+              <Text className="mt-2 font-Inter text-sm text-gray-600">Cargando mapas...</Text>
             </View>
-          )}
+          ) : null}
 
-          {hData.length > 0 ? (
+          {!isLoadingHistorical && hData.length > 0 ? (
             <Animated.View entering={FadeIn.duration(150)}>
               <TouchableOpacity
                 onPress={() => {
@@ -295,11 +327,15 @@ export default function Embalse() {
                 </View>
               </TouchableOpacity>
             </Animated.View>
-          ) : (
-            <View className="flex w-20">
-              <ActivityIndicator size="small" />
+          ) : isLoadingHistorical ? (
+            <View className="flex w-full items-center justify-center py-4">
+              <ActivityIndicator
+                size="large"
+                color="#0051FF"
+              />
+              <Text className="mt-2 font-Inter text-sm text-gray-600">Cargando tabla lunar...</Text>
             </View>
-          )}
+          ) : null}
         </Animated.View>
       </View>
       <BottomSheetModalComponent

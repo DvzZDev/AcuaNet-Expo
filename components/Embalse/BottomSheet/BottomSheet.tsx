@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react"
+import { useRef, useEffect } from "react"
 import { Text, View } from "react-native"
 import {
   BottomSheetModal,
@@ -120,9 +120,9 @@ interface BottomSheetModalComponentProps {
   setOpen: (open: boolean) => void
   contentKey: string
   setContentKey: (key: string) => void
-  LiveData?: EmbalseDataLive[] | null
-  HistoricalData?: EmbalseDataHistorical[] | null
-  weatherData?: any
+  LiveData: EmbalseDataLive[]
+  HistoricalData: EmbalseDataHistorical[]
+  weatherData: any
 }
 
 export default function BottomSheetModalComponent({
@@ -136,8 +136,6 @@ export default function BottomSheetModalComponent({
 }: BottomSheetModalComponentProps) {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null)
   const insets = useSafeAreaInsets()
-  const liveData = LiveData ?? []
-  const historicalData = HistoricalData ?? []
 
   useEffect(() => {
     if (open) {
@@ -158,9 +156,7 @@ export default function BottomSheetModalComponent({
             ? "Predicción Meteorológica"
             : contentKey === "maps"
               ? "Mapas: Topográfico y de Viento"
-              : contentKey === "lunarTable"
-                ? "Tabla Lunar"
-                : "Datos"
+              : "Tabla Lunar"
 
   const wildcard = getWildcard(contentKey)
   const icon = getIcon(contentKey)
@@ -194,97 +190,85 @@ export default function BottomSheetModalComponent({
       )}
       onDismiss={() => {
         setOpen(false)
-        setTimeout(() => setContentKey(""), 300)
+        setContentKey("")
       }}
     >
-      <BottomSheetView
-        className="flex-1 rounded-t-[20px] px-4"
-        style={{
-          backgroundColor: getBgColor(contentKey),
-          paddingBottom: Math.max(insets.bottom, 16),
-        }}
-      >
-        {/* Title */}
-        <View className="mb-3 flex-row gap-2">
-          <View
-            className="flex-row items-center gap-1.5 self-start rounded-[10px] border p-1"
-            style={{
-              ...titleBg,
-            }}
-          >
-            {icon && (
-              <HugeiconsIcon
-                icon={icon}
-                size={20}
-                color={iconColor}
-              />
-            )}
-            <Text
-              className="font-['Inter'] text-base"
-              style={{ color: iconColor }}
-            >
-              {title}
-            </Text>
-          </View>
-          {wildcard && (
+      {contentKey && (
+        <BottomSheetView
+          className="flex-1 rounded-t-[20px] px-4"
+          style={{
+            backgroundColor: getBgColor(contentKey),
+            paddingBottom: Math.max(insets.bottom, 30),
+          }}
+        >
+          {/* Title */}
+          <View className="mb-3 flex-row gap-2">
             <View
-              className="ml-2 self-start rounded-[10px] border px-1.5 py-0.5"
+              className="flex-row items-center gap-1.5 self-start rounded-[10px] border p-1"
               style={{
-                borderColor: contentKey === "weekdata" ? "#0072FF80" : "#FF880080",
-                backgroundColor: contentKey === "weekdata" ? "#BEDBFF" : "#FFD6A7",
+                ...titleBg,
               }}
             >
+              {icon && (
+                <HugeiconsIcon
+                  icon={icon}
+                  size={20}
+                  color={iconColor}
+                />
+              )}
               <Text
-                className="font-['Inter'] text-[13px]"
-                style={{
-                  color: contentKey === "weekdata" ? "#008F06" : "#FF8800",
-                }}
+                className="font-['Inter'] text-base"
+                style={{ color: iconColor }}
               >
-                {wildcard}
+                {title}
               </Text>
             </View>
-          )}
-        </View>
+            {wildcard && (
+              <View
+                className="ml-2 self-start rounded-[10px] border px-1.5 py-0.5"
+                style={{
+                  borderColor: contentKey === "weekdata" ? "#0072FF80" : "#FF880080",
+                  backgroundColor: contentKey === "weekdata" ? "#BEDBFF" : "#FFD6A7",
+                }}
+              >
+                <Text
+                  className="font-['Inter'] text-[13px]"
+                  style={{
+                    color: contentKey === "weekdata" ? "#008F06" : "#FF8800",
+                  }}
+                >
+                  {wildcard}
+                </Text>
+              </View>
+            )}
+          </View>
 
-        {/* Content */}
-        <LiveDataTable
-          liveData={liveData}
-          contentKey={contentKey}
-        />
-        <WeekData
-          liveData={liveData}
-          historicalData={historicalData}
-          contentKey={contentKey}
-        />
-        {contentKey === "historicaldata" && historicalData.length > 0 ? (
-          <Chart data={historicalData} />
-        ) : contentKey === "historicaldata" ? (
-          <View className="mt-4 p-2">
-            <Text className="text-center font-['Inter'] text-base text-white">No hay datos históricos disponibles</Text>
-          </View>
-        ) : null}
-        {contentKey === "weatherForecast" && weatherData ? (
-          <Weather data={weatherData ?? null} />
-        ) : contentKey === "weatherForecast" ? (
-          <View className="mt-4 p-2">
-            <Text className="text-center font-['Inter'] text-base text-white">
-              No hay datos meteorológicos disponibles
-            </Text>
-          </View>
-        ) : null}
-        {contentKey === "maps" ? (
-          <View className="mt-4 p-2">
-            <Text className="text-center font-['Inter'] text-base text-white">Mapas: Topográfico y de Viento</Text>
-            <Text className="mt-2 text-center font-['Inter'] text-sm text-gray-300">Funcionalidad en desarrollo</Text>
-          </View>
-        ) : null}
-        {contentKey === "lunarTable" ? (
-          <View className="mt-4 p-2">
-            <Text className="text-center font-['Inter'] text-base text-white">Tabla Lunar</Text>
-            <Text className="mt-2 text-center font-['Inter'] text-sm text-gray-300">Funcionalidad en desarrollo</Text>
-          </View>
-        ) : null}
-      </BottomSheetView>
+          {/* Content */}
+          <LiveDataTable
+            liveData={LiveData}
+            contentKey={contentKey}
+          />
+          <WeekData
+            liveData={LiveData}
+            historicalData={HistoricalData}
+            contentKey={contentKey}
+          />
+          {contentKey === "historicaldata" && <Chart data={HistoricalData} />}
+          {contentKey === "weatherForecast" && <Weather data={weatherData} />}
+          {contentKey === "maps" ? (
+            <View className="mt-4 p-2">
+              <Text className="text-center font-['Inter'] text-base text-white">Mapas: Topográfico y de Viento</Text>
+              <Text className="mt-2 text-center font-['Inter'] text-sm text-gray-300">Funcionalidad en desarrollo</Text>
+            </View>
+          ) : null}
+          {contentKey === "lunarTable" ? (
+            <View className="mt-4 p-2">
+              <Text className="text-center font-['Inter'] text-base text-white">Tabla Lunar</Text>
+              <Text className="mt-2 text-center font-['Inter'] text-sm text-gray-300">Funcionalidad en desarrollo</Text>
+            </View>
+          ) : null}
+        </BottomSheetView>
+      )}
     </BottomSheetModal>
   )
 }

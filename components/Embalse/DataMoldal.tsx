@@ -30,7 +30,6 @@ export default function DataModal({
   contentKey,
 }: DataModalProps) {
   if (!isOpen) return null
-  // Ensure arrays are not null
   const liveData = LiveData ?? []
   const historicalData = HistoricalData ?? []
 
