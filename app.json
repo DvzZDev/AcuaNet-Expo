@@ -14,9 +14,7 @@
       [
         "expo-font",
         {
-          "fonts": [
-            "./assets/fonts/Inter.ttf"
-          ]
+          "fonts": ["./assets/fonts/Inter.ttf"]
         }
       ],
       [
@@ -31,9 +29,7 @@
     "orientation": "portrait",
     "icon": "./assets/Icon-Ios.png",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.dvzz.AcuaNet",
@@ -46,7 +42,12 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/Icon-Android.png"
       },
-      "package": "com.dvzz.AcuaNet"
+      "package": "com.dvzz.AcuaNet",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAD839V28EVnYA_NIIizgXHa_p8WWi2Kp4"
+        }
+      }
     },
     "extra": {
       "router": {},
