@@ -1,3 +1,4 @@
+import type { EmbalseDataLive, EmbalseDataHistorical } from "types"
 import { useRef, useEffect } from "react"
 import { Text, View } from "react-native"
 import {
@@ -19,8 +20,9 @@ import LiveDataTable from "../ContentModal/LiveDataTable"
 import WeekData from "../ContentModal/WeekData"
 import Chart from "../ContentModal/Chart"
 import Weather from "../Weather"
-import type { EmbalseDataLive, EmbalseDataHistorical } from "types"
 import Maps from "../ContentModal/Maps"
+import LunarCalendar from "../ContentModal/LunarCalendar"
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry"
 
 const getBgColor = (contentKey: string) => {
   switch (contentKey) {
@@ -29,7 +31,7 @@ const getBgColor = (contentKey: string) => {
     case "weekdata":
       return "#dbfce7"
     case "historicaldata":
-      return "#141602"
+      return "#1c1f01"
     case "weatherForecast":
       return "#270541"
     case "maps":
@@ -178,6 +180,7 @@ export default function BottomSheetModalComponent({
 
   return (
     <BottomSheetModal
+      handleIndicatorStyle={{ backgroundColor: getIconColor(contentKey) }}
       ref={bottomSheetModalRef}
       enableDynamicSizing={contentKey !== "maps"}
       snapPoints={contentKey === "maps" ? ["90%"] : undefined}
@@ -199,7 +202,7 @@ export default function BottomSheetModalComponent({
     >
       {contentKey && (
         <BottomSheetView
-          className={`flex-1 rounded-t-[20px] ${contentKey === "maps" ? "px-0" : "px-4"} relative`}
+          className={`flex-1 rounded-t-[20px] ${contentKey === "lunarTable" || contentKey === "maps" ? "px-0" : "px-4"} relative`}
           style={{
             backgroundColor: getBgColor(contentKey),
             paddingBottom: contentKey === "maps" ? 0 : Math.max(insets.bottom, 30),
@@ -210,7 +213,7 @@ export default function BottomSheetModalComponent({
           ) : (
             <>
               {/* Title */}
-              <View className="mb-3 flex-row gap-2">
+              <View className={`flex-row gap-2 ${contentKey === "lunarTable" ? "ml-4" : ""}`}>
                 <View
                   className="flex-row items-center gap-1.5 self-start rounded-[10px] border p-1"
                   style={{
@@ -263,14 +266,7 @@ export default function BottomSheetModalComponent({
               />
               {contentKey === "historicaldata" && <Chart data={HistoricalData} />}
               {contentKey === "weatherForecast" && <Weather data={weatherData} />}
-              {contentKey === "lunarTable" ? (
-                <View className="mt-4 p-2">
-                  <Text className="text-center font-['Inter'] text-base text-white">Tabla Lunar</Text>
-                  <Text className="mt-2 text-center font-['Inter'] text-sm text-gray-300">
-                    Funcionalidad en desarrollo
-                  </Text>
-                </View>
-              ) : null}
+              {contentKey === "lunarTable" && <LunarCalendar />}
             </>
           )}
         </BottomSheetView>
