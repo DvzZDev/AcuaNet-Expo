@@ -35,7 +35,7 @@ export default function Embalse() {
     ? embalse[0]?.toLowerCase().replace(/ /g, "-") || ""
     : (embalse || "").toLowerCase().replace(/ /g, "-")
   const { weather: weatherData, loading: weatherLoading, coordinates } = useWeather(emb, embalseCoded)
-
+  console.log()
   useEffect(() => {
     if (!embalse) return
 
@@ -151,17 +151,19 @@ export default function Embalse() {
           />
         </View>
 
-        <Resume
-          weather={weatherData}
-          embalse={{
-            embalse: {
-              name: hData.length > 0 ? hData[0].embalse : "N/A",
-              nivel: hData.length > 0 ? hData[0].volumen_actual : 0,
-              porcentaje: hData.length > 0 ? hData[0].porcentaje : 0,
-            },
-          }}
-          fish_activity={"N/A"}
-        />
+        {!isLoadingHistorical && hData.length > 0 && (
+          <Resume
+            weather={weatherData}
+            embalse={{
+              embalse: {
+                name: hData[0].embalse,
+                nivel: hData[0].volumen_actual,
+                porcentaje: hData[0].porcentaje,
+              },
+            }}
+            fish_activity={null} // Se calculará internamente usando la actividad lunar
+          />
+        )}
         <View className="ml-auto flex flex-row items-center justify-center gap-1 text-xs">
           <Ai />
           <Text className="font-Inter">AcuaNet AI puede cometer errores</Text>

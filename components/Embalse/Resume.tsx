@@ -1,7 +1,9 @@
 import { simpleGeminiAI } from "querys"
 import { useState, useEffect, useRef } from "react"
-import { ActivityIndicator, Text, View } from "react-native"
+import { ActivityIndicator, View } from "react-native"
 import { ScrollView } from "react-native-gesture-handler"
+import Animated, { FadeIn } from "react-native-reanimated"
+import { getNext7DaysFishingActivity } from "lib/fishingActivity"
 
 export default function Resume({
   weather,
@@ -32,7 +34,11 @@ export default function Resume({
       try {
         hasCalledRef.current = true
         setLoading(true)
-        const result = await simpleGeminiAI(weather, embalse, fish_activity)
+
+        // Calcular actividad de pesca para los próximos 7 días
+        const fishingActivity = getNext7DaysFishingActivity(weather)
+
+        const result = await simpleGeminiAI(weather, embalse, fishingActivity)
         setResume(result)
       } catch (err) {
         console.error("Exception in Resume:", err)
@@ -56,7 +62,12 @@ export default function Resume({
             />
           </View>
         ) : (
-          <Text className="font-Inter text-base">{error ? "Ha sucedido un error" : resume}</Text>
+          <Animated.Text
+            entering={FadeIn}
+            className="font-Inter text-base"
+          >
+            {error ? "Ha sucedido un error" : resume}
+          </Animated.Text>
         )}
       </ScrollView>
     </View>

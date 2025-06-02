@@ -91,17 +91,28 @@ export const simpleGeminiAI = async (
   },
   fish_activity: any
 ): Promise<string> => {
+  console.log(embalse)
   try {
     const prompt = `
-  Genera un resumen breve y natural sobre las condiciones de pesca en los próximos días basándote en los siguientes datos. Usa frases fluidas y útiles, sin listas ni formato estructurado.
+  Genera un resumen breve y natural sobre las condiciones de pesca para los próximos 7 días basándote en los siguientes datos. Proporciona información clara y concisa para lectura rápida.
 
   📊 **Datos:**
-  - **Clima:** ${JSON.stringify(weather, null, 2)}
-  - **Embalse:** ${embalse ? JSON.stringify(embalse.embalse, null, 2) : "N/A"}
-  - **Actividad de los peces:** ${JSON.stringify(fish_activity, null, 2)}
+  - **Embalse:** ${embalse.embalse.name}
+  - **Nivel del embalse:** ${embalse.embalse.nivel} m
+  - **Porcentaje de capacidad:** ${embalse.embalse.porcentaje}%
+  - **Pronóstico meteorológico (7 días):** ${JSON.stringify(weather, null, 2)}
+  - **Actividad lunar y de peces (7 días):** ${JSON.stringify(fish_activity, null, 2)}
+
+  🎣 **Instrucciones específicas:**
+  - No empieces el resumen siempre con la misma frase ni repitas estructuras como "Aquí tienes un resumen de las condiciones de pesca en el embalse de X para los próximos 7 días".
+  - Describe las condiciones meteorológicas principales (temperaturas, vientos, precipitaciones)
+  - Menciona los días con actividad de peces destacada (🐟🐟🐟 = alta, 🐟🐟 = media, 🐟 = baja)
+  - Incluye información sobre el estado del embalse
+  - Presenta la información de manera clara y directa, sin dar consejos
+  - Usa un tono informativo y natural para lectura rápida
 
   🔹 **Ejemplo de Respuesta Esperada:**
-  "Este fin de semana se esperan temperaturas alrededor de los 20°C. El sábado habrá un pico de actividad con vientos fuertes superando los 28 km/h a las 18:00. El domingo será más estable con actividad media. El embalse está alto, al 89%, así que tenlo en cuenta para acceder a ciertas zonas."
+  "Esta semana las temperaturas oscilarán entre 18-22°C con condiciones mayormente estables. El martes y viernes presentan actividad alta de peces (🐟🐟🐟) coincidiendo con fases lunares favorables. El sábado se esperan vientos de 15 km/h. Habrá precipitaciones leves el miércoles. El embalse se encuentra al 89% de su capacidad."
   `
 
     const promptHash = await hashTextToSha256(prompt)
