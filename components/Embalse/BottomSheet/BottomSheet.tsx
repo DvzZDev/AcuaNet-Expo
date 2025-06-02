@@ -22,7 +22,6 @@ import Chart from "../ContentModal/Chart"
 import Weather from "../Weather"
 import Maps from "../ContentModal/Maps"
 import LunarCalendar from "../ContentModal/LunarCalendar"
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry"
 
 const getBgColor = (contentKey: string) => {
   switch (contentKey) {
@@ -236,7 +235,7 @@ export default function BottomSheetModalComponent({
                 </View>
                 {wildcard && (
                   <View
-                    className="ml-2 self-start rounded-[10px] border px-1.5 py-0.5"
+                    className="my-auto ml-2 self-start rounded-[10px] border px-1.5 py-0.5"
                     style={{
                       borderColor: contentKey === "weekdata" ? "#0072FF80" : "#FF880080",
                       backgroundColor: contentKey === "weekdata" ? "#BEDBFF" : "#FFD6A7",
