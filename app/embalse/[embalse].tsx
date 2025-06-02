@@ -1,9 +1,8 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import type { EmbalseDataHistorical, EmbalseDataLive } from "../../types"
 import { Stack, useLocalSearchParams } from "expo-router"
 import { HistoricalData, LiveData } from "querys"
 import { useEffect, useState } from "react"
-import { ActivityIndicator, TouchableOpacity, ScrollView, StyleSheet, Text, View } from "react-native"
+import { ActivityIndicator, TouchableOpacity, StyleSheet, Text, View } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
 import Calendar from "@assets/icons/calendar"
 import Ai from "@assets/icons/ai"
@@ -20,6 +19,7 @@ import {
 import Animated, { FadeIn } from "react-native-reanimated"
 import BottomSheetModalComponent from "components/Embalse/BottomSheet/BottomSheet"
 import { useWeather } from "lib/getWeather"
+import Resume from "components/Embalse/Resume"
 
 export default function Embalse() {
   const [hData, setHData] = useState<EmbalseDataHistorical[]>([])
@@ -37,6 +37,8 @@ export default function Embalse() {
   const { weather: weatherData, loading: weatherLoading, coordinates } = useWeather(emb, embalseCoded)
 
   useEffect(() => {
+    if (!embalse) return
+
     const fetchDataAsync = async () => {
       try {
         setIsLoadingHistorical(true)
@@ -66,7 +68,7 @@ export default function Embalse() {
       }
     }
     fetchDataAsync()
-  }, [])
+  }, [embalse, emb])
 
   return (
     <>
@@ -149,17 +151,17 @@ export default function Embalse() {
           />
         </View>
 
-        <View className="mt-5 h-[12rem] w-full rounded-lg bg-green-300 p-2">
-          <ScrollView>
-            <Text className="font-Inter text-base">
-              En los próximos días, el embalse de Orellana se mantiene alto, al 86%, lo que podría influir en el acceso
-              a algunas zonas de pesca. La fase lunar será favorable con actividad alta. El clima será mayormente
-              soleado y caluroso, con temperaturas máximas que superarán los 30°C a partir del domingo. El viento
-              soplará con fuerza el jueves y viernes, especialmente por la tarde, pero disminuirá gradualmente durante
-              el fin de semana.
-            </Text>
-          </ScrollView>
-        </View>
+        <Resume
+          weather={weatherData}
+          embalse={{
+            embalse: {
+              name: hData.length > 0 ? hData[0].embalse : "N/A",
+              nivel: hData.length > 0 ? hData[0].volumen_actual : 0,
+              porcentaje: hData.length > 0 ? hData[0].porcentaje : 0,
+            },
+          }}
+          fish_activity={"N/A"}
+        />
         <View className="ml-auto flex flex-row items-center justify-center gap-1 text-xs">
           <Ai />
           <Text className="font-Inter">AcuaNet AI puede cometer errores</Text>

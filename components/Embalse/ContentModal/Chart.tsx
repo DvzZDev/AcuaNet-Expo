@@ -312,8 +312,6 @@ export default function Chart({ data = [], filterMode = "monthly" }: ChartProps)
             showsHorizontalScrollIndicator={true}
             contentContainerStyle={Platform.OS === "ios" ? { paddingBottom: 10 } : undefined}
             scrollEnabled={true}
-            onMomentumScrollBegin={() => console.log("Scroll iniciado")}
-            onMomentumScrollEnd={() => console.log("Scroll finalizado")}
             simultaneousHandlers={[refChart]}
           >
             <LineChart

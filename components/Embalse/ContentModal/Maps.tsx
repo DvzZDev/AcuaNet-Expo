@@ -20,7 +20,6 @@ export default function Maps({ coords }: MapsProps) {
     latitudeDelta: 0.1,
     longitudeDelta: 0.05,
   }
-  console.log("Embalse Coordinates:", embalseCoordinates)
   return (
     <View
       className="flex-1 overflow-hidden bg-[#f0f0f0]"
