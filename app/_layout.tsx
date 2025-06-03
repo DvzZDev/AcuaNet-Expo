@@ -1,17 +1,20 @@
 import "global.css"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { SafeAreaProvider } from "react-native-safe-area-context"
-import { Stack, SplashScreen } from "expo-router"
+import { Stack, SplashScreen, router } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import { Image } from "react-native"
 import { useFonts } from "expo-font"
 import { ThemeProvider } from "../components/Theme/theme"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
+import { supabase } from "lib/supabase"
 
 SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [sessionChecked, setSessionChecked] = useState(false)
   const [loaded, error] = useFonts({
     Inter: require("../assets/fonts/Inter.ttf"),
     "Inter-Bold": require("../assets/fonts/InterDisplay-Bold.ttf"),
@@ -24,10 +27,35 @@ export default function RootLayout() {
   })
 
   useEffect(() => {
+    const checkSession = async () => {
+      // Solo verificar la sesión una vez
+      if (sessionChecked) return
+
+      const { data, error } = await supabase.auth.getSession()
+      if (error) {
+        console.error("Error fetching session:", error)
+      }
+
+      setIsLoading(false)
+      setSessionChecked(true)
+      console.log("Session check:", data.session)
+
+      // Solo redirigir si no hay sesión y no estamos ya en la página de signIn
+      if (data.session === null && !router.canGoBack()) {
+        router.replace("/auth/signIn")
+      }
+    }
+
     if (loaded || error) {
+      checkSession()
+    }
+  }, [loaded, error, sessionChecked])
+
+  useEffect(() => {
+    if ((loaded || error) && !isLoading) {
       SplashScreen.hideAsync()
     }
-  }, [loaded, error])
+  }, [loaded, error, isLoading])
 
   if (!loaded && !error) {
     return null
@@ -61,6 +89,10 @@ export default function RootLayout() {
               <Stack.Screen
                 name="(tabs)"
                 options={{ headerShown: true }}
+              />
+              <Stack.Screen
+                name="auth/signIn"
+                options={{ headerShown: false }}
               />
               <Stack.Screen
                 name="embalse/[embalse]"
