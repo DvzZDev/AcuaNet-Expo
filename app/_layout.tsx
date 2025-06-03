@@ -1,12 +1,12 @@
 import "global.css"
-import React, { useEffect } from "react"
+import { useEffect } from "react"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { Stack, SplashScreen } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import { Image } from "react-native"
 import { useFonts } from "expo-font"
 import { ThemeProvider } from "../components/Theme/theme"
-import { GestureHandlerRootView } from "react-native-gesture-handler" // 👈 Importa esto
+import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
 
 SplashScreen.preventAutoHideAsync()

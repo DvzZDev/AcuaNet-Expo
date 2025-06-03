@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage"
 class CacheClient {
   static async set(key: string, value: string, options?: { EX?: number }): Promise<void> {
     try {
-      const expiresIn = options?.EX ? options.EX * 1000 : 12 * 60 * 60 * 1000 // 12 hours in ms
+      const expiresIn = options?.EX ? options.EX * 1000 : 12 * 60 * 60 * 1000 
       const cacheData = {
         value,
         timestamp: Date.now(),

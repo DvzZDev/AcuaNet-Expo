@@ -80,6 +80,26 @@ async function savedCache({ token, data }: { token: string; data: string }) {
   }
 }
 
+// Función para normalizar objetos y asegurar un JSON determinístico
+function normalizeForCache(obj: any): any {
+  if (obj === null || typeof obj !== "object") {
+    return obj
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(normalizeForCache)
+  }
+
+  const normalized: any = {}
+  const keys = Object.keys(obj).sort()
+
+  for (const key of keys) {
+    normalized[key] = normalizeForCache(obj[key])
+  }
+
+  return normalized
+}
+
 export const simpleGeminiAI = async (
   weather: any,
   embalse: {
@@ -93,6 +113,10 @@ export const simpleGeminiAI = async (
 ): Promise<string> => {
   console.log(embalse)
   try {
+    // Normalizar los datos para asegurar un hash consistente
+    const normalizedWeather = normalizeForCache(weather)
+    const normalizedFishActivity = normalizeForCache(fish_activity)
+
     const prompt = `
   Genera un resumen breve y natural sobre las condiciones de pesca para los próximos 7 días basándote en los siguientes datos. Proporciona información clara y concisa para lectura rápida.
 
@@ -100,8 +124,8 @@ export const simpleGeminiAI = async (
   - **Embalse:** ${embalse.embalse.name}
   - **Nivel del embalse:** ${embalse.embalse.nivel} m
   - **Porcentaje de capacidad:** ${embalse.embalse.porcentaje}%
-  - **Pronóstico meteorológico (7 días):** ${JSON.stringify(weather, null, 2)}
-  - **Actividad lunar y de peces (7 días):** ${JSON.stringify(fish_activity, null, 2)}
+  - **Pronóstico meteorológico (7 días):** ${JSON.stringify(normalizedWeather, null, 2)}
+  - **Actividad lunar y de peces (7 días):** ${JSON.stringify(normalizedFishActivity, null, 2)}
 
   🎣 **Instrucciones específicas:**
   - No empieces el resumen siempre con la misma frase ni repitas estructuras como "Aquí tienes un resumen de las condiciones de pesca en el embalse de X para los próximos 7 días".
@@ -116,6 +140,8 @@ export const simpleGeminiAI = async (
   `
 
     const promptHash = await hashTextToSha256(prompt)
+
+    console.log("Prompt hash:", promptHash)
 
     const cacheQuery = await CacheClient.get(promptHash)
     if (cacheQuery !== null && cacheQuery !== undefined) {

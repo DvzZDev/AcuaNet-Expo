@@ -35,7 +35,6 @@ export default function Resume({
         hasCalledRef.current = true
         setLoading(true)
 
-        // Calcular actividad de pesca para los próximos 7 días
         const fishingActivity = getNext7DaysFishingActivity(weather)
 
         const result = await simpleGeminiAI(weather, embalse, fishingActivity)

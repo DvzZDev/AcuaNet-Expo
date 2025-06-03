@@ -48,7 +48,9 @@ function getDayName(date: Date): string {
 
 export function getNext7DaysFishingActivity(weatherData?: any): DailyFishingActivity[] {
   const activities: DailyFishingActivity[] = []
+  // Normalizar la fecha a medianoche para que el cache funcione correctamente<
   const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
   for (let i = 0; i < 7; i++) {
     const currentDate = new Date(today)
