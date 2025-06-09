@@ -3,7 +3,9 @@ import { useEffect, useState } from "react"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { Stack, SplashScreen, router } from "expo-router"
 import { StatusBar } from "expo-status-bar"
-import { Image } from "react-native"
+import { Image } from "expo-image"
+
+
 import { useFonts } from "expo-font"
 import { ThemeProvider } from "../components/Theme/theme"
 import { GestureHandlerRootView } from "react-native-gesture-handler"

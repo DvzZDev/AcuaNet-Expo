@@ -1,9 +1,11 @@
 import { Link, router, Stack } from "expo-router"
-import { Image, Text, TouchableOpacity, View, ScrollView, KeyboardAvoidingView, Platform } from "react-native"
+import { Text, TouchableOpacity, View, ScrollView, KeyboardAvoidingView, Platform } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { StatusBar } from "expo-status-bar"
 import { TextInput } from "react-native-gesture-handler"
 import { useForm } from "@tanstack/react-form"
+import { Image } from "expo-image"
+
 import { supabase } from "lib/supabase"
 // import Google from "@assets/icons/google"
 // import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin"
@@ -88,6 +90,7 @@ export default function SignIn() {
                     ¿No tienes una cuenta?{" "}
                     <Link
                       href="/auth/signUp"
+                      push={true}
                       className="font-Inter-Medium text-sm leading-relaxed text-emerald-300"
                     >
                       Crear cuenta
@@ -107,7 +110,7 @@ export default function SignIn() {
                     }}
                   >
                     {(field) => (
-                      <View className="">
+                      <View className="mb-4">
                         <Text
                           className="mb-2 font-Inter-SemiBold text-base text-emerald-700"
                           aria-label="Label for Email"
@@ -116,7 +119,7 @@ export default function SignIn() {
                           Email
                         </Text>
                         <TextInput
-                          className="text-emerlad-900 h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base"
+                          className="h-12 w-full leading-[1.2rem] rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base text-emerald-900"
                           aria-label="input"
                           aria-labelledby="labelEmail"
                           value={field.state.value}
@@ -125,6 +128,10 @@ export default function SignIn() {
                           keyboardType="email-address"
                           autoCapitalize="none"
                           returnKeyType="next"
+                          autoComplete="email"
+                          textAlignVertical="center"
+                          placeholder="Ingresa tu email"
+                          placeholderTextColor="#6b7280"
                         />
                         {field.state.meta.errors && (
                           <Text className="mt-1 text-sm text-red-500">{field.state.meta.errors[0]}</Text>
@@ -143,7 +150,7 @@ export default function SignIn() {
                     }}
                   >
                     {(field) => (
-                      <View className="">
+                      <View className="mb-6">
                         <Text
                           className="mb-2 font-Inter-SemiBold text-base text-emerald-700"
                           aria-label="Label for Password"
@@ -152,7 +159,7 @@ export default function SignIn() {
                           Contraseña
                         </Text>
                         <TextInput
-                          className="text-emerlad-900 h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base"
+                          className="h-12 w-full rounded-md leading-[1.2rem] bg-emerald-200 px-4 font-Inter-Medium text-base text-emerald-900"
                           aria-label="input"
                           aria-labelledby="labelPassword"
                           secureTextEntry={true}
@@ -160,6 +167,10 @@ export default function SignIn() {
                           onChangeText={field.handleChange}
                           onBlur={field.handleBlur}
                           returnKeyType="done"
+                          textAlignVertical="center"
+                          autoComplete="off"
+                          placeholder="Ingresa tu contraseña"
+                          placeholderTextColor="#6b7280"
                         />
                         {field.state.meta.errors && (
                           <Text className="mt-1 text-sm text-red-500">{field.state.meta.errors[0]}</Text>

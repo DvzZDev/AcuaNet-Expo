@@ -1,11 +1,12 @@
 import { Link, router, Stack } from "expo-router"
-import { Image, Text, TouchableOpacity, View, ScrollView, KeyboardAvoidingView, Platform } from "react-native"
+import { Text, TouchableOpacity, View, ScrollView, KeyboardAvoidingView, Platform } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { StatusBar } from "expo-status-bar"
 import { TextInput } from "react-native-gesture-handler"
 import { Checkbox } from "expo-checkbox"
 import { useForm } from "@tanstack/react-form"
 import { supabase } from "lib/supabase"
+import { Image } from "expo-image"
 
 export default function SignUp() {
   const form = useForm({
@@ -33,7 +34,7 @@ export default function SignUp() {
         password: value.password,
         options: {
           data: {
-            name: value.name, 
+            name: value.name,
             lastName: value.lastName,
           },
         },
@@ -102,6 +103,7 @@ export default function SignUp() {
                     ¿Ya tienes una cuenta?{" "}
                     <Link
                       href="/auth/signIn"
+                      push={true}
                       className="font-Inter-Medium text-sm leading-relaxed text-emerald-300"
                     >
                       Inicia sesión
@@ -127,7 +129,7 @@ export default function SignUp() {
                             Nombre
                           </Text>
                           <TextInput
-                            className="text-emerlad-900 h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base"
+                            className="text-emerlad-900 h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base leading-[1.2rem]"
                             aria-label="input"
                             aria-labelledby="labelName"
                             value={field.state.value}
@@ -157,7 +159,7 @@ export default function SignUp() {
                             Apellidos
                           </Text>
                           <TextInput
-                            className="text-emerlad-900 h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base"
+                            className="text-emerlad-900 h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base leading-[1.2rem]"
                             aria-label="input"
                             aria-labelledby="labelLastName"
                             value={field.state.value}
@@ -192,7 +194,7 @@ export default function SignUp() {
                           Email
                         </Text>
                         <TextInput
-                          className="text-emerlad-900 h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base"
+                          className="text-emerlad-900 h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base leading-[1.2rem]"
                           aria-label="input"
                           aria-labelledby="labelEmail"
                           value={field.state.value}
@@ -228,7 +230,7 @@ export default function SignUp() {
                           Contraseña
                         </Text>
                         <TextInput
-                          className="text-emerlad-900 h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base"
+                          className="text-emerlad-900 h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base leading-[1.2rem]"
                           aria-label="input"
                           aria-labelledby="labelPassword"
                           secureTextEntry={true}
@@ -266,7 +268,7 @@ export default function SignUp() {
                           Repite la contraseña
                         </Text>
                         <TextInput
-                          className="text-emerlad-900 h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base"
+                          className="text-emerlad-900 h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base leading-[1.2rem]"
                           aria-label="input"
                           aria-labelledby="labelConfirmPassword"
                           secureTextEntry={true}
