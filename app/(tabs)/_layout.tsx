@@ -14,14 +14,12 @@ export default function Layout() {
 
   return (
     <>
-      <StatusBar
-        style="dark"
-      />
+      <StatusBar style="dark" />
       <Tabs
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: "#001c11",
+            backgroundColor: "#16151a",
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,
           },

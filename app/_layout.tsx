@@ -28,7 +28,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     const checkSession = async () => {
-      // Solo verificar la sesión una vez
       if (sessionChecked) return
 
       const { data, error } = await supabase.auth.getSession()
@@ -40,7 +39,6 @@ export default function RootLayout() {
       setSessionChecked(true)
       console.log("Session check:", data.session)
 
-      // Solo redirigir si no hay sesión y no estamos ya en la página de signIn
       if (data.session === null && !router.canGoBack()) {
         router.replace("/auth/signIn")
       }
