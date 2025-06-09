@@ -1,5 +1,5 @@
 import type { EmbalseDataHistorical, EmbalseDataLive } from "../../types"
-import { Stack, useLocalSearchParams } from "expo-router"
+import { router, Stack, useLocalSearchParams } from "expo-router"
 import { HistoricalData, LiveData } from "querys"
 import { useEffect, useState } from "react"
 import { ActivityIndicator, TouchableOpacity, StyleSheet, Text, View } from "react-native"
@@ -14,20 +14,22 @@ import {
   MapsLocation01Icon,
   MoonIcon,
   RainbowIcon,
-  StarIcon,
 } from "@hugeicons/core-free-icons"
 import Animated, { FadeIn } from "react-native-reanimated"
 import BottomSheetModalComponent from "components/Embalse/BottomSheet/BottomSheet"
 import { useWeather } from "lib/getWeather"
 import Resume from "components/Embalse/Resume"
+import FavButton from "components/Embalse/FavButton"
+import { supabase } from "lib/supabase"
 
 export default function Embalse() {
   const [hData, setHData] = useState<EmbalseDataHistorical[]>([])
   const [liveData, setLiveData] = useState<EmbalseDataLive[]>([])
   const [ContentKey, setContentKey] = useState<string>("")
-  const [bottomSheetOpen, SetBottomSheetOpen] = useState(false)
-  const [isLoadingHistorical, setIsLoadingHistorical] = useState(true)
-  const [isLoadingLive, setIsLoadingLive] = useState(true)
+  const [bottomSheetOpen, SetBottomSheetOpen] = useState<boolean>(false)
+  const [isLoadingHistorical, setIsLoadingHistorical] = useState<boolean>(true)
+  const [isLoadingLive, setIsLoadingLive] = useState<boolean>(true)
+  const [userId, setuserId] = useState<string>("")
 
   const { embalse } = useLocalSearchParams()
   const emb = Array.isArray(embalse) ? embalse[0] : embalse
@@ -35,38 +37,47 @@ export default function Embalse() {
     ? embalse[0]?.toLowerCase().replace(/ /g, "-") || ""
     : (embalse || "").toLowerCase().replace(/ /g, "-")
   const { weather: weatherData, loading: weatherLoading, coordinates } = useWeather(emb, embalseCoded)
-  console.log()
   useEffect(() => {
     if (!embalse) return
+    const getSession = async () => {
+      const { data, error } = await supabase.auth.getSession()
+      if (error) {
+        console.error("Error getting session:", error)
+        router.replace("/login")
+      } else {
+        const userId = data.session?.user.id || ""
+        setuserId(userId)
+      }
+    }
 
     const fetchDataAsync = async () => {
+      setIsLoadingHistorical(true)
+      setIsLoadingLive(true)
+
       try {
-        setIsLoadingHistorical(true)
-        setIsLoadingLive(true)
+        const [historicalResult, liveResult] = await Promise.allSettled([
+          HistoricalData(embalse, emb, setHData),
+          LiveData(embalse, emb, setLiveData),
+        ])
 
-        const historicalPromise = HistoricalData(embalse, emb, setHData)
-          .then(() => setIsLoadingHistorical(false))
-          .catch((error) => {
-            console.error("Error fetching historical data:", error)
-            setHData([])
-            setIsLoadingHistorical(false)
-          })
+        if (historicalResult.status === "rejected") {
+          console.error("Error fetching historical data:", historicalResult.reason)
+          setHData([])
+        }
+        setIsLoadingHistorical(false)
 
-        const livePromise = LiveData(embalse, emb, setLiveData)
-          .then(() => setIsLoadingLive(false))
-          .catch((error) => {
-            console.error("Error fetching live data:", error)
-            setLiveData([])
-            setIsLoadingLive(false)
-          })
-
-        await Promise.all([historicalPromise, livePromise])
+        if (liveResult.status === "rejected") {
+          console.error("Error fetching live data:", liveResult.reason)
+          setLiveData([])
+        }
+        setIsLoadingLive(false)
       } catch (error) {
-        console.error("Error fetching data:", error)
+        console.error("Unexpected error fetching data:", error)
         setIsLoadingHistorical(false)
         setIsLoadingLive(false)
       }
     }
+    getSession()
     fetchDataAsync()
   }, [embalse, emb])
 
@@ -143,27 +154,27 @@ export default function Embalse() {
               </Text>
             </View>
           </View>
-          <HugeiconsIcon
-            icon={StarIcon}
-            size={40}
-            fill="yellow"
-            color={"orange"}
+          <FavButton
+            userId={userId}
+            embalse={embalse ? (Array.isArray(embalse) ? embalse[0] : embalse) : "N/D"}
           />
         </View>
 
-        {!isLoadingHistorical && hData.length > 0 && (
-          <Resume
-            weather={weatherData}
-            embalse={{
-              embalse: {
-                name: hData[0].embalse,
-                nivel: hData[0].volumen_actual,
-                porcentaje: hData[0].porcentaje,
-              },
-            }}
-            fish_activity={null} // Se calculará internamente usando la actividad lunar
-          />
-        )}
+        <Resume
+          weather={weatherData}
+          embalse={
+            !isLoadingHistorical && hData.length > 0
+              ? {
+                  embalse: {
+                    name: hData[0].embalse,
+                    nivel: hData[0].volumen_actual,
+                    porcentaje: hData[0].porcentaje,
+                  },
+                }
+              : null
+          }
+          fish_activity={null}
+        />
         <View className="ml-auto flex flex-row items-center justify-center gap-1 text-xs">
           <Ai />
           <Text className="font-Inter">AcuaNet AI puede cometer errores</Text>

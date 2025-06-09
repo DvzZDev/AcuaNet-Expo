@@ -17,7 +17,7 @@ export default function Resume({
       nivel: number
       porcentaje: number
     }
-  }
+  } | null
   fish_activity: any
 }) {
   const [resume, setResume] = useState("")
@@ -26,7 +26,15 @@ export default function Resume({
   const hasCalledRef = useRef(false)
 
   useEffect(() => {
-    if (hasCalledRef.current || !weather || !embalse?.embalse?.name) {
+    // Reset state when data changes
+    if (!weather || !embalse?.embalse?.name) {
+      setLoading(true)
+      setError(false)
+      hasCalledRef.current = false
+      return
+    }
+
+    if (hasCalledRef.current) {
       return
     }
 
@@ -34,6 +42,7 @@ export default function Resume({
       try {
         hasCalledRef.current = true
         setLoading(true)
+        setError(false)
 
         const fishingActivity = getNext7DaysFishingActivity(weather)
 

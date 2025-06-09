@@ -16,14 +16,12 @@ export const HistoricalData = async (
       .order("fecha", { ascending: false })
 
     if (error) {
-      console.error("Error fetching historical data:", error)
       setHData([])
       return
     }
 
     setHData(data || [])
   } catch (err) {
-    console.error("Exception in HistoricalData:", err)
     setHData([])
   }
 }
@@ -37,14 +35,12 @@ export const LiveData = async (embalse: string | string[], codedEmbalse: string,
       .eq("embalse", typeof embalseStr === "string" ? codedEmbalse : embalseStr)
 
     if (error) {
-      console.error("Error fetching live data:", error)
       setLiveData([])
       return
     }
 
     setLiveData(data || [])
   } catch (err) {
-    console.error("Exception in LiveData:", err)
     setLiveData([])
   }
 }
@@ -60,14 +56,12 @@ export const CheckCoords = async (embalse: string | string[], setCheckCoords: (d
       .limit(1)
 
     if (error) {
-      console.error("Error fetching coords:", error)
       setCheckCoords([])
       return
     }
 
     setCheckCoords(data || [])
   } catch (err) {
-    console.error("Exception in CheckCoords:", err)
     setCheckCoords([])
   }
 }
@@ -75,9 +69,7 @@ export const CheckCoords = async (embalse: string | string[], setCheckCoords: (d
 async function savedCache({ token, data }: { token: string; data: string }) {
   try {
     await CacheClient.set(token, data, { EX: 3600 })
-  } catch (error) {
-    console.error("Cache save error:", error)
-  }
+  } catch (error) {}
 }
 
 // Función para normalizar objetos y asegurar un JSON determinístico
@@ -111,51 +103,57 @@ export const simpleGeminiAI = async (
   },
   fish_activity: any
 ): Promise<string> => {
-  console.log(embalse)
   try {
     // Normalizar los datos para asegurar un hash consistente
     const normalizedWeather = normalizeForCache(weather)
     const normalizedFishActivity = normalizeForCache(fish_activity)
 
     const prompt = `
-  Genera un resumen breve y natural sobre las condiciones de pesca para los próximos 7 días basándote en los siguientes datos. Proporciona información clara y concisa para lectura rápida.
+  Resume los datos meteorológicos y de actividad de peces para los próximos 7 días. Usa SOLO la información proporcionada, no inventes datos.
 
-  📊 **Datos:**
+  📊 **Datos del embalse:**
   - **Embalse:** ${embalse.embalse.name}
-  - **Nivel del embalse:** ${embalse.embalse.nivel} m
-  - **Porcentaje de capacidad:** ${embalse.embalse.porcentaje}%
-  - **Pronóstico meteorológico (7 días):** ${JSON.stringify(normalizedWeather, null, 2)}
-  - **Actividad lunar y de peces (7 días):** ${JSON.stringify(normalizedFishActivity, null, 2)}
+  - **Nivel actual:** ${embalse.embalse.nivel} m (${embalse.embalse.porcentaje}% de capacidad)
+  - **Pronóstico meteorológico:** ${JSON.stringify(normalizedWeather, null, 2)}
+  - **Actividad de peces:** ${JSON.stringify(normalizedFishActivity, null, 2)}
 
-  🎣 **Instrucciones específicas:**
-  - No empieces el resumen siempre con la misma frase ni repitas estructuras como "Aquí tienes un resumen de las condiciones de pesca en el embalse de X para los próximos 7 días".
-  - Describe las condiciones meteorológicas principales (temperaturas, vientos, precipitaciones)
-  - Menciona los días con actividad de peces destacada (🐟🐟🐟 = alta, 🐟🐟 = media, 🐟 = baja)
-  - Incluye información sobre el estado del embalse
-  - Presenta la información de manera clara y directa, sin dar consejos
-  - Usa un tono informativo y natural para lectura rápida
+  🎣 **INSTRUCCIONES:**
+  - NUNCA uses frases como: "Aquí tienes", "Te presento", "Aquí está el resumen", "Para los próximos días", etc.
+  - Comienza DIRECTAMENTE con la información más relevante
+  - Escribe en UN SOLO PÁRRAFO de 4-5 líneas máximo
+  - Usa ÚNICAMENTE los datos proporcionados, NO inventes información
+  - Tono informativo y directo, sin ser demasiado familiar
+  - Menciona solo temperaturas, vientos y actividad de peces según los datos reales
+  - Usa íconos de peces: 🐟🐟🐟 (excelente), 🐟🐟 (buena), 🐟 (regular)
+  - NO hagas predicciones ni des consejos, solo resume los datos
 
-  🔹 **Ejemplo de Respuesta Esperada:**
-  "Esta semana las temperaturas oscilarán entre 18-22°C con condiciones mayormente estables. El martes y viernes presentan actividad alta de peces (🐟🐟🐟) coincidiendo con fases lunares favorables. El sábado se esperan vientos de 15 km/h. Habrá precipitaciones leves el miércoles. El embalse se encuentra al 89% de su capacidad."
+  ✅ **EJEMPLOS DE INICIO CORRECTO:**
+  - "Temperaturas entre 15-20°C con vientos de 8-12 km/h..."
+  - "Esta semana presenta condiciones estables con..."
+  - "El embalse al 85% registra temperaturas de..."
+  - "Condiciones meteorológicas variables con..."
+
+  ❌ **NUNCA USES:**
+  - "Aquí tienes un resumen..."
+  - "Te proporciono la información..."
+  - "A continuación encontrarás..."
+  - "Basándome en los datos..."
+  - "Recomiendo que..."
+  - "Será perfecto para..."
   `
 
     const promptHash = await hashTextToSha256(prompt)
 
-    console.log("Prompt hash:", promptHash)
-
     const cacheQuery = await CacheClient.get(promptHash)
     if (cacheQuery !== null && cacheQuery !== undefined) {
-      console.log("Cache hit:", promptHash)
       return cacheQuery
     }
 
-    console.log("Cache miss, calling Gemini function...")
     const { data, error } = await supabase.functions.invoke("Gemini-2-9", {
       body: { prompt },
     })
 
     if (error) {
-      console.error("Error calling Gemini function:", error)
       return "No se pudo generar el resumen debido a un error interno."
     }
 
@@ -163,14 +161,12 @@ export const simpleGeminiAI = async (
 
     try {
       await savedCache({ token: promptHash, data: responseText })
-      console.log("Cache saved successfully")
-    } catch (cacheError) {
-      console.log("Error saving to cache:", cacheError)
+    } catch {
+      // Error de cache no crítico, se ignora
     }
 
     return responseText
-  } catch (error) {
-    console.error("Simple Gemini AI error:", error)
+  } catch {
     return "No se pudo generar el resumen debido a un error interno."
   }
 }
