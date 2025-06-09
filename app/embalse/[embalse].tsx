@@ -1,5 +1,5 @@
 import type { EmbalseDataHistorical, EmbalseDataLive } from "../../types"
-import { router, Stack, useLocalSearchParams } from "expo-router"
+import { router, useLocalSearchParams, useNavigation } from "expo-router"
 import { HistoricalData, LiveData } from "querys"
 import { useEffect, useState } from "react"
 import { ActivityIndicator, TouchableOpacity, StyleSheet, Text, View } from "react-native"
@@ -32,11 +32,39 @@ export default function Embalse() {
   const [userId, setuserId] = useState<string>("")
 
   const { embalse } = useLocalSearchParams()
+  const navigation = useNavigation()
   const emb = Array.isArray(embalse) ? embalse[0] : embalse
   const embalseCoded = Array.isArray(embalse)
     ? embalse[0]?.toLowerCase().replace(/ /g, "-") || ""
     : (embalse || "").toLowerCase().replace(/ /g, "-")
   const { weather: weatherData, loading: weatherLoading, coordinates } = useWeather(emb, embalseCoded)
+
+  // Configurar el header dinámicamente
+  useEffect(() => {
+    const headerTitle = embalse ? (Array.isArray(embalse) ? embalse[0] : embalse) : "N/D"
+    const truncateText = (text: string, maxLength: number = 26) => {
+      return text.length > maxLength ? text.substring(0, maxLength) + "..." : text
+    }
+
+    navigation.setOptions({
+      headerLeft: () => (
+        <Text
+          style={{
+            fontSize: 25,
+            fontFamily: "Inter-Black",
+            color: "#032E15",
+            paddingLeft: "auto",
+            maxWidth: 600,
+            lineHeight: 32,
+          }}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {truncateText(headerTitle)}
+        </Text>
+      ),
+    })
+  }, [embalse, navigation])
   useEffect(() => {
     if (!embalse) return
     const getSession = async () => {
@@ -83,41 +111,6 @@ export default function Embalse() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          title: "",
-          headerTitleAlign: "left",
-          headerStyle: {
-            backgroundColor: "#effcf3",
-          },
-          headerBackVisible: true,
-          headerBackButtonDisplayMode: "minimal",
-          headerRight: () => "",
-          headerLeft: () => {
-            const headerTitle = embalse ? (Array.isArray(embalse) ? embalse[0] : embalse) : "N/D"
-            const truncateText = (text: string, maxLength: number = 26) => {
-              return text.length > maxLength ? text.substring(0, maxLength) + "..." : text
-            }
-
-            return (
-              <Text
-                style={{
-                  fontSize: 25,
-                  fontFamily: "Inter-Black",
-                  color: "#032E15",
-                  paddingLeft: "auto",
-                  maxWidth: 600,
-                  lineHeight: 32,
-                }}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {truncateText(headerTitle)}
-              </Text>
-            )
-          },
-        }}
-      />
       <LinearGradient
         colors={["#effcf3", "#9affa1"]}
         style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]}

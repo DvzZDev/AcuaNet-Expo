@@ -1,4 +1,4 @@
-import { Link, router, Stack } from "expo-router"
+import { Link, router } from "expo-router"
 import { Text, TouchableOpacity, View, ScrollView, KeyboardAvoidingView, Platform } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { StatusBar } from "expo-status-bar"
@@ -53,11 +53,6 @@ export default function SignUp() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: false,
-        }}
-      />
       <StatusBar style="light" />
       <View className="flex-1">
         <SafeAreaView

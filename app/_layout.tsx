@@ -5,7 +5,6 @@ import { Stack, SplashScreen, router } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import { Image } from "expo-image"
 
-
 import { useFonts } from "expo-font"
 import { ThemeProvider } from "../components/Theme/theme"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
@@ -95,8 +94,23 @@ export default function RootLayout() {
                 options={{ headerShown: false }}
               />
               <Stack.Screen
+                name="auth/signUp"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
                 name="embalse/[embalse]"
-                options={{ headerShown: true }}
+                options={{
+                  headerShown: true,
+                  title: "",
+                  headerTitleAlign: "left",
+                  headerStyle: {
+                    backgroundColor: "#effcf3",
+                  },
+                  headerBackVisible: true,
+                  headerBackButtonDisplayMode: "minimal",
+                  headerRight: () => "",
+                  headerLeft: () => null,
+                }}
               />
             </Stack>
           </SafeAreaProvider>

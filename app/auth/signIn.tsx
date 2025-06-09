@@ -1,4 +1,4 @@
-import { Link, router, Stack } from "expo-router"
+import { Link, router } from "expo-router"
 import { Text, TouchableOpacity, View, ScrollView, KeyboardAvoidingView, Platform } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { StatusBar } from "expo-status-bar"
@@ -40,11 +40,6 @@ export default function SignIn() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: false,
-        }}
-      />
       <StatusBar style="light" />
       <View className="flex-1">
         <SafeAreaView
@@ -119,7 +114,7 @@ export default function SignIn() {
                           Email
                         </Text>
                         <TextInput
-                          className="h-12 w-full leading-[1.2rem] rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base text-emerald-900"
+                          className="h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base leading-[1.2rem] text-emerald-900"
                           aria-label="input"
                           aria-labelledby="labelEmail"
                           value={field.state.value}
@@ -159,7 +154,7 @@ export default function SignIn() {
                           Contraseña
                         </Text>
                         <TextInput
-                          className="h-12 w-full rounded-md leading-[1.2rem] bg-emerald-200 px-4 font-Inter-Medium text-base text-emerald-900"
+                          className="h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base leading-[1.2rem] text-emerald-900"
                           aria-label="input"
                           aria-labelledby="labelPassword"
                           secureTextEntry={true}
