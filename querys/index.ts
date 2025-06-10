@@ -1,6 +1,7 @@
 import CacheClient from "cache"
 import hashTextToSha256 from "lib/HashText"
 import { supabase } from "lib/supabase"
+import type { FavSection } from "types/index"
 
 export const HistoricalData = async (
   embalse: string | string[],
@@ -21,8 +22,24 @@ export const HistoricalData = async (
     }
 
     setHData(data || [])
-  } catch (err) {
+  } catch {
     setHData([])
+  }
+}
+
+export const PortugalData = async (embalse: string | string[], setPortugalData: (data: any) => void) => {
+  try {
+    const embalseStr = Array.isArray(embalse) ? embalse[0] : embalse
+    const embalseLower = typeof embalseStr === "string" ? embalseStr.toLowerCase() : embalseStr
+    const { data, error } = await supabase.from("portugal_data").select().eq("nombre_embalse", embalseLower)
+    if (error) {
+      setPortugalData([])
+      return
+    }
+
+    setPortugalData(data || [])
+  } catch {
+    setPortugalData([])
   }
 }
 
@@ -40,7 +57,7 @@ export const LiveData = async (embalse: string | string[], codedEmbalse: string,
     }
 
     setLiveData(data || [])
-  } catch (err) {
+  } catch {
     setLiveData([])
   }
 }
@@ -61,7 +78,7 @@ export const CheckCoords = async (embalse: string | string[], setCheckCoords: (d
     }
 
     setCheckCoords(data || [])
-  } catch (err) {
+  } catch {
     setCheckCoords([])
   }
 }
@@ -69,10 +86,9 @@ export const CheckCoords = async (embalse: string | string[], setCheckCoords: (d
 async function savedCache({ token, data }: { token: string; data: string }) {
   try {
     await CacheClient.set(token, data, { EX: 3600 })
-  } catch (error) {}
+  } catch {}
 }
 
-// Función para normalizar objetos y asegurar un JSON determinístico
 function normalizeForCache(obj: any): any {
   if (obj === null || typeof obj !== "object") {
     return obj
@@ -104,7 +120,6 @@ export const simpleGeminiAI = async (
   fish_activity: any
 ): Promise<string> => {
   try {
-    // Normalizar los datos para asegurar un hash consistente
     const normalizedWeather = normalizeForCache(weather)
     const normalizedFishActivity = normalizeForCache(fish_activity)
 
@@ -168,5 +183,63 @@ export const simpleGeminiAI = async (
     return responseText
   } catch {
     return "No se pudo generar el resumen debido a un error interno."
+  }
+}
+
+export const getFavSections = async (
+  id: string,
+  setFavData: (data: FavSection[]) => void,
+  setIsLoading: (loading: boolean) => void
+) => {
+  try {
+    setIsLoading(true)
+
+    const { data, error } = await supabase.from("favorite_reservoirs").select().eq("user_id", id)
+
+    if (error) {
+      console.error("Error fetching favorite sections:", error)
+      setFavData([])
+      setIsLoading(false)
+      return []
+    }
+
+    const favorites = data[0]?.favorites || []
+    const españa = favorites.filter((embalse: { pais: string }) => embalse.pais === "España")
+    const portugal = favorites.filter((embalse: { pais: string }) => embalse.pais === "Portugal")
+
+    const nombresPt = portugal.map((embalse: { embalse: string }) => embalse.embalse?.toLowerCase()).filter(Boolean)
+
+    const nombresEs = españa.map((embalse: { embalse: string }) => embalse.embalse)
+
+    const { data: portugalData, error: portugalError } = await supabase
+      .from("portugal_data")
+      .select()
+      .in("nombre_embalse", nombresPt)
+
+    if (portugalError) {
+      console.error("Error fetching Portugal data:", portugalError)
+      setFavData([])
+      setIsLoading(false)
+      return []
+    }
+
+    const { data: españaData, error: españaError } = await supabase.rpc("obtener_ultimo_registro_por_embalse", {
+      nombres_embalses: nombresEs,
+    })
+
+    if (españaError) {
+      console.error("Error al llamar RPC:", españaError)
+      setFavData([])
+      setIsLoading(false)
+      return []
+    }
+
+    setFavData([...(españaData || []), ...(portugalData || [])])
+    setIsLoading(false)
+  } catch (error) {
+    console.error("Error fetching favorite sections:", error)
+    setFavData([])
+    setIsLoading(false)
+    return []
   }
 }

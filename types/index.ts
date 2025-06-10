@@ -8,6 +8,18 @@ export interface EmbalseDataHistorical {
   volumen_actual: number
 }
 
+export interface EmbalseDataPortugal {
+  agua_embalsada: number
+  agua_embalsadapor: number
+  capacidad_total: number
+  fecha_modificacion: string
+  nombre_cuenca: string
+  nombre_embalse: string
+  pais: string
+  variacion_ultima_semana: number
+  variacion_ultima_semanapor: number
+}
+
 export interface Embalses {
   fecha: Date | null
   embalse: string
@@ -141,3 +153,26 @@ export interface EmbalseCoordinate {
 }
 
 export type EmbalseCoordinates = EmbalseCoordinate[]
+
+export interface FavSection {
+  embalse: string
+  pais: string
+  fechaAñadido?: string
+  id?: number
+  lat?: number
+  lon?: number
+  // Portuguese reservoirs specific fields
+  agua_embalsada?: number
+  agua_embalsadapor?: number
+  capacidad_total?: number
+  fecha_modificacion?: string
+  nombre_cuenca?: string
+  nombre_embalse?: string
+  variacion_ultima_semana?: number
+  variacion_ultima_semanapor?: number
+  // Spanish reservoirs specific fields
+  cuenca?: string
+  fecha?: string
+  porcentaje?: number
+  volumen_actual?: number
+}

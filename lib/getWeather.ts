@@ -18,14 +18,16 @@ export type WeatherData = {
 export type UnifiedCoordinates = {
   lat: number | null
   lng: number | null
+  pais: string
   source: "database" | "nominatim" | null
 }
 
 export function useWeather(loc: string, embalseCoded: string) {
-  const [coordinates, setCoordinates] = useState<UnifiedCoordinates>({ lat: null, lng: null, source: null })
+  const [coordinates, setCoordinates] = useState<UnifiedCoordinates>({ lat: null, lng: null, source: null, pais: "" })
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const embalseDecoded = loc ? loc.toLowerCase() : ""
 
   useEffect(() => {
     const getUnifiedCoordinates = async () => {
@@ -33,18 +35,34 @@ export function useWeather(loc: string, embalseCoded: string) {
 
       try {
         const { data: dbCoords, error: dbError } = await supabase
-          .from("embalses_coords")
-          .select("lat, long")
-          .eq("embalse", embalseCoded)
+          .from("datos_embalses")
+          .select("lat, lon, pais")
+          .eq("nombre_embalse", embalseDecoded)
           .limit(1)
 
-        if (!dbError && dbCoords && dbCoords.length > 0 && dbCoords[0].lat !== null && dbCoords[0].long !== null) {
-          setCoordinates({
-            lat: dbCoords[0].lat,
-            lng: dbCoords[0].long,
-            source: "database",
-          })
-          return
+        if (!dbError && dbCoords && dbCoords.length > 0) {
+          const dbRecord = dbCoords[0]
+          const pais = dbRecord.pais || ""
+
+          if (pais.toLowerCase().includes("portugal")) {
+            setCoordinates({
+              lat: dbRecord.lat,
+              lng: dbRecord.lon,
+              pais: pais,
+              source: "database",
+            })
+            return
+          }
+
+          if (dbRecord.lat !== null && dbRecord.lon !== null) {
+            setCoordinates({
+              lat: dbRecord.lat,
+              lng: dbRecord.lon,
+              pais: pais,
+              source: "database",
+            })
+            return
+          }
         }
 
         const url = `https://nominatim.openstreetmap.org/search.php?q=Embalse de ${loc}&format=jsonv2&countrycodes=ES&extratags=1&addressdetails=1`
@@ -73,16 +91,17 @@ export function useWeather(loc: string, embalseCoded: string) {
         setCoordinates({
           lat: parseFloat(data[0].lat),
           lng: parseFloat(data[0].lon),
+          pais: "España",
           source: "nominatim",
         })
       } catch (error) {
         setError(String(error))
-        setCoordinates({ lat: null, lng: null, source: null })
+        setCoordinates({ lat: null, lng: null, pais: "", source: null })
       }
     }
 
     getUnifiedCoordinates()
-  }, [loc, embalseCoded])
+  }, [loc, embalseCoded, embalseDecoded])
 
   useEffect(() => {
     // COMMENTED FOR DEVELOPMENT - USING MOCK DATA TO SAVE API REQUESTS

@@ -85,13 +85,11 @@ export default function Maps({ coords }: MapsProps) {
         />
       ) : (
         <MapView
-          style={{ flex: 1, minHeight: 500 }}
+          style={{ flex: 1, minHeight: 900 }}
           initialRegion={embalseCoordinates}
           onMapReady={() => setIsMapReady(true)}
           showsUserLocation={true}
           showsMyLocationButton={true}
-          showsCompass={true}
-          showsScale={true}
           mapType="satellite"
           rotateEnabled={true}
           scrollEnabled={true}

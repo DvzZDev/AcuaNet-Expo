@@ -1,19 +1,24 @@
 import { useState } from "react"
 import { Tabs } from "expo-router"
 import { StatusBar } from "expo-status-bar"
-import { Text, TouchableOpacity } from "react-native"
+import { StyleSheet, Text, TouchableOpacity } from "react-native"
 import Home from "assets/icons/home"
 import Map from "assets/icons/map"
 import Search from "assets/icons/search"
 import SearchModal from "components/Search/SearchModal"
 
 import "global.css"
+import { LinearGradient } from "expo-linear-gradient"
 
 export default function Layout() {
   const [isModalVisible, setIsModalVisible] = useState(false)
 
   return (
     <>
+      <LinearGradient
+        colors={["#effcf3", "#9affa1"]}
+        style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]}
+      />
       <StatusBar style="dark" />
       <Tabs
         screenOptions={{

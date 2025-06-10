@@ -1,4 +1,4 @@
-import type { EmbalseDataLive, EmbalseDataHistorical } from "types"
+import type { EmbalseDataLive, EmbalseDataHistorical, EmbalseDataPortugal } from "types"
 import { useRef, useEffect } from "react"
 import { Text, View } from "react-native"
 import {
@@ -124,8 +124,9 @@ interface BottomSheetModalComponentProps {
   setContentKey: (key: string) => void
   LiveData: EmbalseDataLive[]
   HistoricalData: EmbalseDataHistorical[]
+  PortugalData: EmbalseDataPortugal[]
   weatherData: any
-  coords?: { latitude: number; longitude: number }
+  coords?: { latitude: number; longitude: number; pais: string }
 }
 
 export default function BottomSheetModalComponent({
@@ -134,6 +135,7 @@ export default function BottomSheetModalComponent({
   contentKey,
   setContentKey,
   LiveData,
+  PortugalData,
   HistoricalData,
   weatherData,
   coords,
@@ -262,6 +264,8 @@ export default function BottomSheetModalComponent({
                 liveData={LiveData}
                 historicalData={HistoricalData}
                 contentKey={contentKey}
+                pais={coords?.pais || ""}
+                portugalData={PortugalData}
               />
               {contentKey === "historicaldata" && <Chart data={HistoricalData} />}
               {contentKey === "weatherForecast" && <Weather data={weatherData} />}
