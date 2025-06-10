@@ -14,6 +14,7 @@ module.exports = {
         'Inter': ['Inter-Regular', 'sans-serif'],
         'Inter-SemiBold': ['Inter-SemiBold', 'sans-serif'],
         'Inter-Thin': ['Inter-Thin', 'sans-serif'],
+        'Inter-Black-Italic': ['Inter-Black-Italic', 'sans-serif'],
       },
     },
   },
