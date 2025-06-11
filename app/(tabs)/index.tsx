@@ -1,25 +1,64 @@
 import { Image } from "expo-image"
 import { LinearGradient } from "expo-linear-gradient"
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { StyleSheet, Text, View } from "react-native"
 import { useState, useEffect } from "react"
 import { getFavSections } from "querys"
 import { supabase } from "lib/supabase"
 import { FavSection } from "types/index"
-import { Capitalice } from "lib/Capitalice"
-import Spain from "@assets/icons/spain"
-import Portugal from "@assets/icons/portugal"
-import Animated, { FadeIn, useAnimatedStyle } from "react-native-reanimated"
-import TrendUp from "@assets/icons/trendUp"
-import TrendDown from "@assets/icons/trendDown"
-import { HugeiconsIcon } from "@hugeicons/react-native"
-import { Calendar01FreeIcons, TransactionHistoryFreeIcons } from "@hugeicons/core-free-icons"
-import { router } from "expo-router"
+import { ReorderableListReorderEvent, reorderItems } from "react-native-reorderable-list"
+import AsyncStorage from "@react-native-async-storage/async-storage"
+import ReorderableEmbalseList from "components/ReorderableEmbalseList"
 
-// Función para procesar datos de España y calcular diferencias semanales
+const EMBALSE_ORDER_KEY = "@embalse_order"
+
+const saveOrder = async (data: FavSection[]) => {
+  try {
+    const orderData = data.map((item, index) => ({
+      key: `${item.pais}-${item.embalse || item.nombre_embalse}-${item.id || 0}`,
+      index,
+    }))
+    await AsyncStorage.setItem(EMBALSE_ORDER_KEY, JSON.stringify(orderData))
+  } catch (error) {
+    console.error("Error saving order:", error)
+  }
+}
+
+const loadOrder = async () => {
+  try {
+    const orderData = await AsyncStorage.getItem(EMBALSE_ORDER_KEY)
+    return orderData ? JSON.parse(orderData) : null
+  } catch (error) {
+    console.error("Error loading order:", error)
+    return null
+  }
+}
+
+const applyStoredOrder = (data: FavSection[], storedOrder: any[]) => {
+  if (!storedOrder || storedOrder.length === 0) return data
+  const orderMap = new Map()
+  storedOrder.forEach((item) => {
+    orderMap.set(item.key, item.index)
+  })
+
+  return data.sort((a, b) => {
+    const keyA = `${a.pais}-${a.embalse || a.nombre_embalse}-${a.id || 0}`
+    const keyB = `${b.pais}-${b.embalse || b.nombre_embalse}-${b.id || 0}`
+
+    const indexA = orderMap.get(keyA)
+    const indexB = orderMap.get(keyB)
+
+    if (indexA !== undefined && indexB !== undefined) {
+      return indexA - indexB
+    }
+    if (indexA !== undefined) return -1
+    if (indexB !== undefined) return 1
+    return 0
+  })
+}
+
 const processSpainData = (rawData: FavSection[]): FavSection[] => {
   const embalsesMap = new Map()
 
-  // Agrupar por embalse
   rawData.forEach((item) => {
     if (!item.embalse || item.pais === "Portugal") return
 
@@ -31,9 +70,7 @@ const processSpainData = (rawData: FavSection[]): FavSection[] => {
 
   const processedData: FavSection[] = []
 
-  // Procesar cada embalse
   embalsesMap.forEach((registros, embalse) => {
-    // Ordenar por fecha descendente (más reciente primero)
     registros.sort((a: FavSection, b: FavSection) => {
       const dateA = new Date(a.fecha || 0)
       const dateB = new Date(b.fecha || 0)
@@ -43,13 +80,11 @@ const processSpainData = (rawData: FavSection[]): FavSection[] => {
     const registroReciente = registros[0]
     const registroAnterior = registros[1]
 
-    // Calcular diferencia semanal si hay 2 registros
     let variacionSemanal = 0
     if (registroAnterior && registroReciente.porcentaje && registroAnterior.porcentaje) {
       variacionSemanal = Number((registroReciente.porcentaje - registroAnterior.porcentaje).toFixed(2))
     }
 
-    // Agregar la variación al registro más reciente
     processedData.push({
       ...registroReciente,
       variacion_ultima_semana: variacionSemanal,
@@ -61,10 +96,7 @@ const processSpainData = (rawData: FavSection[]): FavSection[] => {
 
 export default function Page() {
   const hour = new Date().getHours()
-  const [isLoading, setIsLoading] = useState(true)
   const [favData, setFavData] = useState<FavSection[]>([])
-
-  console.log(favData)
 
   useEffect(() => {
     const fetchFavData = async () => {
@@ -81,19 +113,20 @@ export default function Page() {
         }
         const favData = await getFavSections(
           id,
-          (rawData: FavSection[]) => {
-            // Separar datos de España y Portugal
+          async (rawData: FavSection[]) => {
             const spainData = rawData.filter((item) => item.pais !== "Portugal")
             const portugalData = rawData.filter((item) => item.pais === "Portugal")
 
-            // Procesar datos de España para calcular diferencias y mantener solo registros recientes
             const processedSpainData = processSpainData(spainData)
 
-            // Combinar datos procesados
-            const finalData = [...processedSpainData, ...portugalData]
+            const combinedData = [...processedSpainData, ...portugalData]
+
+            const storedOrder = await loadOrder()
+            const finalData = applyStoredOrder(combinedData, storedOrder)
+
             setFavData(finalData)
           },
-          setIsLoading
+          () => {}
         )
         return favData
       } catch (error) {
@@ -102,6 +135,14 @@ export default function Page() {
     }
     fetchFavData()
   }, [])
+
+  const handleReorder = ({ from, to }: ReorderableListReorderEvent) => {
+    setFavData((prevData) => {
+      const newData = reorderItems(prevData, from, to)
+      saveOrder(newData)
+      return newData
+    })
+  }
 
   return (
     <>
@@ -137,108 +178,10 @@ export default function Page() {
           <Text className="font-Inter-Black text-3xl text-[#14141c]">Favoritos</Text>
         </View>
 
-        <View>
-          {favData.map((e, i) => (
-            <Animated.View
-              entering={FadeIn}
-              key={i}
-              className="mx-4 mb-4 rounded-lg border border-green-500/50 bg-green-500/20 px-3 py-2"
-            >
-              <TouchableOpacity
-                onPress={() =>
-                  router.push(
-                    `/embalse/${e.pais === "Portugal" ? e.nombre_embalse?.toLocaleLowerCase() : e.embalse}`
-                  )
-                }
-              >
-                <View className="flex-row items-center justify-between">
-                  <Text className="font-Inter-Bold text-3xl text-emerald-950">
-                    {e.pais === "Portugal" ? Capitalice(e.nombre_embalse ? e.nombre_embalse : "N/D") : e.embalse}
-                  </Text>
-                  {e.pais === "Portugal" ? <Portugal /> : <Spain />}
-                </View>
-                <View className="mt-4 flex-row items-center gap-2">
-                  <View
-                    style={{
-                      height: 12,
-                      backgroundColor: "#14141c",
-                      borderRadius: 999,
-                      position: "relative",
-                      flex: 1,
-                    }}
-                  >
-                    <View
-                      style={{
-                        position: "absolute",
-                        left: 0,
-                        height: "100%",
-                        width: e.pais === "Portugal" ? `${e.agua_embalsadapor || 0}%` : `${e.porcentaje || 0}%`,
-                        backgroundColor: "#00c740",
-                        borderRadius: 999,
-                      }}
-                    />
-                  </View>
-
-                  <Text className="min-w-[50px] text-right font-Inter-Bold text-xl">
-                    {e.pais === "Portugal"
-                      ? `${e.agua_embalsadapor?.toFixed(0) || 0}%`
-                      : `${e.porcentaje?.toFixed(0) || 0}%`}
-                  </Text>
-                </View>
-                <View className="mt-3 flex-row items-center justify-between">
-                  <View className="flex-row items-center">
-                    <Text className="font-Inter-Medium text-emerald-800">Var. Semanal: </Text>
-                    {e.pais === "Portugal" ? (
-                      e.variacion_ultima_semanapor && e.variacion_ultima_semanapor > 0 ? (
-                        <TrendUp color="#16a34a" />
-                      ) : (
-                        <TrendDown color="#dc2626" />
-                      )
-                    ) : e.variacion_ultima_semana && e.variacion_ultima_semana > 0 ? (
-                      <TrendUp color="#16a34a" />
-                    ) : (
-                      <TrendDown color="#dc2626" />
-                    )}
-                    <Text
-                      className={
-                        e.pais === "Portugal"
-                          ? e.variacion_ultima_semanapor && e.variacion_ultima_semanapor > 0
-                            ? "font-Inter-Bold text-green-600"
-                            : "font-Inter-Bold text-red-600"
-                          : e.variacion_ultima_semana && e.variacion_ultima_semana > 0
-                            ? "font-Inter-Bold text-green-600"
-                            : "font-Inter-Bold text-red-600"
-                      }
-                    >
-                      {" "}
-                      {e.pais === "Portugal" ? e.variacion_ultima_semanapor : e.variacion_ultima_semana}%
-                    </Text>
-                  </View>
-
-                  <View className="flex-row items-center gap-1 rounded-3xl border border-lime-300 bg-lime-400 p-1 px-2">
-                    <HugeiconsIcon
-                      icon={TransactionHistoryFreeIcons}
-                      size={15}
-                      color="#1a2e05"
-                    />
-                    <Text className="font-Inter-Medium text-sm text-lime-950">
-                      Ult. Boletin:{" "}
-                      {e.pais === "Portugal"
-                        ? new Date(e.fecha_modificacion || 0).toLocaleDateString("es-ES", {
-                            day: "numeric",
-                            month: "short",
-                          })
-                        : new Date(e.fecha || 0).toLocaleDateString("es-ES", {
-                            day: "numeric",
-                            month: "short",
-                          })}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            </Animated.View>
-          ))}
-        </View>
+        <ReorderableEmbalseList
+          data={favData}
+          onReorder={handleReorder}
+        />
       </View>
     </>
   )

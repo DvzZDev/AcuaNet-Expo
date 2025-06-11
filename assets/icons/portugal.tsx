@@ -1,11 +1,11 @@
 import * as React from "react"
 import Svg, { Path, G, Circle } from "react-native-svg"
 
-export default function Portugal() {
+export default function Portugal({ height, width }: { height: number; width: number }) {
   return (
     <Svg
-      width={35}
-      height={35}
+      width={width}
+      height={height}
       viewBox="2 2 60 60"
     >
       <Path

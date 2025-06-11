@@ -1,103 +1,214 @@
-import { Modal, TouchableOpacity, View, StyleSheet, Text, TextInput } from 'react-native';
-import { Link } from 'expo-router';
-import { BlurView } from 'expo-blur';
-import Names from 'lib/Names.json';
-import SearchBar from 'assets/icons/searchBar';
-import Drop from 'assets/icons/drop';
-import { useState } from 'react';
-import Animated, {
-  useAnimatedKeyboard,
-  useAnimatedStyle,
-  LinearTransition,
-  FadeIn,
-  FadeOut,
-} from 'react-native-reanimated';
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetTextInput, BottomSheetView } from "@gorhom/bottom-sheet"
+import { DropletIcon, Search02FreeIcons } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react-native"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import Names from "lib/Names.json"
+import Fuse from "fuse.js"
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
+import Spain from "@assets/icons/spain"
+import Portugal from "@assets/icons/portugal"
+import { router } from "expo-router"
 
 type SearchModalProps = {
-  isVisible: boolean;
-  setIsModalVisible: (visible: boolean) => void;
-};
+  isVisible: boolean
+  setIsModalVisible: (visible: boolean) => void
+}
 
 interface NamesType {
-  nombre: string;
-  pais: string;
+  nombre: string
+  pais: string
 }
 
 export default function SearchModal({ isVisible, setIsModalVisible }: SearchModalProps) {
-  const [searchText, setSearchText] = useState('');
-  const FilteredNames = Names.filter((n: NamesType) =>
-    n.nombre.toLowerCase().includes(searchText.toLowerCase())
-  ).slice(0, 5);
+  const [value, setValue] = useState("")
+  const [hasSearched, setHasSearched] = useState(false)
 
-  const keyboard = useAnimatedKeyboard();
-  const animatedStyles = useAnimatedStyle(() => ({
-    transform: [{ translateY: -keyboard.height.value / 2 }],
-  }));
+  const fuse = new Fuse(Names, {
+    keys: ["nombre"],
+    threshold: 0.4,
+  })
 
+  const results = fuse.search(value).slice(0, 3)
+  const FilteredNames = results.map((result) => result.item)
+
+  const handleSearch = useCallback(() => {
+    if (value.trim()) {
+      setHasSearched(true)
+
+      if (FilteredNames.length > 0) {
+        setIsModalVisible(false)
+        setValue("")
+        setHasSearched(false)
+        router.push(`/embalse/${FilteredNames[0].nombre}`)
+        return
+      }
+
+      const exactMatch = Names.find((name: NamesType) => name.nombre.toLowerCase() === value.toLowerCase().trim())
+
+      if (exactMatch) {
+        setIsModalVisible(false)
+        setValue("")
+        setHasSearched(false)
+        router.push(`/embalse/${exactMatch.nombre}`)
+      }
+    }
+  }, [value, FilteredNames, setIsModalVisible])
+
+  const searchModalRef = useRef<BottomSheetModal>(null)
+  const handlePresentModalPress = useCallback(() => {
+    searchModalRef.current?.present()
+  }, [])
+  const handleDismissModalPress = useCallback(() => {
+    setIsModalVisible(false)
+    setValue("")
+    setHasSearched(false)
+  }, [setIsModalVisible])
+
+  const handleInputChange = useCallback(
+    (text: string) => {
+      setValue(text)
+      if (hasSearched) {
+        setHasSearched(false)
+      }
+    },
+    [hasSearched]
+  )
+
+  useEffect(() => {
+    if (isVisible) {
+      handlePresentModalPress()
+    } else {
+      searchModalRef.current?.dismiss()
+    }
+  }, [isVisible, handlePresentModalPress])
+
+  const renderBackdrop = (props: any) => (
+    <BottomSheetBackdrop
+      {...props}
+      disappearsOnIndex={-1}
+      appearsOnIndex={0}
+      enableTouchThrough={false}
+      pressBehavior="close"
+    />
+  )
   return (
-    <Modal
-      animationType="fade"
-      transparent={true}
-      visible={isVisible}
-      onRequestClose={() => {
-        setIsModalVisible(false);
-      }}>
-      <TouchableOpacity
-        activeOpacity={1}
-        className="flex-1 items-center justify-center p-3"
-        onPressOut={() => {
-          setIsModalVisible(false);
-          setSearchText('');
-        }}
-        
-        style={{ flex: 1 }}>
-        <BlurView
-          intensity={20}
-          tint="dark"
-          experimentalBlurMethod="dimezisBlurView"
-          style={{ ...StyleSheet.absoluteFillObject }}
-        />
-        <Animated.View
-          className="h-auto w-full rounded-3xl bg-black/50 p-3"
-          style={[animatedStyles]}
-          layout={LinearTransition}
-          onStartShouldSetResponder={() => true}
-          onTouchEnd={(e) => e.stopPropagation()}>
-          <View className="relative mt-5 flex h-12 w-full flex-row items-center rounded-xl bg-green-400/10 px-2">
-            <Drop />
-            <TextInput
-              onChange={(e) => setSearchText(e.nativeEvent.text)}
-              className="ml-2 h-40 flex-1 font-Inter text-[#93ffb7]"
-              placeholder="Buscar Embalse..."
-              placeholderTextColor="#93ffb796"
-              value={searchText}
+    <BottomSheetModal
+      ref={searchModalRef}
+      index={0}
+      style={styles.sheetContainer}
+      enableDynamicSizing={true}
+      enablePanDownToClose={true}
+      bottomInset={100}
+      backdropComponent={renderBackdrop}
+      detached={true}
+      keyboardBehavior="interactive"
+      onDismiss={handleDismissModalPress}
+      backgroundStyle={{ backgroundColor: "#14141c" }}
+      handleIndicatorStyle={{ backgroundColor: "#ccc" }}
+      name="SearchModal"
+    >
+      <BottomSheetView className="px-5">
+        <View className="relative mb-4 rounded-2xl border border-green-200 bg-[#a8f2b76f] ">
+          <TouchableOpacity
+            onPress={handleSearch}
+            className="absolute right-2 top-1/2 z-10 -translate-y-1/2"
+          >
+            <HugeiconsIcon
+              icon={Search02FreeIcons}
+              size={20}
+              color="#dbfce7"
             />
-            <SearchBar />
+          </TouchableOpacity>
+          <BottomSheetTextInput
+            value={value}
+            onChangeText={handleInputChange}
+            onSubmitEditing={handleSearch}
+            returnKeyType="search"
+            className="mx-9 w-fit py-4 font-Inter-Medium text-lg leading-[1.4rem] text-green-200"
+            placeholderTextColor={"#dbfce2af"}
+            placeholderClassName="Inter-Regular"
+            placeholder="Buscar embalse..."
+          />
+          <View className="absolute left-2 top-1/2 -translate-y-1/2">
+            <HugeiconsIcon
+              icon={DropletIcon}
+              size={20}
+              color="#dbfce7"
+            />
           </View>
+        </View>
+
+        {FilteredNames.length > 0 && (
           <Animated.View
-            layout={LinearTransition}
-            className={`mt-2 w-full gap-1 rounded-xl bg-[#6e7d74] p-2 ${searchText.length > 0 ? 'opacity-100' : 'opacity-0'}`}>
-            {searchText.length > 0 &&
-              FilteredNames.map((e) => (
-                <Link
-                  key={e.nombre}
-                  href={`/embalse/${encodeURIComponent(e.nombre)}`}
-                  onPress={() => {
-                    setIsModalVisible(false);
-                    setSearchText('');
-                  }}>
-                  <Animated.View
-                    key={e.nombre}
-                    entering={FadeIn.duration(250)}
-                    exiting={FadeOut.duration(250)}
-                    layout={LinearTransition}>
-                    <Text className="text-xl font-Inter text-[#93ffb7]">{e.nombre}</Text>
-                  </Animated.View>
-                </Link>
-              ))}
+            entering={FadeIn}
+            exiting={FadeOut}
+            className="mb-3 h-fit w-full rounded-2xl border border-green-200 bg-[#a8f2b76f]"
+          >
+            {FilteredNames.map((name: NamesType, index: number) => (
+              <TouchableOpacity
+                onPress={() => {
+                  setIsModalVisible(false)
+                  setValue("")
+                  setHasSearched(false)
+                  router.push(`/embalse/${name.nombre}`)
+                }}
+                key={index}
+                className={`flex-row items-center justify-between rounded-b-2xl p-2 ${index < FilteredNames.length - 1 ? "border-b border-green-300" : ""}`}
+              >
+                <Text
+                  key={index}
+                  className="font-Inter-Medium text-green-200"
+                >
+                  {name.nombre}
+                </Text>
+
+                {name.pais === "España" ? (
+                  <Spain
+                    height={20}
+                    width={20}
+                  />
+                ) : (
+                  <Portugal
+                    height={20}
+                    width={20}
+                  />
+                )}
+              </TouchableOpacity>
+            ))}
           </Animated.View>
-        </Animated.View>
-      </TouchableOpacity>
-    </Modal>
-  );
+        )}
+
+        {hasSearched && FilteredNames.length === 0 && value.trim() && (
+          <Animated.View
+            entering={FadeIn}
+            exiting={FadeOut}
+            className="mb-3 h-fit w-full rounded-2xl border border-red-200 bg-[#f2a8a86f] p-4"
+          >
+            <Text className="text-center font-Inter-Medium text-red-200">
+              No se encontraron resultados para &quot;{value}&quot;
+            </Text>
+            <Text className="font-Inter-Regular mt-2 text-center text-sm text-red-100">
+              Intenta con otro nombre de embalse
+            </Text>
+          </Animated.View>
+        )}
+      </BottomSheetView>
+    </BottomSheetModal>
+  )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 24,
+    backgroundColor: "grey",
+  },
+  sheetContainer: {
+    marginHorizontal: 50,
+  },
+  contentContainer: {
+    flex: 1,
+    alignItems: "center",
+  },
+})

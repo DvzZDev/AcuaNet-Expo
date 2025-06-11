@@ -39,7 +39,6 @@ export default function RootLayout() {
 
       setIsLoading(false)
       setSessionChecked(true)
-      console.log("Session check:", data.session)
 
       if (data.session === null && !router.canGoBack()) {
         router.replace("/auth/signIn")
