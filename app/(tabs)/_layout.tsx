@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Tabs } from "expo-router"
 import { StatusBar } from "expo-status-bar"
-import { StyleSheet, Text, TouchableOpacity } from "react-native"
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import Home from "assets/icons/home"
 import Map from "assets/icons/map"
 import Search from "assets/icons/search"
@@ -9,6 +9,8 @@ import SearchModal from "components/Search/SearchModal"
 
 import "global.css"
 import { LinearGradient } from "expo-linear-gradient"
+import { HugeiconsIcon } from "@hugeicons/react-native"
+import { Home03Icon, MapsLocation01Icon, Search02Icon, UserStoryIcon } from "@hugeicons/core-free-icons"
 
 export default function Layout() {
   const [isModalVisible, setIsModalVisible] = useState(false)
@@ -25,8 +27,9 @@ export default function Layout() {
           headerShown: false,
           tabBarStyle: {
             backgroundColor: "#16151a",
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
+            borderTopLeftRadius: 40,
+            borderTopRightRadius: 40,
+            paddingInline: 10,
           },
           tabBarLabelStyle: {
             color: "#b3e8ba",
@@ -38,15 +41,23 @@ export default function Layout() {
           name="index"
           options={{
             title: "Home",
-            tabBarLabel: "Home",
-            tabBarIcon: () => <Home />,
+            tabBarLabel: "Inicio",
+            tabBarLabelStyle: {
+              color: "#b3e8ba",
+              fontFamily: "Inter",
+            },
+            tabBarIcon: () => (
+              <HugeiconsIcon
+                icon={Home03Icon}
+                size={30}
+                color="#b3e8ba"
+              />
+            ),
           }}
         />
         <Tabs.Screen
           name="searchButton"
           options={{
-            tabBarIcon: () => <Search />,
-            tabBarLabel: "Search",
             tabBarButton: ({ accessibilityState, accessibilityLabel, testID }) => (
               <TouchableOpacity
                 accessibilityState={accessibilityState}
@@ -55,8 +66,12 @@ export default function Layout() {
                 onPress={() => setIsModalVisible(true)}
                 style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
               >
-                <Search />
-                <Text className="text-xs text-[#bcf2c2]">Search</Text>
+                <HugeiconsIcon
+                  icon={Search02Icon}
+                  size={30}
+                  color="#b3e8ba"
+                />
+                <Text className="font-Inter-Thin text-xs text-[#bcf2c2]">Buscador</Text>
               </TouchableOpacity>
             ),
           }}
@@ -65,14 +80,30 @@ export default function Layout() {
           name="geocode"
           options={{
             title: "CatchMap",
-            tabBarIcon: () => <Map />,
+            tabBarLabelStyle: {
+              color: "#b3e8ba",
+              fontFamily: "Inter",
+            },
+            tabBarIcon: () => (
+              <HugeiconsIcon
+                icon={MapsLocation01Icon}
+                size={30}
+                color="#b3e8ba"
+              />
+            ),
           }}
         />
         <Tabs.Screen
           name="account"
           options={{
             title: "Account",
-            tabBarIcon: () => <Home />,
+            tabBarIcon: () => (
+              <HugeiconsIcon
+                icon={UserStoryIcon}
+                size={30}
+                color="#b3e8ba"
+              />
+            ),
           }}
         />
       </Tabs>

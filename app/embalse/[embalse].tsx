@@ -1,5 +1,5 @@
 import type { EmbalseDataHistorical, EmbalseDataLive, EmbalseDataPortugal } from "../../types"
-import { router, useLocalSearchParams, useNavigation } from "expo-router"
+import { useLocalSearchParams, useNavigation } from "expo-router"
 import { HistoricalData, LiveData, PortugalData } from "querys"
 import { useEffect, useState } from "react"
 import { ActivityIndicator, TouchableOpacity, StyleSheet, Text, View } from "react-native"
@@ -20,7 +20,7 @@ import BottomSheetModalComponent from "components/Embalse/BottomSheet/BottomShee
 import { useWeather } from "lib/getWeather"
 import Resume from "components/Embalse/Resume"
 import FavButton from "components/Embalse/FavButton"
-import { supabase } from "lib/supabase"
+import { useStore } from "../../store"
 
 export default function Embalse() {
   const [hData, setHData] = useState<EmbalseDataHistorical[]>([])
@@ -31,7 +31,7 @@ export default function Embalse() {
   const [isLoadingLive, setIsLoadingLive] = useState<boolean>(true)
   const [portugalData, setPortugalData] = useState<EmbalseDataPortugal[]>([])
   const [isLoadingPortugal, setIsLoadingPortugal] = useState<boolean>(false)
-  const [userId, setuserId] = useState<string>("")
+  const userId = useStore((state) => state.id)
 
   const { embalse } = useLocalSearchParams()
   const navigation = useNavigation()
@@ -67,17 +67,9 @@ export default function Embalse() {
   }, [embalse, navigation])
 
   useEffect(() => {
-    if (!embalse) return
-    const getSession = async () => {
-      const { data, error } = await supabase.auth.getSession()
-      if (error) {
-        console.error("Error getting session:", error)
-        router.replace("/login")
-      } else {
-        const userId = data.session?.user.id || ""
-        setuserId(userId)
-      }
-    }
+    if (!embalse || !userId) return
+    // El userId ya está disponible desde el store, no necesitamos la llamada a getSession
+    console.log("User ID from store:", userId)
 
     const fetchDataAsync = async () => {
       setIsLoadingHistorical(true)
@@ -130,9 +122,9 @@ export default function Embalse() {
         setIsLoadingPortugal(false)
       }
     }
-    getSession()
+
     fetchDataAsync()
-  }, [embalse, emb, coordinates.pais])
+  }, [embalse, emb, coordinates.pais, userId])
 
   return (
     <>

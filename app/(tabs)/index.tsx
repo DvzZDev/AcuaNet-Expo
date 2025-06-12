@@ -3,11 +3,14 @@ import { LinearGradient } from "expo-linear-gradient"
 import { StyleSheet, Text, View } from "react-native"
 import { useState, useEffect } from "react"
 import { getFavSections } from "querys"
-import { supabase } from "lib/supabase"
 import { FavSection } from "types/index"
 import { ReorderableListReorderEvent, reorderItems } from "react-native-reorderable-list"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import ReorderableEmbalseList from "components/ReorderableEmbalseList"
+import { useStore } from "../../store"
+import { supabase } from "lib/supabase"
+import { HugeiconsIcon } from "@hugeicons/react-native"
+import { UserIcon } from "@hugeicons/core-free-icons"
 
 const EMBALSE_ORDER_KEY = "@embalse_order"
 
@@ -95,32 +98,26 @@ const processSpainData = (rawData: FavSection[]): FavSection[] => {
 }
 
 export default function Page() {
+  const userId = useStore((state) => state.id)
   const hour = new Date().getHours()
   const [favData, setFavData] = useState<FavSection[]>([])
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchFavData = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession()
-        if (error) {
-          console.error("Error fetching session:", error)
+        if (!userId) {
+          console.log("Waiting for user ID from store...")
           return
         }
-        const id = data.session?.user.id
-        if (!id) {
-          console.error("User ID is undefined")
-          return
-        }
+
         const favData = await getFavSections(
-          id,
+          userId,
           async (rawData: FavSection[]) => {
             const spainData = rawData.filter((item) => item.pais !== "Portugal")
             const portugalData = rawData.filter((item) => item.pais === "Portugal")
-
             const processedSpainData = processSpainData(spainData)
-
             const combinedData = [...processedSpainData, ...portugalData]
-
             const storedOrder = await loadOrder()
             const finalData = applyStoredOrder(combinedData, storedOrder)
 
@@ -133,8 +130,44 @@ export default function Page() {
         console.error("Error fetching favorite data:", error)
       }
     }
+
+    const fetchAvatar = async () => {
+      if (!userId) return
+
+      try {
+        // Listar archivos en el bucket 'accounts' para este usuario
+        const { data: files, error: listError } = await supabase.storage.from("accounts").list(userId, {
+          limit: 1,
+          sortBy: { column: "created_at", order: "desc" },
+        })
+
+        if (listError || !files || files.length === 0) {
+          setAvatarUrl(null)
+          return
+        }
+
+        const fileName = files[0].name
+
+        // Crear URL firmada para buckets privados
+        const { data: signedUrl, error: urlError } = await supabase.storage
+          .from("accounts")
+          .createSignedUrl(`${userId}/${fileName}`, 3600) // 1 hora de expiración
+
+        if (urlError || !signedUrl?.signedUrl) {
+          setAvatarUrl(null)
+          return
+        }
+
+        setAvatarUrl(signedUrl.signedUrl)
+      } catch (error) {
+        console.error("Error fetching avatar:", error)
+        setAvatarUrl(null)
+      }
+    }
+
     fetchFavData()
-  }, [])
+    fetchAvatar()
+  }, [userId])
 
   const handleReorder = ({ from, to }: ReorderableListReorderEvent) => {
     setFavData((prevData) => {
@@ -153,23 +186,48 @@ export default function Page() {
       <View className="flex-row items-center justify-between px-4">
         <View className="flex-col items-center">
           <Text className="font-Inter-Medium text-3xl text-emerald-900">
-            {hour < 12 ? "Buenos días" : hour < 21 ? "Buenas tardes" : "Buenas noches"},
+            {hour < 12 ? "Buenos días" : hour <= 21 ? "Buenas tardes" : "Buenas noches"},
           </Text>
-          <Text className="w-full text-left font-Inter-Black-Italic text-4xl leading-relaxed text-[#14141c]">
-            David
-          </Text>
+          <Text className="w-full text-left font-Inter-Black-Italic text-5xl leading-[4rem] text-[#14141c]">David</Text>
         </View>
-        <Image
-          style={{
-            width: 100,
-            height: 100,
-            marginTop: 10,
-            borderWidth: 2,
-            borderColor: "#9affa1",
-            borderRadius: 200,
-          }}
-          source={require("@assets/yo.png")}
-        />
+        <View className="relative">
+          <View
+            style={{
+              width: 90,
+              height: 90,
+              marginTop: 10,
+              borderWidth: 2,
+              borderColor: "#a855f7",
+              borderRadius: 20,
+              backgroundColor: "#f3f4f6",
+              justifyContent: "center",
+              alignItems: "center",
+              overflow: "hidden",
+            }}
+          >
+            {avatarUrl ? (
+              <Image
+                style={{
+                  width: "100%",
+                  height: "100%",
+                }}
+                source={{ uri: avatarUrl }}
+                transition={300}
+                contentFit="cover"
+              />
+            ) : (
+              <HugeiconsIcon
+                icon={UserIcon}
+                size={40}
+                color="#a855f7"
+              />
+            )}
+          </View>
+
+          <View className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex-row items-center justify-center rounded-full bg-purple-500 px-2 py-1">
+            <Text className="font-Inter-SemiBold text-xs text-white">Premium</Text>
+          </View>
+        </View>
       </View>
 
       <View className="flex-col gap-5">

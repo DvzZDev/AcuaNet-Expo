@@ -25,6 +25,12 @@ export default {
           backgroundColor: "#16151a",
         },
       ],
+      [
+        "expo-image-picker",
+        {
+          photosPermission: "AcuaNet necesita acceso a tus fotos para que puedas subir imágenes.",
+        },
+      ],
     ],
     orientation: "portrait",
     icon: "./assets/Icon-Ios.png",

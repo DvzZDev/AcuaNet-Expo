@@ -10,12 +10,15 @@ import { ThemeProvider } from "../components/Theme/theme"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
 import { supabase } from "lib/supabase"
+import { useStore } from "../store"
 
 SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
   const [isLoading, setIsLoading] = useState(true)
   const [sessionChecked, setSessionChecked] = useState(false)
+  const setId = useStore((state) => state.setId)
+
   const [loaded, error] = useFonts({
     Inter: require("../assets/fonts/Inter.ttf"),
     "Inter-Bold": require("../assets/fonts/InterDisplay-Bold.ttf"),
@@ -33,8 +36,13 @@ export default function RootLayout() {
       if (sessionChecked) return
 
       const { data, error } = await supabase.auth.getSession()
+
       if (error) {
         console.error("Error fetching session:", error)
+      }
+
+      if (data.session?.user?.id) {
+        setId(data.session.user.id)
       }
 
       setIsLoading(false)
@@ -48,7 +56,7 @@ export default function RootLayout() {
     if (loaded || error) {
       checkSession()
     }
-  }, [loaded, error, sessionChecked])
+  }, [loaded, error, sessionChecked, setId])
 
   useEffect(() => {
     if ((loaded || error) && !isLoading) {
