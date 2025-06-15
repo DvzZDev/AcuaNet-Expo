@@ -26,7 +26,6 @@ export default function Resume({
   const hasCalledRef = useRef(false)
 
   useEffect(() => {
-    // Reset state when data changes
     if (!weather || !embalse?.embalse?.name) {
       setLoading(true)
       setError(false)
@@ -61,18 +60,23 @@ export default function Resume({
   }, [weather, embalse, fish_activity])
   return (
     <View className="mt-5 h-[12rem] w-full rounded-lg bg-green-200 p-2">
-      <ScrollView className="h-full w-full px-2">
+      <ScrollView
+        className="h-full w-full px-2"
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: loading ? "center" : "flex-start",
+          alignItems: "center",
+        }}
+      >
         {loading ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator
-              size="large"
-              color="#86efac"
-            />
-          </View>
+          <ActivityIndicator
+            size="large"
+            color="#0a1d0e"
+          />
         ) : (
           <Animated.Text
             entering={FadeIn}
-            className="font-Inter text-base"
+            className="text-left font-Inter text-base"
           >
             {error ? "Ha sucedido un error" : resume}
           </Animated.Text>

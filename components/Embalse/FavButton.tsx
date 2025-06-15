@@ -3,10 +3,11 @@ import { HugeiconsIcon } from "@hugeicons/react-native"
 import { TouchableOpacity, View } from "react-native"
 import { useState, useEffect } from "react"
 import { supabase } from "lib/supabase"
+import { useStore } from "store"
 
 export default function FavButton({ userId, embalse, pais }: { userId: string; embalse: string; pais: string }) {
   const [isFavourite, setIsFavourite] = useState(false)
-
+  const setDirtyFav = useStore((state) => state.setDirtyFavs)
   useEffect(() => {
     const checkFavoriteStatus = async () => {
       const { data: currentData, error: fetchError } = await supabase
@@ -49,7 +50,6 @@ export default function FavButton({ userId, embalse, pais }: { userId: string; e
           return true
         })
       } else {
-        // Agregar el embalse con su país y fecha actual
         const newFavorite = {
           embalse,
           pais,
@@ -101,6 +101,7 @@ export default function FavButton({ userId, embalse, pais }: { userId: string; e
       console.error("Error updating favourites:", error)
     } else {
       console.log("Updated favourites:", data)
+      setDirtyFav(true)
       setIsFavourite(!isFavourite)
     }
   }

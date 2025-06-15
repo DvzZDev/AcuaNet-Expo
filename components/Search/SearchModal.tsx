@@ -104,12 +104,12 @@ export default function SearchModal({ isVisible, setIsModalVisible }: SearchModa
       detached={true}
       keyboardBehavior="interactive"
       onDismiss={handleDismissModalPress}
-      backgroundStyle={{ backgroundColor: "#14141c" }}
-      handleIndicatorStyle={{ backgroundColor: "#ccc" }}
+      backgroundStyle={{ backgroundColor: "#14141c60" }}
+      handleIndicatorStyle={{ backgroundColor: "#a5e73a" }}
       name="SearchModal"
     >
       <BottomSheetView className="px-5">
-        <View className="relative mb-4 rounded-2xl border border-green-200 bg-[#a8f2b76f] ">
+        <View className="relative mb-6 rounded-2xl border border-green-200 bg-[#a8f2b76f] ">
           <TouchableOpacity
             onPress={handleSearch}
             className="absolute right-2 top-1/2 z-10 -translate-y-1/2"

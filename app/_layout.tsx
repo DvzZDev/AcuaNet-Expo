@@ -23,7 +23,7 @@ export default function RootLayout() {
     Inter: require("../assets/fonts/Inter.ttf"),
     "Inter-Bold": require("../assets/fonts/InterDisplay-Bold.ttf"),
     "Inter-Black": require("../assets/fonts/InterDisplay-Black.ttf"),
-    "Inter-ExtraBold": require("../assets/fonts/InterDisplay-Bold.ttf"),
+    "Inter-ExtraBold": require("../assets/fonts/InterDisplay-ExtraBold.ttf"),
     "Inter-Light": require("../assets/fonts/InterDisplay-Light.ttf"),
     "Inter-Medium": require("../assets/fonts/InterDisplay-Medium.ttf"),
     "Inter-Regular": require("../assets/fonts/InterDisplay-Regular.ttf"),

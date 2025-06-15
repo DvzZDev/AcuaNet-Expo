@@ -1,15 +1,15 @@
 import { Image } from "expo-image"
 import { LinearGradient } from "expo-linear-gradient"
 import { StyleSheet, Text, View } from "react-native"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { getFavSections } from "querys"
 import { FavSection } from "types/index"
-import { ReorderableListReorderEvent, reorderItems } from "react-native-reorderable-list"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import ReorderableEmbalseList from "components/ReorderableEmbalseList"
 import { useStore } from "../../store"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import { UserIcon } from "@hugeicons/core-free-icons"
+import { useFocusEffect } from "@react-navigation/native"
 
 const EMBALSE_ORDER_KEY = "@embalse_order"
 
@@ -101,44 +101,57 @@ export default function Page() {
   const hour = new Date().getHours()
   const [favData, setFavData] = useState<FavSection[]>([])
   const avatarUrl = useStore((state) => state.avatarUrl)
+  const dirtyFavs = useStore((state) => state.dirtyFavs)
+  const setDirtyFavs = useStore((state) => state.setDirtyFavs)
+
+  console.log(favData)
+
+  const fetchFavData = useCallback(async () => {
+    try {
+      if (!userId) {
+        console.log("Waiting for user ID from store...")
+        return
+      }
+
+      const favData = await getFavSections(
+        userId,
+        async (rawData: FavSection[]) => {
+          const spainData = rawData.filter((item) => item.pais !== "Portugal")
+          const portugalData = rawData.filter((item) => item.pais === "Portugal")
+          const processedSpainData = processSpainData(spainData)
+          const combinedData = [...processedSpainData, ...portugalData]
+          const storedOrder = await loadOrder()
+          const finalData = applyStoredOrder(combinedData, storedOrder)
+
+          setFavData(finalData)
+          // Reset dirtyFavs flag after successfully updating data
+          if (dirtyFavs) {
+            setDirtyFavs(false)
+          }
+        },
+        () => {}
+      )
+      return favData
+    } catch (error) {
+      console.error("Error fetching favorite data:", error)
+    }
+  }, [userId, dirtyFavs, setDirtyFavs])
 
   useEffect(() => {
-    const fetchFavData = async () => {
-      try {
-        if (!userId) {
-          console.log("Waiting for user ID from store...")
-          return
-        }
-
-        const favData = await getFavSections(
-          userId,
-          async (rawData: FavSection[]) => {
-            const spainData = rawData.filter((item) => item.pais !== "Portugal")
-            const portugalData = rawData.filter((item) => item.pais === "Portugal")
-            const processedSpainData = processSpainData(spainData)
-            const combinedData = [...processedSpainData, ...portugalData]
-            const storedOrder = await loadOrder()
-            const finalData = applyStoredOrder(combinedData, storedOrder)
-
-            setFavData(finalData)
-          },
-          () => {}
-        )
-        return favData
-      } catch (error) {
-        console.error("Error fetching favorite data:", error)
-      }
-    }
-
     fetchFavData()
-  }, [userId])
+  }, [fetchFavData])
 
-  const handleReorder = ({ from, to }: ReorderableListReorderEvent) => {
-    setFavData((prevData) => {
-      const newData = reorderItems(prevData, from, to)
-      saveOrder(newData)
-      return newData
-    })
+  useFocusEffect(
+    useCallback(() => {
+      if (dirtyFavs) {
+        fetchFavData()
+      }
+    }, [dirtyFavs, fetchFavData])
+  )
+
+  const handleReorder = (newData: FavSection[]) => {
+    setFavData(newData)
+    saveOrder(newData)
   }
 
   return (
@@ -149,10 +162,12 @@ export default function Page() {
       />
       <View className="flex-row items-center justify-between px-4">
         <View className="flex-col items-center">
-          <Text className="font-Inter-Medium text-3xl text-emerald-900">
+          <Text className="font-Inter-ExtraBold text-4xl text-[#14141c]">
             {hour < 12 ? "Buenos días" : hour <= 21 ? "Buenas tardes" : "Buenas noches"},
           </Text>
-          <Text className="w-full text-left font-Inter-Black-Italic text-5xl leading-[4rem] text-[#14141c]">David</Text>
+          <Text className="w-full text-left font-Inter-ExtraBold text-4xl leading-relaxed text-[#14141c]">
+            David 👋
+          </Text>
         </View>
         <View className="relative">
           <View
@@ -194,16 +209,26 @@ export default function Page() {
         </View>
       </View>
 
-      <View className="flex-col gap-5">
+      <View className="h-[18rem] flex-col gap-4">
         <View className="mx-4 mt-[2rem] flex-row gap-2">
-          <Text className="font-Inter-SemiBold text-3xl text-emerald-950">Embalses</Text>
-          <Text className="font-Inter-Black text-3xl text-[#14141c]">Favoritos</Text>
+          <Text className="font-Inter-SemiBold text-2xl text-emerald-950">Embalses</Text>
+          <Text className="font-Inter-Black text-2xl text-[#14141c]">Favoritos</Text>
         </View>
 
-        <ReorderableEmbalseList
-          data={favData}
-          onReorder={handleReorder}
-        />
+        {favData.length === 0 ? (
+          <View className="mx-4 w-[23rem] flex-col gap-2 rounded-lg bg-emerald-50 p-4 shadow-xl">
+            <Text className="font-Inter-SemiBold text-xl text-green-950">Todavía no tienes embalses favoritos</Text>
+            <Text className="font-Inter-Medium text-base text-emerald-900">
+              Añade tus embalses preferidos tocando el icono de corazón ❤️ en su ficha. Así podrás acceder rápidamente a
+              ellos desde esta sección.
+            </Text>
+          </View>
+        ) : (
+          <ReorderableEmbalseList
+            data={favData}
+            onReorder={handleReorder}
+          />
+        )}
       </View>
     </>
   )
