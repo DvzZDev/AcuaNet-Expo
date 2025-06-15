@@ -15,12 +15,10 @@ export default function Account() {
   const bucketName = "accounts"
 
   useEffect(() => {
-    // Ya no necesitamos fetchear la session aquí porque el userId viene del store
     if (!userId) {
       console.log("Waiting for user ID from store...")
       return
     }
-    // El userId ya está disponible desde el store
   }, [userId])
 
   const pickImage = async () => {
@@ -36,7 +34,7 @@ export default function Account() {
 
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
+      quality: 0.5,
       allowsEditing: true,
       aspect: [1, 1],
       base64: true,

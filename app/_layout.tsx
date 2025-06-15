@@ -4,7 +4,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context"
 import { Stack, SplashScreen, router } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import { Image } from "expo-image"
-
 import { useFonts } from "expo-font"
 import { ThemeProvider } from "../components/Theme/theme"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
@@ -18,6 +17,7 @@ export default function RootLayout() {
   const [isLoading, setIsLoading] = useState(true)
   const [sessionChecked, setSessionChecked] = useState(false)
   const setId = useStore((state) => state.setId)
+  const setAvatarUrl = useStore((state) => state.setAvatarUrl)
 
   const [loaded, error] = useFonts({
     Inter: require("../assets/fonts/Inter.ttf"),
@@ -35,28 +35,46 @@ export default function RootLayout() {
     const checkSession = async () => {
       if (sessionChecked) return
 
-      const { data, error } = await supabase.auth.getSession()
+      try {
+        const { data, error } = await supabase.auth.getSession()
 
-      if (error) {
-        console.error("Error fetching session:", error)
-      }
+        if (error) {
+          console.error("Error fetching session:", error)
+        }
 
-      if (data.session?.user?.id) {
-        setId(data.session.user.id)
-      }
+        if (data.session?.user?.id) {
+          setId(data.session.user.id)
 
-      setIsLoading(false)
-      setSessionChecked(true)
+          const filePath = `${data.session.user.id}/Avatar.png`
+          const { data: Davatar, error: Eavatar } = await supabase.storage
+            .from("accounts")
+            .createSignedUrl(filePath, 3600)
 
-      if (data.session === null && !router.canGoBack()) {
-        router.replace("/auth/signIn")
+          if (Eavatar || !Davatar?.signedUrl) {
+            console.log("Usuario sin foto de perfil o error al obtenerla:", Eavatar?.message)
+            setAvatarUrl(null)
+          } else {
+            setAvatarUrl(Davatar.signedUrl)
+          }
+        }
+
+        setSessionChecked(true)
+        setIsLoading(false)
+
+        if (data.session === null && !router.canGoBack()) {
+          router.replace("/auth/signIn")
+        }
+      } catch (err) {
+        console.error("Error durante la comprobación de sesión:", err)
+        setSessionChecked(true)
+        setIsLoading(false)
       }
     }
 
     if (loaded || error) {
       checkSession()
     }
-  }, [loaded, error, sessionChecked, setId])
+  }, [loaded, error, sessionChecked, setId, setAvatarUrl])
 
   useEffect(() => {
     if ((loaded || error) && !isLoading) {

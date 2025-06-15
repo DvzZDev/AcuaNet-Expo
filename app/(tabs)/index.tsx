@@ -8,7 +8,6 @@ import { ReorderableListReorderEvent, reorderItems } from "react-native-reordera
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import ReorderableEmbalseList from "components/ReorderableEmbalseList"
 import { useStore } from "../../store"
-import { supabase } from "lib/supabase"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import { UserIcon } from "@hugeicons/core-free-icons"
 
@@ -101,7 +100,7 @@ export default function Page() {
   const userId = useStore((state) => state.id)
   const hour = new Date().getHours()
   const [favData, setFavData] = useState<FavSection[]>([])
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const avatarUrl = useStore((state) => state.avatarUrl)
 
   useEffect(() => {
     const fetchFavData = async () => {
@@ -131,42 +130,7 @@ export default function Page() {
       }
     }
 
-    const fetchAvatar = async () => {
-      if (!userId) return
-
-      try {
-        // Listar archivos en el bucket 'accounts' para este usuario
-        const { data: files, error: listError } = await supabase.storage.from("accounts").list(userId, {
-          limit: 1,
-          sortBy: { column: "created_at", order: "desc" },
-        })
-
-        if (listError || !files || files.length === 0) {
-          setAvatarUrl(null)
-          return
-        }
-
-        const fileName = files[0].name
-
-        // Crear URL firmada para buckets privados
-        const { data: signedUrl, error: urlError } = await supabase.storage
-          .from("accounts")
-          .createSignedUrl(`${userId}/${fileName}`, 3600) // 1 hora de expiración
-
-        if (urlError || !signedUrl?.signedUrl) {
-          setAvatarUrl(null)
-          return
-        }
-
-        setAvatarUrl(signedUrl.signedUrl)
-      } catch (error) {
-        console.error("Error fetching avatar:", error)
-        setAvatarUrl(null)
-      }
-    }
-
     fetchFavData()
-    fetchAvatar()
   }, [userId])
 
   const handleReorder = ({ from, to }: ReorderableListReorderEvent) => {
