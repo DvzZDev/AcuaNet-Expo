@@ -10,15 +10,20 @@ import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
 import { supabase } from "lib/supabase"
 import { useStore } from "../store"
+import { Platform } from "react-native"
+import * as NavigationBar from "expo-navigation-bar"
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query"
 
 SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
+  const queryClient = new QueryClient()
   const [isLoading, setIsLoading] = useState(true)
   const [sessionChecked, setSessionChecked] = useState(false)
   const setId = useStore((state) => state.setId)
   const setAvatarUrl = useStore((state) => state.setAvatarUrl)
 
+  // Fonts loading
   const [loaded, error] = useFonts({
     Inter: require("../assets/fonts/Inter.ttf"),
     "Inter-Bold": require("../assets/fonts/InterDisplay-Bold.ttf"),
@@ -31,6 +36,7 @@ export default function RootLayout() {
     "Inter-Black-Italic": require("../assets/fonts/Inter_BlackItalic.ttf"),
   })
 
+  // Check if the user has a session and fetch their avatar URL
   useEffect(() => {
     const checkSession = async () => {
       if (sessionChecked) return
@@ -76,8 +82,14 @@ export default function RootLayout() {
     }
   }, [loaded, error, sessionChecked, setId, setAvatarUrl])
 
+  // Hide the splash screen and set navigation bar styles once fonts are loaded
   useEffect(() => {
     if ((loaded || error) && !isLoading) {
+      if (Platform.OS === "android") {
+        NavigationBar.setPositionAsync("absolute")
+        NavigationBar.setBackgroundColorAsync("#ffffff01")
+        NavigationBar.setButtonStyleAsync("dark")
+      }
       SplashScreen.hideAsync()
     }
   }, [loaded, error, isLoading])
@@ -87,61 +99,63 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <BottomSheetModalProvider>
-        <ThemeProvider>
-          <SafeAreaProvider>
-            <StatusBar style="dark" />
-            <Stack
-              screenOptions={{
-                headerStyle: {
-                  backgroundColor: "#f0fdf4",
-                },
-                headerShadowVisible: false,
-                title: "",
-                headerLeft: () => (
-                  <Image
-                    source={require("../assets/LogoBlack.png")}
-                    style={{
-                      width: 150,
-                      height: 40,
-                      marginLeft: 10,
-                    }}
-                  />
-                ),
-              }}
-            >
-              <Stack.Screen
-                name="(tabs)"
-                options={{ headerShown: true }}
-              />
-              <Stack.Screen
-                name="auth/signIn"
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="auth/signUp"
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="embalse/[embalse]"
-                options={{
-                  headerShown: true,
-                  title: "",
-                  headerTitleAlign: "left",
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <BottomSheetModalProvider>
+          <ThemeProvider>
+            <SafeAreaProvider>
+              <StatusBar style="dark" />
+              <Stack
+                screenOptions={{
                   headerStyle: {
-                    backgroundColor: "#effcf3",
+                    backgroundColor: "#f0fdf4",
                   },
-                  headerBackVisible: true,
-                  headerBackButtonDisplayMode: "minimal",
-                  headerRight: () => "",
-                  headerLeft: () => null,
+                  headerShadowVisible: false,
+                  title: "",
+                  headerLeft: () => (
+                    <Image
+                      source={require("../assets/LogoBlack.png")}
+                      style={{
+                        width: 150,
+                        height: 40,
+                        marginLeft: 10,
+                      }}
+                    />
+                  ),
                 }}
-              />
-            </Stack>
-          </SafeAreaProvider>
-        </ThemeProvider>
-      </BottomSheetModalProvider>
-    </GestureHandlerRootView>
+              >
+                <Stack.Screen
+                  name="(tabs)"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="auth/signIn"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="auth/signUp"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="embalse/[embalse]"
+                  options={{
+                    headerShown: true,
+                    title: "",
+                    headerTitleAlign: "left",
+                    headerStyle: {
+                      backgroundColor: "#effcf3",
+                    },
+                    headerBackVisible: true,
+                    headerBackButtonDisplayMode: "minimal",
+                    headerRight: () => "",
+                    headerLeft: () => null,
+                  }}
+                />
+              </Stack>
+            </SafeAreaProvider>
+          </ThemeProvider>
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
+    </QueryClientProvider>
   )
 }
