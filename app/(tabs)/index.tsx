@@ -1,8 +1,8 @@
 import { Image } from "expo-image"
 import { LinearGradient } from "expo-linear-gradient"
 import { StyleSheet, Text, View } from "react-native"
-import { useState, useEffect, useCallback } from "react"
-import { getFavSections } from "querys"
+import { useState, useEffect, useCallback, useMemo } from "react"
+import { useFavSection } from "querys"
 import { FavSection } from "types/index"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import ReorderableEmbalseList from "components/ReorderableEmbalseList"
@@ -105,49 +105,38 @@ export default function Page() {
   const dirtyFavs = useStore((state) => state.dirtyFavs)
   const setDirtyFavs = useStore((state) => state.setDirtyFavs)
 
-  console.log(favData)
+  const { data: rawFavData, isLoading, refetch } = useFavSection(userId || "")
 
-  const fetchFavData = useCallback(async () => {
-    try {
-      if (!userId) {
-        console.log("Waiting for user ID from store...")
-        return
-      }
+  const processedFavData = useMemo(() => {
+    if (!rawFavData || rawFavData.length === 0) return []
 
-      const favData = await getFavSections(
-        userId,
-        async (rawData: FavSection[]) => {
-          const spainData = rawData.filter((item) => item.pais !== "Portugal")
-          const portugalData = rawData.filter((item) => item.pais === "Portugal")
-          const processedSpainData = processSpainData(spainData)
-          const combinedData = [...processedSpainData, ...portugalData]
-          const storedOrder = await loadOrder()
-          const finalData = applyStoredOrder(combinedData, storedOrder)
-
-          setFavData(finalData)
-          // Reset dirtyFavs flag after successfully updating data
-          if (dirtyFavs) {
-            setDirtyFavs(false)
-          }
-        },
-        () => {}
-      )
-      return favData
-    } catch (error) {
-      console.error("Error fetching favorite data:", error)
-    }
-  }, [userId, dirtyFavs, setDirtyFavs])
+    const spainData = rawFavData.filter((item) => item.pais !== "Portugal")
+    const portugalData = rawFavData.filter((item) => item.pais === "Portugal")
+    const processedSpainData = processSpainData(spainData)
+    return [...processedSpainData, ...portugalData]
+  }, [rawFavData])
 
   useEffect(() => {
-    fetchFavData()
-  }, [fetchFavData])
+    const applyOrder = async () => {
+      if (processedFavData.length > 0) {
+        const storedOrder = await loadOrder()
+        const finalData = applyStoredOrder(processedFavData, storedOrder)
+        setFavData(finalData)
+      } else {
+        setFavData([])
+      }
+    }
+
+    applyOrder()
+  }, [processedFavData])
 
   useFocusEffect(
     useCallback(() => {
       if (dirtyFavs) {
-        fetchFavData()
+        refetch()
+        setDirtyFavs(false)
       }
-    }, [dirtyFavs, fetchFavData])
+    }, [dirtyFavs, refetch, setDirtyFavs])
   )
 
   const handleReorder = (newData: FavSection[]) => {
@@ -217,7 +206,11 @@ export default function Page() {
           <Text className="font-Inter-Black text-2xl text-[#14141c]">Favoritos</Text>
         </View>
 
-        {favData.length === 0 ? (
+        {isLoading ? (
+          <View className="mx-4 w-[23rem] flex-col gap-2 rounded-lg bg-emerald-50 p-4 shadow-xl">
+            <Text className="font-Inter-SemiBold text-xl text-green-950">Cargando embalses favoritos...</Text>
+          </View>
+        ) : favData.length === 0 ? (
           <View className="mx-4 w-[23rem] flex-col gap-2 rounded-lg bg-emerald-50 p-4 shadow-xl">
             <Text className="font-Inter-SemiBold text-xl text-green-950">Todavía no tienes embalses favoritos</Text>
             <Text className="font-Inter-Medium text-base text-emerald-900">

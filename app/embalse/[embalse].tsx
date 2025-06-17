@@ -1,6 +1,5 @@
-import type { EmbalseDataHistorical, EmbalseDataLive, EmbalseDataPortugal } from "../../types"
 import { useLocalSearchParams, useNavigation } from "expo-router"
-import { HistoricalData, LiveData, PortugalData } from "querys"
+import { useHistoricalData, useLiveData, usePortugalData } from "querys"
 import { useEffect, useState } from "react"
 import { ActivityIndicator, TouchableOpacity, StyleSheet, Text, View } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
@@ -23,25 +22,23 @@ import FavButton from "components/Embalse/FavButton"
 import { useStore } from "../../store"
 
 export default function Embalse() {
-  const [hData, setHData] = useState<EmbalseDataHistorical[]>([])
-  const [liveData, setLiveData] = useState<EmbalseDataLive[]>([])
-  const [ContentKey, setContentKey] = useState<string>("")
-  const [bottomSheetOpen, SetBottomSheetOpen] = useState<boolean>(false)
-  const [isLoadingHistorical, setIsLoadingHistorical] = useState<boolean>(true)
-  const [isLoadingLive, setIsLoadingLive] = useState<boolean>(true)
-  const [portugalData, setPortugalData] = useState<EmbalseDataPortugal[]>([])
-  const [isLoadingPortugal, setIsLoadingPortugal] = useState<boolean>(false)
+  const navigation = useNavigation()
+  const { embalse } = useLocalSearchParams()
+  const emb = Array.isArray(embalse) ? embalse.join(",") : embalse || ""
+  const embalseCoded = emb.toLowerCase().replace(/ /g, "-")
   const userId = useStore((state) => state.id)
 
-  const { embalse } = useLocalSearchParams()
-  const navigation = useNavigation()
-  const emb = Array.isArray(embalse) ? embalse[0] : embalse
-  const embalseCoded = Array.isArray(embalse)
-    ? embalse[0]?.toLowerCase().replace(/ /g, "-") || ""
-    : (embalse || "").toLowerCase().replace(/ /g, "-")
+  const [ContentKey, setContentKey] = useState<string>("")
+  const [bottomSheetOpen, SetBottomSheetOpen] = useState<boolean>(false)
+
   const { weather: weatherData, loading: weatherLoading, coordinates } = useWeather(emb, embalseCoded)
+  const isPortugal = coordinates.pais?.toLowerCase().includes("portugal")
+  const { data: LiveDataT, isLoading: isLoadingLive } = useLiveData(emb, isPortugal)
+  const { data: historicalData, isLoading: isLoadingHistorical } = useHistoricalData(emb, isPortugal)
+  const { data: portugalData, isLoading: isLoadingPortugal } = usePortugalData(emb, isPortugal)
+
   useEffect(() => {
-    const headerTitle = embalse ? (Array.isArray(embalse) ? embalse[0] : embalse) : "N/D"
+    const headerTitle = emb || "N/D"
     const truncateText = (text: string, maxLength: number = 26) => {
       return text.length > maxLength ? text.substring(0, maxLength) + "..." : text
     }
@@ -64,67 +61,7 @@ export default function Embalse() {
         </Text>
       ),
     })
-  }, [embalse, navigation])
-
-  useEffect(() => {
-    if (!embalse || !userId) return
-    // El userId ya está disponible desde el store, no necesitamos la llamada a getSession
-    console.log("User ID from store:", userId)
-
-    const fetchDataAsync = async () => {
-      setIsLoadingHistorical(true)
-      setIsLoadingLive(true)
-
-      try {
-        const isPortugal = coordinates.pais?.toLowerCase().includes("portugal")
-
-        if (isPortugal) {
-          setIsLoadingPortugal(true)
-          const [portugalResult, liveResult] = await Promise.allSettled([
-            PortugalData(embalse, setPortugalData),
-            LiveData(embalse, emb, setLiveData),
-          ])
-
-          if (portugalResult.status === "rejected") {
-            console.error("Error fetching Portugal data:", portugalResult.reason)
-            setPortugalData([])
-          }
-          setIsLoadingPortugal(false)
-          setIsLoadingHistorical(false)
-
-          if (liveResult.status === "rejected") {
-            console.error("Error fetching live data:", liveResult.reason)
-            setLiveData([])
-          }
-          setIsLoadingLive(false)
-        } else {
-          const [historicalResult, liveResult] = await Promise.allSettled([
-            HistoricalData(embalse, emb, setHData),
-            LiveData(embalse, emb, setLiveData),
-          ])
-
-          if (historicalResult.status === "rejected") {
-            console.error("Error fetching historical data:", historicalResult.reason)
-            setHData([])
-          }
-          setIsLoadingHistorical(false)
-
-          if (liveResult.status === "rejected") {
-            console.error("Error fetching live data:", liveResult.reason)
-            setLiveData([])
-          }
-          setIsLoadingLive(false)
-        }
-      } catch (error) {
-        console.error("Unexpected error fetching data:", error)
-        setIsLoadingHistorical(false)
-        setIsLoadingLive(false)
-        setIsLoadingPortugal(false)
-      }
-    }
-
-    fetchDataAsync()
-  }, [embalse, emb, coordinates.pais, userId])
+  }, [emb, navigation])
 
   return (
     <>
@@ -144,10 +81,10 @@ export default function Embalse() {
                   />
                   <Text>Cargando...</Text>
                 </View>
-              ) : portugalData.length > 0 ? (
+              ) : portugalData && portugalData.length > 0 ? (
                 `Cuenca del ${portugalData[0].nombre_cuenca}`
               ) : (
-                `Cuenca del ${hData && hData.length > 0 ? hData[0].cuenca : "N/A"}`
+                `Cuenca del ${historicalData && Array.isArray(historicalData) && historicalData.length > 0 ? historicalData[0].cuenca : "N/A"}`
               )}
             </Text>
             <View className="flex flex-row items-center justify-center gap-2">
@@ -156,14 +93,14 @@ export default function Embalse() {
                 Ult. Actualización -{" "}
                 {isLoadingHistorical || isLoadingPortugal
                   ? "Cargando..."
-                  : portugalData.length > 0
+                  : portugalData && portugalData.length > 0
                     ? new Date(portugalData[0].fecha_modificacion).toLocaleDateString("es-ES", {
                         day: "numeric",
                         month: "long",
                         year: "numeric",
                       })
-                    : hData && hData.length > 0
-                      ? new Date(hData[0].fecha).toLocaleDateString("es-ES", {
+                    : historicalData && Array.isArray(historicalData) && historicalData.length > 0
+                      ? new Date(historicalData[0].fecha).toLocaleDateString("es-ES", {
                           day: "numeric",
                           month: "long",
                           year: "numeric",
@@ -174,7 +111,7 @@ export default function Embalse() {
           </View>
           <FavButton
             userId={userId}
-            embalse={embalse ? (Array.isArray(embalse) ? embalse[0] : embalse) : "N/D"}
+            embalse={emb}
             pais={coordinates.pais || "N/D"}
           />
         </View>
@@ -182,7 +119,7 @@ export default function Embalse() {
         <Resume
           weather={weatherData}
           embalse={
-            portugalData.length > 0
+            portugalData && portugalData.length > 0
               ? {
                   embalse: {
                     name: portugalData[0].nombre_embalse,
@@ -190,12 +127,12 @@ export default function Embalse() {
                     porcentaje: portugalData[0].agua_embalsadapor,
                   },
                 }
-              : !isLoadingHistorical && hData.length > 0
+              : !isLoadingHistorical && historicalData && Array.isArray(historicalData) && historicalData.length > 0
                 ? {
                     embalse: {
-                      name: hData[0].embalse,
-                      nivel: hData[0].volumen_actual,
-                      porcentaje: hData[0].porcentaje,
+                      name: historicalData[0].embalse,
+                      nivel: historicalData[0].volumen_actual,
+                      porcentaje: historicalData[0].porcentaje,
                     },
                   }
                 : null
@@ -208,8 +145,9 @@ export default function Embalse() {
         </View>
 
         <Animated.View className="mt-10 flex flex-col gap-5">
-          {portugalData.length === 0 &&
-            (!isLoadingLive && liveData.length > 0 ? (
+          {/* Datos en Tiempo Real - Solo para España */}
+          {!isPortugal &&
+            (!isLoadingLive && LiveDataT && LiveDataT.length > 0 ? (
               <Animated.View entering={FadeIn.duration(150)}>
                 <TouchableOpacity
                   onPress={() => {
@@ -238,8 +176,9 @@ export default function Embalse() {
               </View>
             ) : null)}
 
-          {portugalData.length > 0 ? (
-            !isLoadingPortugal ? (
+          {/* Datos Semanales - Para Portugal */}
+          {isPortugal &&
+            (!isLoadingPortugal && portugalData && portugalData.length > 0 ? (
               <Animated.View entering={FadeIn.duration(150)}>
                 <TouchableOpacity
                   onPress={() => {
@@ -258,7 +197,7 @@ export default function Embalse() {
                   </View>
                 </TouchableOpacity>
               </Animated.View>
-            ) : (
+            ) : isLoadingPortugal ? (
               <View className="flex w-full items-center justify-center py-4">
                 <ActivityIndicator
                   size="large"
@@ -266,38 +205,42 @@ export default function Embalse() {
                 />
                 <Text className="mt-2 font-Inter text-sm text-gray-600">Cargando datos semanales...</Text>
               </View>
-            )
-          ) : !isLoadingHistorical && hData.length > 0 ? (
-            <Animated.View entering={FadeIn.duration(150)}>
-              <TouchableOpacity
-                onPress={() => {
-                  setContentKey("weekdata")
-                  SetBottomSheetOpen(true)
-                }}
-                className="h-fit self-start rounded-2xl border border-[#008F06]/50 bg-[#BAFFBD] p-2"
-              >
-                <View className="flex flex-row items-center gap-2">
-                  <HugeiconsIcon
-                    icon={CalendarCheckIn01Icon}
-                    size={30}
-                    color={"#008F06"}
-                  />
-                  <Text className="font-Inter text-xl text-[#008F06]">Datos Semanales</Text>
-                </View>
-              </TouchableOpacity>
-            </Animated.View>
-          ) : isLoadingHistorical ? (
-            <View className="flex w-full items-center justify-center py-4">
-              <ActivityIndicator
-                size="large"
-                color="#008F06"
-              />
-              <Text className="mt-2 font-Inter text-sm text-gray-600">Cargando datos semanales...</Text>
-            </View>
-          ) : null}
+            ) : null)}
 
-          {portugalData.length === 0 &&
-            (!isLoadingHistorical && hData.length > 0 ? (
+          {/* Datos Semanales - Para España cuando hay datos históricos */}
+          {!isPortugal &&
+            (!isLoadingHistorical && historicalData && Array.isArray(historicalData) && historicalData.length > 0 ? (
+              <Animated.View entering={FadeIn.duration(150)}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setContentKey("weekdata")
+                    SetBottomSheetOpen(true)
+                  }}
+                  className="h-fit self-start rounded-2xl border border-[#008F06]/50 bg-[#BAFFBD] p-2"
+                >
+                  <View className="flex flex-row items-center gap-2">
+                    <HugeiconsIcon
+                      icon={CalendarCheckIn01Icon}
+                      size={30}
+                      color={"#008F06"}
+                    />
+                    <Text className="font-Inter text-xl text-[#008F06]">Datos Semanales</Text>
+                  </View>
+                </TouchableOpacity>
+              </Animated.View>
+            ) : isLoadingHistorical ? (
+              <View className="flex w-full items-center justify-center py-4">
+                <ActivityIndicator
+                  size="large"
+                  color="#008F06"
+                />
+                <Text className="mt-2 font-Inter text-sm text-gray-600">Cargando datos semanales...</Text>
+              </View>
+            ) : null)}
+
+          {/* Datos Históricos - Solo para España */}
+          {!isPortugal &&
+            (!isLoadingHistorical && historicalData && Array.isArray(historicalData) && historicalData.length > 0 ? (
               <Animated.View entering={FadeIn.duration(150)}>
                 <TouchableOpacity
                   onPress={() => {
@@ -326,6 +269,7 @@ export default function Embalse() {
               </View>
             ) : null)}
 
+          {/* Predicción Meteorológica - Para todos */}
           {!weatherLoading ? (
             <Animated.View entering={FadeIn.duration(150)}>
               <TouchableOpacity
@@ -355,7 +299,13 @@ export default function Embalse() {
             </View>
           )}
 
-          {portugalData.length > 0 ? (
+          {/* Mapas - Para todos cuando hay datos */}
+          {(isPortugal && portugalData && portugalData.length > 0) ||
+          (!isPortugal &&
+            !isLoadingHistorical &&
+            historicalData &&
+            Array.isArray(historicalData) &&
+            historicalData.length > 0) ? (
             <Animated.View entering={FadeIn.duration(150)}>
               <TouchableOpacity
                 onPress={() => {
@@ -374,26 +324,7 @@ export default function Embalse() {
                 </View>
               </TouchableOpacity>
             </Animated.View>
-          ) : !isLoadingHistorical && hData.length > 0 ? (
-            <Animated.View entering={FadeIn.duration(150)}>
-              <TouchableOpacity
-                onPress={() => {
-                  setContentKey("maps")
-                  SetBottomSheetOpen(true)
-                }}
-                className="h-fit self-start rounded-2xl border border-[#FF8900]/50 bg-[#FFDFBA] p-2"
-              >
-                <View className="flex flex-row items-center gap-2">
-                  <HugeiconsIcon
-                    icon={MapsLocation01Icon}
-                    size={30}
-                    color={"#FF8900"}
-                  />
-                  <Text className="font-Inter text-xl text-[#FF8900]">Mapas: Topográfico y de Viento</Text>
-                </View>
-              </TouchableOpacity>
-            </Animated.View>
-          ) : isLoadingHistorical ? (
+          ) : !isPortugal && isLoadingHistorical ? (
             <View className="flex w-full items-center justify-center py-4">
               <ActivityIndicator
                 size="large"
@@ -403,7 +334,13 @@ export default function Embalse() {
             </View>
           ) : null}
 
-          {portugalData.length > 0 ? (
+          {/* Tabla Lunar - Para todos cuando hay datos */}
+          {(isPortugal && portugalData && portugalData.length > 0) ||
+          (!isPortugal &&
+            !isLoadingHistorical &&
+            historicalData &&
+            Array.isArray(historicalData) &&
+            historicalData.length > 0) ? (
             <Animated.View entering={FadeIn.duration(150)}>
               <TouchableOpacity
                 onPress={() => {
@@ -422,26 +359,7 @@ export default function Embalse() {
                 </View>
               </TouchableOpacity>
             </Animated.View>
-          ) : !isLoadingHistorical && hData.length > 0 ? (
-            <Animated.View entering={FadeIn.duration(150)}>
-              <TouchableOpacity
-                onPress={() => {
-                  setContentKey("lunarTable")
-                  SetBottomSheetOpen(true)
-                }}
-                className="h-fit self-start rounded-2xl border border-[#0051FF]/50 bg-[#BAD0FF] p-2"
-              >
-                <View className="flex flex-row items-center gap-2">
-                  <HugeiconsIcon
-                    icon={MoonIcon}
-                    size={30}
-                    color={"#0051FF"}
-                  />
-                  <Text className="font-Inter text-xl text-[#0051FF]">Tabla Lunar</Text>
-                </View>
-              </TouchableOpacity>
-            </Animated.View>
-          ) : isLoadingHistorical ? (
+          ) : !isPortugal && isLoadingHistorical ? (
             <View className="flex w-full items-center justify-center py-4">
               <ActivityIndicator
                 size="large"
@@ -450,16 +368,36 @@ export default function Embalse() {
               <Text className="mt-2 font-Inter text-sm text-gray-600">Cargando tabla lunar...</Text>
             </View>
           ) : null}
+
+          {/* Mensaje cuando no hay datos disponibles */}
+          {!isLoadingLive &&
+            !isLoadingHistorical &&
+            !isLoadingPortugal &&
+            !weatherLoading &&
+            ((!isPortugal &&
+              (!LiveDataT || LiveDataT.length === 0) &&
+              (!historicalData || !Array.isArray(historicalData) || historicalData.length === 0)) ||
+              (isPortugal && (!portugalData || portugalData.length === 0))) && (
+              <Animated.View entering={FadeIn.duration(150)}>
+                <View className="rounded-2xl border border-gray-300 bg-gray-50 p-4">
+                  <Text className="text-center font-Inter text-gray-600">
+                    No hay datos disponibles para este embalse en este momento.
+                  </Text>
+                </View>
+              </Animated.View>
+            )}
         </Animated.View>
       </View>
       <BottomSheetModalComponent
+        embalse={emb}
+        codedEmbalse={embalseCoded}
         open={bottomSheetOpen}
         setOpen={SetBottomSheetOpen}
-        PortugalData={portugalData}
+        PortugalData={portugalData ? portugalData : []}
         contentKey={ContentKey}
         setContentKey={setContentKey}
-        LiveData={liveData && liveData.length > 0 ? liveData : []}
-        HistoricalData={hData && hData.length > 0 ? hData : []}
+        LiveData={LiveDataT && LiveDataT.length > 0 ? LiveDataT : []}
+        HistoricalData={historicalData && Array.isArray(historicalData) ? historicalData : []}
         weatherData={weatherData}
         coords={
           coordinates.lat !== null && coordinates.lng !== null

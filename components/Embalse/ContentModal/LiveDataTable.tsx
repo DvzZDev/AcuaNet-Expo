@@ -1,7 +1,17 @@
 import { Text, View } from "react-native"
 import type { EmbalseDataLive } from "types"
 
-export default function LiveDataTable({ liveData, contentKey }: { liveData: EmbalseDataLive[]; contentKey: string }) {
+export default function LiveDataTable({
+  liveData,
+  contentKey,
+  embalse,
+  codedEmbalse,
+}: {
+  liveData: EmbalseDataLive[]
+  contentKey: string
+  embalse?: string
+  codedEmbalse?: string
+}) {
   return (
     <View className={`mt-4 flex w-full flex-col ${contentKey === "livedata" ? "block" : "hidden"}`}>
       {/* Table Header */}

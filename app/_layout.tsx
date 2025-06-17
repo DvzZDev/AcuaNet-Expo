@@ -23,7 +23,6 @@ export default function RootLayout() {
   const setId = useStore((state) => state.setId)
   const setAvatarUrl = useStore((state) => state.setAvatarUrl)
 
-  // Fonts loading
   const [loaded, error] = useFonts({
     Inter: require("../assets/fonts/Inter.ttf"),
     "Inter-Bold": require("../assets/fonts/InterDisplay-Bold.ttf"),
@@ -36,7 +35,6 @@ export default function RootLayout() {
     "Inter-Black-Italic": require("../assets/fonts/Inter_BlackItalic.ttf"),
   })
 
-  // Check if the user has a session and fetch their avatar URL
   useEffect(() => {
     const checkSession = async () => {
       if (sessionChecked) return

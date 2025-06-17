@@ -127,6 +127,8 @@ interface BottomSheetModalComponentProps {
   PortugalData: EmbalseDataPortugal[]
   weatherData: any
   coords?: { latitude: number; longitude: number; pais: string }
+  embalse?: string
+  codedEmbalse?: string
 }
 
 export default function BottomSheetModalComponent({

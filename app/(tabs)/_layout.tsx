@@ -27,7 +27,7 @@ export default function Layout() {
       />
       <Tabs
         screenOptions={{
-          animation: "shift",
+          animation: "fade",
           headerShown: false,
           tabBarStyle: {
             backgroundColor: "#16151a",

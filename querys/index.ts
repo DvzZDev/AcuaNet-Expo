@@ -1,66 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useQuery } from "@tanstack/react-query"
 import CacheClient from "cache"
 import hashTextToSha256 from "lib/HashText"
 import { supabase } from "lib/supabase"
 import type { FavSection } from "types/index"
-
-export const HistoricalData = async (
-  embalse: string | string[],
-  codedEmbalse: string,
-  setHData: (data: any) => void
-) => {
-  try {
-    const embalseStr = Array.isArray(embalse) ? embalse[0] : embalse
-    const { data, error } = await supabase
-      .from("embalses2025")
-      .select()
-      .eq("embalse", typeof embalseStr === "string" ? codedEmbalse : embalseStr)
-      .order("fecha", { ascending: false })
-
-    if (error) {
-      setHData([])
-      return
-    }
-
-    setHData(data || [])
-  } catch {
-    setHData([])
-  }
-}
-
-export const PortugalData = async (embalse: string | string[], setPortugalData: (data: any) => void) => {
-  try {
-    const embalseStr = Array.isArray(embalse) ? embalse[0] : embalse
-    const embalseLower = typeof embalseStr === "string" ? embalseStr.toLowerCase() : embalseStr
-    const { data, error } = await supabase.from("portugal_data").select().eq("nombre_embalse", embalseLower)
-    if (error) {
-      setPortugalData([])
-      return
-    }
-
-    setPortugalData(data || [])
-  } catch {
-    setPortugalData([])
-  }
-}
-
-export const LiveData = async (embalse: string | string[], codedEmbalse: string, setLiveData: (data: any) => void) => {
-  try {
-    const embalseStr = Array.isArray(embalse) ? embalse[0] : embalse
-    const { data, error } = await supabase
-      .from("live_data")
-      .select()
-      .eq("embalse", typeof embalseStr === "string" ? codedEmbalse : embalseStr)
-
-    if (error) {
-      setLiveData([])
-      return
-    }
-
-    setLiveData(data || [])
-  } catch {
-    setLiveData([])
-  }
-}
 
 export const CheckCoords = async (embalse: string | string[], setCheckCoords: (data: any) => void) => {
   try {
@@ -242,4 +185,121 @@ export const getFavSections = async (
     setIsLoading(false)
     return []
   }
+}
+
+export const LiveDataTest = async (embalse: string) => {
+  const { data, error } = await supabase.from("live_data").select().eq("embalse", embalse)
+  if (error) {
+    throw new Error(error.message)
+  }
+  return data
+}
+
+export const useLiveData = (embalse: string, isPortugal: boolean) => {
+  return useQuery({
+    queryKey: ["liveData", embalse],
+    queryFn: ({ queryKey }) => {
+      const [_key, embalse] = queryKey
+      return LiveDataTest(embalse)
+    },
+    enabled: !isPortugal,
+  })
+}
+
+export const HistoricalDataTest = async (embalse: string) => {
+  const { data, error } = await supabase
+    .from("embalses2025")
+    .select()
+    .eq("embalse", embalse)
+    .order("fecha", { ascending: false })
+
+  if (error) {
+    return new Error(error.message)
+  }
+  return data
+}
+
+export const useHistoricalData = (embalse: string, isPortugal: boolean) => {
+  return useQuery({
+    queryKey: ["historicalData", embalse],
+    queryFn: ({ queryKey }) => {
+      const [_key, embalse] = queryKey
+      return HistoricalDataTest(embalse)
+    },
+    enabled: !isPortugal,
+  })
+}
+
+export const PortugalDataTest = async (embalse: string) => {
+  const embalseStr = Array.isArray(embalse) ? embalse[0] : embalse
+  const embalseLower = typeof embalseStr === "string" ? embalseStr.toLowerCase() : embalseStr
+  const { data, error } = await supabase.from("portugal_data").select().eq("nombre_embalse", embalseLower)
+  if (error) {
+    throw new Error(error.message)
+  }
+  return data
+}
+
+export const usePortugalData = (embalse: string, isPortugal: boolean) => {
+  return useQuery({
+    queryKey: ["portugalData", embalse],
+    queryFn: ({ queryKey }) => {
+      const [_key, embalse] = queryKey
+      return PortugalDataTest(embalse)
+    },
+    enabled: isPortugal,
+  })
+}
+
+export const getFavSectionsT = async (id: string) => {
+  try {
+    const { data, error } = await supabase.from("favorite_reservoirs").select().eq("user_id", id)
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    const favorites = data[0]?.favorites || []
+    const españa = favorites.filter((embalse: { pais: string }) => embalse.pais === "España")
+    const portugal = favorites.filter((embalse: { pais: string }) => embalse.pais === "Portugal")
+
+    const nombresPt = portugal.map((embalse: { embalse: string }) => embalse.embalse?.toLowerCase()).filter(Boolean)
+
+    const nombresEs = españa.map((embalse: { embalse: string }) => embalse.embalse)
+
+    const { data: portugalData, error: portugalError } = await supabase
+      .from("portugal_data")
+      .select()
+      .in("nombre_embalse", nombresPt)
+
+    if (portugalError) {
+      throw new Error(portugalError.message)
+    }
+
+    const { data: españaData, error: españaError } = await supabase.rpc("obtener_ultimo_registro_por_embalse", {
+      nombres_embalses: nombresEs,
+    })
+
+    if (españaError) {
+      throw new Error(españaError.message)
+    }
+
+    const finalData = [...(españaData || []), ...(portugalData || [])]
+
+    return finalData
+  } catch (error) {
+    console.error("Error fetching favorite sections:", error)
+    return []
+  }
+}
+
+export const useFavSection = (id: string) => {
+  return useQuery({
+    queryKey: ["favoriteSection", id],
+    queryFn: ({ queryKey }) => {
+      const [_key, id] = queryKey
+      return getFavSectionsT(id)
+    },
+    enabled: !!id,
+  })
 }
