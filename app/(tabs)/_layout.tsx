@@ -20,9 +20,14 @@ export default function Layout() {
         colors={["#effcf3", "#9affa1"]}
         style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]}
       />
-      <StatusBar style="dark" />
+      <StatusBar
+        style="dark"
+        backgroundColor="transparent"
+        translucent={false}
+      />
       <Tabs
         screenOptions={{
+          animation: "shift",
           headerShown: false,
           tabBarStyle: {
             backgroundColor: "#16151a",
@@ -76,9 +81,10 @@ export default function Layout() {
           }}
         />
         <Tabs.Screen
-          name="geocode"
+          name="catchMap"
           options={{
-            title: "CatchMap",
+            headerShown: false,
+            tabBarLabel: "CatchMap",
             tabBarLabelStyle: {
               color: "#b3e8ba",
               fontFamily: "Inter",
@@ -90,6 +96,17 @@ export default function Layout() {
                 color="#b3e8ba"
               />
             ),
+            // Ocultar el fondo del gradiente para esta tab
+            tabBarStyle: {
+              backgroundColor: "#16151a",
+              borderTopLeftRadius: 40,
+              borderTopRightRadius: 40,
+              paddingInline: 10,
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+            },
           }}
         />
         <Tabs.Screen

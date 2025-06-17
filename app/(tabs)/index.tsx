@@ -10,6 +10,7 @@ import { useStore } from "../../store"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import { UserIcon } from "@hugeicons/core-free-icons"
 import { useFocusEffect } from "@react-navigation/native"
+import { SafeAreaView } from "react-native-safe-area-context"
 
 const EMBALSE_ORDER_KEY = "@embalse_order"
 
@@ -156,6 +157,7 @@ export default function Page() {
 
   return (
     <>
+      <SafeAreaView />
       <LinearGradient
         colors={["#effcf3", "#9affa1"]}
         style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]}
