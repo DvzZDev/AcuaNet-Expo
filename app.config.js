@@ -23,9 +23,16 @@ export default {
         },
       ],
       [
+        "expo-document-picker",
+        {
+          iCloudContainerEnvironment: "Production",
+        },
+      ],
+      [
         "expo-image-picker",
         {
           photosPermission: "AcuaNet necesita acceso a tus fotos para que puedas subir imágenes.",
+          isAccessMediaLocationEnabled: true,
         },
       ],
       [
@@ -34,6 +41,14 @@ export default {
           image: "./assets/LogoE.png",
           resizeMode: "contain",
           backgroundColor: "#16151a",
+        },
+      ],
+      [
+        "expo-media-library",
+        {
+          photosPermission: "Allow AcuaNet to access your photos.",
+          savePhotosPermission: "Allow AcuaNet to save photos.",
+          isAccessMediaLocationEnabled: true,
         },
       ],
     ],

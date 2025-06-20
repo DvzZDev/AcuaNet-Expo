@@ -96,7 +96,6 @@ export default function Layout() {
                 color="#b3e8ba"
               />
             ),
-            // Ocultar el fondo del gradiente para esta tab
             tabBarStyle: {
               backgroundColor: "#16151a",
               borderTopLeftRadius: 40,
