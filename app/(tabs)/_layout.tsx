@@ -75,7 +75,7 @@ export default function Layout() {
                   size={30}
                   color="#b3e8ba"
                 />
-                <Text className="font-Inter-Thin text-xs text-[#bcf2c2]">Buscador</Text>
+                <Text className="font-Inter-Medium text-xs text-[#b3e8ba]">Buscador</Text>
               </TouchableOpacity>
             ),
           }}

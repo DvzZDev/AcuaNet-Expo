@@ -4,9 +4,16 @@ import {
   BottomSheetModal,
   BottomSheetView,
 } from "@gorhom/bottom-sheet"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useCallback } from "react"
 import { View } from "react-native"
 import UploadImage from "./UploadImage"
+
+const CustomBackgroundComponent = ({ style, ...props }: BottomSheetBackgroundProps) => (
+  <View
+    style={[style, { backgroundColor: "#dcfce7", borderTopLeftRadius: 20, borderTopRightRadius: 20 }]}
+    {...props}
+  />
+)
 
 export default function AddCatchBottomSheet({
   isOpen,
@@ -17,20 +24,6 @@ export default function AddCatchBottomSheet({
 }) {
   const BsRef = useRef<BottomSheetModal>(null)
 
-  const CustomBackground = ({ style, ...props }: BottomSheetBackgroundProps) => (
-    <View
-      style={[
-        style,
-        {
-          backgroundColor: "#dcfce7",
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
-        },
-      ]}
-      {...props}
-    />
-  )
-
   useEffect(() => {
     if (isOpen) {
       BsRef.current?.present()
@@ -39,14 +32,17 @@ export default function AddCatchBottomSheet({
     }
   }, [isOpen])
 
-  const renderBackdrop = (props: any) => (
-    <BottomSheetBackdrop
-      {...props}
-      disappearsOnIndex={-1}
-      appearsOnIndex={0}
-      enableTouchThrough={false}
-      pressBehavior="close"
-    />
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        enableTouchThrough={false}
+        pressBehavior="close"
+      />
+    ),
+    []
   )
 
   return (
@@ -55,8 +51,8 @@ export default function AddCatchBottomSheet({
       onDismiss={() => setOpen(false)}
       enablePanDownToClose
       backdropComponent={renderBackdrop}
+      backgroundComponent={CustomBackgroundComponent}
       enableDynamicSizing
-      backgroundComponent={CustomBackground}
     >
       <BottomSheetView className="pb-10">
         <UploadImage />

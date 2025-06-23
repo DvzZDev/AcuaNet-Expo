@@ -16,6 +16,7 @@ export default {
 
     plugins: [
       "expo-router",
+      "expo-system-ui",
       [
         "expo-font",
         {

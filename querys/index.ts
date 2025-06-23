@@ -303,3 +303,37 @@ export const useFavSection = (id: string) => {
     enabled: !!id,
   })
 }
+
+export const AutoComplete = async (place: string) => {
+  await new Promise((resolve) => setTimeout(resolve, 1000))
+
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(place)}&countrycodes=es,pt&format=json&limit=10`,
+    {
+      headers: {
+        "User-Agent": "AcuaNet-App/1.0.0",
+      },
+    }
+  )
+
+  if (!res.ok) {
+    console.error("Error fetching place data:", res.statusText, "Status:", res.status)
+    throw new Error(`Failed to fetch place data: ${res.status} ${res.statusText}`)
+  }
+
+  const data = await res.json()
+
+  console.log("Nominatim data:", data)
+  return data
+}
+
+export const useNominatim = (place: string) => {
+  return useQuery({
+    queryKey: ["nominatim", place],
+    queryFn: ({ queryKey }) => {
+      const [_key, place] = queryKey
+      return AutoComplete(place)
+    },
+    enabled: place.length > 2,
+  })
+}
