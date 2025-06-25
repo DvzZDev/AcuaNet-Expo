@@ -323,7 +323,6 @@ export const AutoComplete = async (place: string) => {
 
   const data = await res.json()
 
-  console.log("Nominatim data:", data)
   return data
 }
 

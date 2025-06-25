@@ -8,6 +8,7 @@ import * as PIEXIF from "piexifjs"
 export interface GPSCoordinates {
   lat: number
   lng: number
+  date?: string | null
 }
 
 /**
@@ -43,6 +44,21 @@ export const extractGPSFromExif = async (imageUri: string): Promise<GPSCoordinat
 
     console.log("EXIF Data:", exifDict)
 
+    // Extraer fecha de los datos EXIF
+    let dateTime: string | null = null
+
+    // Intentar obtener la fecha de diferentes campos EXIF
+    if (exifDict.Exif && exifDict.Exif[PIEXIF.ExifIFD.DateTimeOriginal]) {
+      dateTime = exifDict.Exif[PIEXIF.ExifIFD.DateTimeOriginal]
+    } else if (exifDict.Exif && exifDict.Exif[306]) {
+      // DateTime en Exif
+      dateTime = exifDict.Exif[306]
+    } else if (exifDict["0th"] && exifDict["0th"][PIEXIF.ImageIFD.DateTime]) {
+      dateTime = exifDict["0th"][PIEXIF.ImageIFD.DateTime]
+    }
+
+    console.log("Extracted DateTime:", dateTime)
+
     if (exifDict.GPS && Object.keys(exifDict.GPS).length > 0) {
       const lat = exifDict.GPS[PIEXIF.GPSIFD.GPSLatitude]
       const latRef = exifDict.GPS[PIEXIF.GPSIFD.GPSLatitudeRef]
@@ -68,9 +84,10 @@ export const extractGPSFromExif = async (imageUri: string): Promise<GPSCoordinat
             const result = {
               lat: latRef === "S" ? -latitude : latitude,
               lng: lngRef === "W" ? -longitude : longitude,
+              date: dateTime,
             }
 
-            console.log("Extracted GPS coordinates:", result)
+            console.log("Extracted GPS coordinates and date:", result)
             return result
           } catch (calcError) {
             console.log("Error calculating coordinates:", calcError)
@@ -145,11 +162,20 @@ export const extractGPSFromImagePicker = async (
 
       // Extraer coordenadas si están disponibles
       if (gpsData.Latitude && gpsData.Longitude) {
+        // También intentar extraer la fecha del EXIF del asset
+        let dateTime: string | null = null
+        if (asset.exif?.DateTimeOriginal) {
+          dateTime = asset.exif.DateTimeOriginal
+        } else if (asset.exif?.DateTime) {
+          dateTime = asset.exif.DateTime
+        }
+
         const coords = {
           lat: gpsData.LatitudeRef === "S" ? -gpsData.Latitude : gpsData.Latitude,
           lng: gpsData.LongitudeRef === "W" ? -gpsData.Longitude : gpsData.Longitude,
+          date: dateTime,
         }
-        console.log("Using GPS from ImagePicker:", coords)
+        console.log("Using GPS and date from ImagePicker:", coords)
         return coords
       }
     }
@@ -192,14 +218,14 @@ export const extractGPSFromImagePicker = async (
 }
 
 /**
- * Extrae coordenadas GPS de un documento seleccionado (para Android)
+ * Extrae coordenadas GPS y fecha de un documento seleccionado (para Android)
  */
 export const extractGPSFromDocument = async (documentUri: string): Promise<GPSCoordinates | null> => {
-  console.log("Extracting GPS from document...")
-  const gps = await extractGPSFromExif(documentUri)
-  if (gps) {
-    console.log("GPS found in document:", gps)
-    return gps
+  console.log("Extracting GPS and date from document...")
+  const gpsData = await extractGPSFromExif(documentUri)
+  if (gpsData) {
+    console.log("GPS and date found in document:", gpsData)
+    return gpsData
   }
 
   console.log("No GPS data found in document")

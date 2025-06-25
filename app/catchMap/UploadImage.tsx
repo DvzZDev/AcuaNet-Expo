@@ -7,7 +7,9 @@ import {
   ArrowLeft02Icon,
   ArrowRight02Icon,
   ExchangeIcon,
+  Image01FreeIcons,
   ImageUploadIcon,
+  InformationCircleIcon,
   MapsEditingIcon,
   Tick01Icon,
 } from "@hugeicons/core-free-icons"
@@ -21,20 +23,23 @@ import { extractGPSFromImagePicker, extractGPSFromDocument, type GPSCoordinates 
 import { twMerge } from "tailwind-merge"
 import { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated"
 import Carousel from "react-native-reanimated-carousel"
+import CatchReport, { type CatchReportRef } from "components/UploadCatch/CatchReport"
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view"
 
 const { width } = Dimensions.get("window")
 
 export default function UploadImage() {
-  const [image, setImage] = useState<string | null>(null)
+  const [images, setImages] = useState<string[]>([])
   const [coordinates, setCoordinates] = useState<GPSCoordinates | null>(null)
   const [userCoordinates, setUserCoordinates] = useState<GPSCoordinates | null>(null)
+  const [imageDate, setImageDate] = useState<string | null>(null)
   const [currentStep, setCurrentStep] = useState(0)
   const [isEditMode, setIsEditMode] = useState(false)
   const mapRef = useRef<MapView>(null)
   const carouselRef = useRef<any>(null)
-
+  const catchReportRef = useRef<CatchReportRef>(null)
+  const scrollViewRef = useRef<KeyboardAwareScrollView>(null)
   const [heights, setHeights] = useState([0, 0, 0])
-
   const heightAnim = useSharedValue(0)
 
   useEffect(() => {
@@ -56,6 +61,74 @@ export default function UploadImage() {
       )
     }
   }, [userCoordinates])
+
+  const pickImage = async () => {
+    if (images.length >= 3) {
+      return
+    }
+
+    setCoordinates(null)
+    setImageDate(null)
+
+    if (Platform.OS === "ios") {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      if (!permissionResult.granted) return
+
+      const remainingSlots = 3 - images.length
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+        exif: true,
+        allowsEditing: false,
+        selectionLimit: remainingSlots,
+        allowsMultipleSelection: true,
+      })
+
+      if (!result.canceled && result.assets) {
+        const assetsToAdd = result.assets.slice(0, remainingSlots)
+        const newImageUris = assetsToAdd.map((asset) => asset.uri)
+
+        setImages((prev) => [...(prev || []), ...newImageUris])
+
+        if (assetsToAdd[0]) {
+          const gpsData = await extractGPSFromImagePicker(assetsToAdd[0])
+          if (gpsData) {
+            setCoordinates({
+              lat: gpsData.lat,
+              lng: gpsData.lng,
+            })
+            setImageDate(gpsData.date || null)
+          }
+        }
+      }
+    } else {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "image/*",
+        copyToCacheDirectory: true,
+        multiple: true,
+      })
+
+      if (!result.canceled && result.assets) {
+        const remainingSlots = 3 - images.length
+        const assetsToAdd = result.assets.slice(0, remainingSlots)
+        const newImageUris = assetsToAdd.map((asset) => asset.uri)
+
+        setImages((prev) => [...(prev || []), ...newImageUris])
+
+        if (assetsToAdd[0]) {
+          const gpsData = await extractGPSFromDocument(assetsToAdd[0].uri)
+          if (gpsData) {
+            setCoordinates({
+              lat: gpsData.lat,
+              lng: gpsData.lng,
+            })
+            setImageDate(gpsData.date || null)
+          }
+        }
+      }
+    }
+  }
 
   const animatedStyle = useAnimatedStyle(() => ({
     height: heightAnim.value,
@@ -81,6 +154,21 @@ export default function UploadImage() {
     setCurrentStep(index)
   }
 
+  const scrollToInput = (reactNode: any) => {
+    if (scrollViewRef.current) {
+      // @ts-ignore - scrollToFocusedInput existe en el ref del componente
+      scrollViewRef.current.scrollToFocusedInput(reactNode)
+    }
+  }
+
+  const onKeyboardWillShow = (frames: any) => {
+    console.log("Keyboard will show", frames)
+  }
+
+  const onKeyboardWillHide = (frames: any) => {
+    console.log("Keyboard will hide", frames)
+  }
+
   const onLayoutStep = (index: number) => (event: any) => {
     const h = event.nativeEvent.layout.height
     setHeights((prev) => {
@@ -97,35 +185,93 @@ export default function UploadImage() {
       className="px-2 pt-2"
     >
       <View className="flex-row items-center justify-between">
-        <View className="mx-2 mb-3 self-start rounded-lg bg-[#95d6fb] p-1 px-2">
-          <Text className="font-Inter-Medium text-lg text-[#126ca1]">1º Seleccionar Imagen</Text>
+        <View className="ml-2 flex-row items-center self-start rounded-lg bg-[#95d6fb] p-1 px-2">
+          <Text className="font-Inter-Medium text-lg text-[#126ca1]">1º Selecionar Imágenes</Text>
+          <LottieView
+            source={require("@assets/animations/Upload.json")}
+            autoPlay
+            loop
+            style={{ width: 34, height: 25 }}
+          />
         </View>
         <TouchableOpacity
           onPress={goToNextStep}
-          className={`mx-2 mb-3 flex-row items-center gap-1 self-start rounded-lg bg-[#95fb97] p-2 ${!image ? "opacity-50" : "opacity-100"}`}
-          disabled={!image}
+          className={`mx-2 mb-3 flex-row items-center gap-1 self-start rounded-lg bg-[#95fb97] p-2 ${images.length === 0 ? "opacity-50" : "opacity-100"}`}
+          disabled={images.length === 0}
         >
           <HugeiconsIcon
             icon={ArrowRight02Icon}
             size={20}
-            color={image ? "#0c4607" : "#6b7280"}
+            color={images.length > 0 ? "#0c4607" : "#6b7280"}
             strokeWidth={2}
           />
         </TouchableOpacity>
       </View>
 
-      {image ? (
+      {images.length > 0 ? (
         <View className="mx-2 space-y-4">
-          <View className="h-[30vh] items-center justify-center overflow-hidden rounded-2xl bg-emerald-900">
+          <View className="relative h-[30vh] items-center justify-center overflow-hidden rounded-2xl bg-emerald-900">
             <Image
-              source={{ uri: image }}
+              source={{ uri: images[0] }}
               style={{ width: "100%", height: "100%" }}
               contentFit="cover"
             />
+            {images.length > 1 && (
+              <View className="absolute bottom-0 left-0 right-0">
+                <View className="flex-row flex-wrap gap-2 p-2">
+                  {images.slice(1).map((uri, index) => (
+                    <View
+                      key={index}
+                      style={{
+                        borderStyle: "dashed",
+                        borderWidth: 1,
+                        borderColor: "#8eeb95",
+                        aspectRatio: 1,
+                      }}
+                      className=" w-[20%] overflow-hidden rounded-lg"
+                    >
+                      <Image
+                        source={{ uri }}
+                        style={{ width: "100%", height: "100%" }}
+                        contentFit="cover"
+                      />
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            <View className="absolute right-4 top-4 flex-row items-center justify-center gap-1 rounded-xl bg-[#141c1c] p-2 px-3">
+              <HugeiconsIcon
+                icon={Image01FreeIcons}
+                size={13}
+                color="#9affa1"
+                strokeWidth={1.5}
+              />
+              <Text className="font-Inter-Medium text-xs text-[#9affa1]">{images.length}/3</Text>
+            </View>
+
+            {images.length < 3 && (
+              <TouchableOpacity
+                onPress={pickImage}
+                className="absolute right-4 top-14 flex-row items-center gap-1 rounded-lg bg-green-200 p-1"
+              >
+                <HugeiconsIcon
+                  icon={ImageUploadIcon}
+                  size={20}
+                  color="#16a34a"
+                />
+                <Text className="font-Inter-Medium text-sm text-green-700">Añadir más</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <TouchableOpacity
-            onPress={pickImage}
+            onPress={() => {
+              setImages([])
+              setCoordinates(null)
+              setImageDate(null)
+            }}
             className="mt-3 flex-row items-center justify-center gap-1 rounded-lg bg-orange-200 p-3"
           >
             <HugeiconsIcon
@@ -133,13 +279,13 @@ export default function UploadImage() {
               size={25}
               color="#fb923c"
             />
-            <Text className="text-center font-Inter-SemiBold text-lg text-orange-400">Cambiar imagen</Text>
+            <Text className="text-center font-Inter-SemiBold text-lg text-orange-400">Cambiar selección</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <TouchableOpacity
           onPress={pickImage}
-          className="mx-2 h-[30vh] items-center justify-center rounded-2xl bg-emerald-900 px-8"
+          className="relative mx-2 h-[30vh] items-center justify-center rounded-2xl bg-emerald-900 px-8"
         >
           <HugeiconsIcon
             icon={ImageUploadIcon}
@@ -147,6 +293,29 @@ export default function UploadImage() {
             color="#9affa1"
           />
           <Text className="mt-4 text-center font-Inter-Medium text-[#9affa1]">Seleccionar imagen</Text>
+
+          <View className="absolute right-4 top-4 flex-row items-center justify-center gap-1 rounded-xl bg-[#141c1c] p-2 px-3">
+            <HugeiconsIcon
+              icon={Image01FreeIcons}
+              size={13}
+              color="#9affa1"
+              strokeWidth={1.5}
+            />
+            <Text className="font-Inter-Medium text-xs text-[#9affa1]">0/3</Text>
+          </View>
+
+          <View className="absolute bottom-4 flex-row items-center justify-center gap-2 rounded-xl bg-[#14141c] px-7 py-3">
+            <HugeiconsIcon
+              icon={InformationCircleIcon}
+              size={20}
+              color="#9affa1"
+              strokeWidth={1.5}
+            />
+            <Text className="font-Inter-Medium text-xs text-[#9affa1]">
+              La primera imagen que selecciones será la principal y se usará para determinar la ubicación y la fecha.
+              Puedes subir un máximo de 3 imágenes.
+            </Text>
+          </View>
         </TouchableOpacity>
       )}
     </View>
@@ -236,9 +405,9 @@ export default function UploadImage() {
                   )}
                   style={{ width: 35, height: 35 }}
                 >
-                  {image && (
+                  {images[0] && (
                     <Image
-                      source={{ uri: image }}
+                      source={{ uri: images[0] }}
                       style={{
                         width: 29,
                         height: 29,
@@ -278,6 +447,7 @@ export default function UploadImage() {
             onLocationSelect={(coords) => {
               setUserCoordinates(coords)
             }}
+            onInputFocus={scrollToInput}
           />
 
           <View className="relative h-80 w-full overflow-hidden rounded-xl">
@@ -316,9 +486,9 @@ export default function UploadImage() {
                         className="items-center justify-center rounded-full border-2 border-green-500 bg-white shadow-lg"
                         style={{ width: 35, height: 35 }}
                       >
-                        {image && (
+                        {images[0] && (
                           <Image
-                            source={{ uri: image }}
+                            source={{ uri: images[0] }}
                             style={{
                               width: 29,
                               height: 29,
@@ -381,68 +551,31 @@ export default function UploadImage() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={goToNextStep}
-            className={`mx-2 mb-3 flex-row items-center gap-1 self-start rounded-lg p-2 ${currentStep === 2 ? "bg-gray-300 opacity-50" : "bg-[#95fb97]"}`}
-            disabled={currentStep === 2}
+            onPress={() => {
+              if (catchReportRef.current) {
+                catchReportRef.current.submitForm()
+              }
+            }}
+            className="mx-2 mb-3 flex-row items-center gap-1 self-start rounded-lg bg-[#95fb97] p-2"
           >
             <HugeiconsIcon
               icon={ArrowRight02Icon}
               size={20}
-              color={currentStep === 2 ? "#6b7280" : "#0c4607"}
+              color="#0c4607"
               strokeWidth={2}
             />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Aquí el formulario para completar datos */}
-      <View className="mx-2 mt-4 items-center justify-center py-8">
-        <Text className="font-Inter-Medium text-lg text-gray-600">
-          Aquí irá el formulario para completar los datos de la captura
-        </Text>
-      </View>
+      <CatchReport
+        ref={catchReportRef}
+        date={imageDate ? imageDate : undefined}
+        setDate={setImageDate}
+        onInputFocus={scrollToInput}
+      />
     </View>
   )
-
-  const pickImage = async () => {
-    setImage(null)
-    setCoordinates(null)
-
-    if (Platform.OS === "ios") {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync()
-      if (!permissionResult.granted) return
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
-        exif: true,
-        allowsEditing: false,
-      })
-
-      if (!result.canceled && result.assets[0]) {
-        const asset = result.assets[0]
-        setImage(asset.uri)
-
-        const gps = await extractGPSFromImagePicker(asset)
-        if (gps) {
-          setCoordinates(gps)
-        }
-      }
-    } else {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: "image/*",
-        copyToCacheDirectory: true,
-      })
-
-      if (!result.canceled && result.assets[0]) {
-        setImage(result.assets[0].uri)
-        const gps = await extractGPSFromDocument(result.assets[0].uri)
-        if (gps) {
-          setCoordinates(gps)
-        }
-      }
-    }
-  }
 
   const carouselData = [
     { key: "step1", index: 0 },
@@ -451,22 +584,32 @@ export default function UploadImage() {
   ]
 
   return (
-    <Carousel
-      ref={carouselRef}
-      width={width}
-      data={carouselData}
-      scrollAnimationDuration={300}
-      onSnapToItem={onStepChange}
-      renderItem={({ item }) => {
-        const stepComponents = [renderStep1(), renderStep2(), renderStep3()]
-        return stepComponents[item.index] || <View />
-      }}
-      enabled={false}
-      loop={false}
-      autoPlay={false}
-      pagingEnabled={false}
-      snapEnabled={false}
-      style={[{ overflow: "hidden" }, animatedStyle]}
-    />
+    <KeyboardAwareScrollView
+      ref={scrollViewRef}
+      enableAutomaticScroll
+      enableOnAndroid
+      onKeyboardWillShow={onKeyboardWillShow}
+      onKeyboardWillHide={onKeyboardWillHide}
+      extraScrollHeight={20}
+      keyboardShouldPersistTaps="handled"
+    >
+      <Carousel
+        ref={carouselRef}
+        width={width}
+        data={carouselData}
+        scrollAnimationDuration={300}
+        onSnapToItem={onStepChange}
+        renderItem={({ item }) => {
+          const stepComponents = [renderStep1(), renderStep2(), renderStep3()]
+          return stepComponents[item.index] || <View />
+        }}
+        enabled={false}
+        loop={false}
+        autoPlay={false}
+        pagingEnabled={false}
+        snapEnabled={false}
+        style={[{ overflow: "hidden" }, animatedStyle]}
+      />
+    </KeyboardAwareScrollView>
   )
 }

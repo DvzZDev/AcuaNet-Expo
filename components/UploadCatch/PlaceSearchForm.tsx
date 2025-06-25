@@ -6,19 +6,20 @@ import { HugeiconsIcon } from "@hugeicons/react-native"
 import { Search01Icon, Location01Icon } from "@hugeicons/core-free-icons"
 
 interface PlaceSearchProps {
-  onLocationSelect: (coords: { lat: number; lng: number }) => void
+  onLocationSelect: (embalse: string) => void
   onInputFocus?: (reactNode: any) => void
 }
 
 interface NominatimResult {
   place_id: number
   display_name: string
+  name: string
   lat: string
   lon: string
   importance: number
 }
 
-export default function PlaceSearch({ onLocationSelect, onInputFocus }: PlaceSearchProps) {
+export default function PlaceSearchForm({ onLocationSelect, onInputFocus }: PlaceSearchProps) {
   const [searchText, setSearchText] = useState("")
   const [debouncedSearchText, setDebouncedSearchText] = useState("")
   const [isSearching, setIsSearching] = useState(false)
@@ -39,12 +40,9 @@ export default function PlaceSearch({ onLocationSelect, onInputFocus }: PlaceSea
   }
 
   const handleLocationSelect = (result: NominatimResult) => {
-    const coords = {
-      lat: parseFloat(result.lat),
-      lng: parseFloat(result.lon),
-    }
-    onLocationSelect(coords)
-    setSearchText(result.display_name.split(",")[0])
+    const shortName = result.name || result.display_name.split(",")[0]
+    onLocationSelect(shortName)
+    setSearchText(shortName)
     setIsSearching(false)
   }
 
@@ -52,36 +50,36 @@ export default function PlaceSearch({ onLocationSelect, onInputFocus }: PlaceSea
 
   return (
     <View className="relative mt-2">
-      <View className="relative flex-row items-center rounded-lg border border-green-300 bg-green-200 px-3 py-1">
+      <View className="relative flex-row items-center rounded-lg border border-green-300 bg-green-200 px-3">
         <HugeiconsIcon
           icon={Search01Icon}
           size={20}
-          color="#052e16"
+          color="#71947d"
         />
         <TextInput
           value={searchText}
           onChangeText={handleSearch}
           onFocus={(event) => {
             if (onInputFocus) {
-              // @ts-ignore - findNodeHandle funciona con event.target
+              // @ts-ignore - findNodeHandle funciona con event.targetx
               onInputFocus(findNodeHandle(event.target))
             }
           }}
-          placeholder="Buscar ubicación manualmente"
-          className="ml-2 flex-1 font-Inter-Medium text-base text-green-950"
-          placeholderTextColor="#052e16"
+          placeholder="Buscar embalse..."
+          placeholderTextColor="#71947d"
+          className="ios:leading-[0] ios:py-4 ml-2 flex-1 px-3 py-3 font-Inter-Medium text-base text-green-950"
         />
       </View>
 
       {isSearching && searchText.length > 2 && (
-        <View className="absolute top-12 z-10 w-full rounded-lg bg-green-200 shadow-lg">
+        <View className="absolute top-14 z-10 w-full rounded-lg border-lime-500 bg-lime-300 ">
           {isLoading || (debouncedSearchText !== searchText && searchText.length > 2) ? (
             <View className="items-center justify-center py-4">
               <ActivityIndicator
                 size="small"
-                color="#052e16"
+                color="#3f6212"
               />
-              <Text className="mt-2 font-Inter-Medium text-green-950">Buscando...</Text>
+              <Text className="mt-2 font-Inter-Medium text-lime-800">Buscando...</Text>
             </View>
           ) : error ? (
             <View className="p-4">
@@ -99,13 +97,13 @@ export default function PlaceSearch({ onLocationSelect, onInputFocus }: PlaceSea
                   <HugeiconsIcon
                     icon={Location01Icon}
                     size={16}
-                    color="#052e16"
+                    color="#3f6212"
                   />
                   <Text
-                    className="ml-2 flex-1 font-Inter-Medium text-green-950"
+                    className="ml-2 flex-1 font-Inter-Medium text-lime-800"
                     numberOfLines={2}
                   >
-                    {item.display_name}
+                    {item.name || item.display_name.split(",")[0]}
                   </Text>
                 </TouchableOpacity>
               )}
