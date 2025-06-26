@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
-import { View, Text, TouchableOpacity, ActivityIndicator, findNodeHandle } from "react-native"
-import { TextInput, FlatList } from "react-native-gesture-handler"
+import { View, Text, TouchableOpacity, ActivityIndicator, findNodeHandle, ScrollView } from "react-native"
+import { TextInput } from "react-native-gesture-handler"
 import { useNominatim } from "querys"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import { Search01Icon, Location01Icon } from "@hugeicons/core-free-icons"
@@ -86,11 +86,14 @@ export default function PlaceSearchForm({ onLocationSelect, onInputFocus }: Plac
               <Text className="font-Inter-Medium text-red-600">Error al buscar ubicaciones</Text>
             </View>
           ) : results.length > 0 ? (
-            <FlatList
-              data={results}
-              keyExtractor={(item) => item.place_id.toString()}
-              renderItem={({ item }) => (
+            <ScrollView
+              style={{ maxHeight: 200 }}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+            >
+              {results.map((item) => (
                 <TouchableOpacity
+                  key={item.place_id.toString()}
                   onPress={() => handleLocationSelect(item)}
                   className="flex-row items-center border-b border-green-400 p-3"
                 >
@@ -106,11 +109,8 @@ export default function PlaceSearchForm({ onLocationSelect, onInputFocus }: Plac
                     {item.name || item.display_name.split(",")[0]}
                   </Text>
                 </TouchableOpacity>
-              )}
-              style={{ maxHeight: 200 }}
-              showsVerticalScrollIndicator={true}
-              nestedScrollEnabled={true}
-            />
+              ))}
+            </ScrollView>
           ) : (
             <View className="p-4">
               <Text className="font-Inter-Medium text-green-950">No se encontraron resultados</Text>

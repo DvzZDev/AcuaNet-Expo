@@ -12,6 +12,57 @@ export interface GPSCoordinates {
 }
 
 /**
+ * Función helper para convertir fechas EXIF a formato válido
+ */
+const convertExifDate = (dateString: string | null | undefined): string | null => {
+  if (!dateString || typeof dateString !== "string" || dateString.trim() === "") {
+    console.log("Invalid date input:", dateString)
+    return null
+  }
+
+  try {
+    console.log("Converting date:", dateString)
+
+    // Si tiene formato EXIF (YYYY:MM:DD HH:MM:SS), convertirla
+    if (dateString.includes(":") && dateString.match(/^\d{4}:\d{2}:\d{2}/)) {
+      // Separar fecha y hora
+      const parts = dateString.split(" ")
+      if (parts.length >= 1) {
+        const datePart = parts[0] // YYYY:MM:DD
+        const timePart = parts[1] || "00:00:00" // HH:MM:SS o por defecto
+
+        // Convertir YYYY:MM:DD a YYYY-MM-DD para ISO format
+        const isoDatePart = datePart.replace(/:/g, "-")
+        const isoDateTime = `${isoDatePart}T${timePart}`
+
+        console.log("Converted to ISO format:", isoDateTime)
+
+        const testDate = new Date(isoDateTime)
+        if (!isNaN(testDate.getTime())) {
+          console.log("ISO date is valid:", isoDateTime)
+          return isoDateTime
+        } else {
+          console.log("ISO date is invalid:", isoDateTime)
+        }
+      }
+    }
+
+    // Si ya es una fecha válida, devolverla tal como está
+    const testExisting = new Date(dateString)
+    if (!isNaN(testExisting.getTime())) {
+      console.log("Date is already valid:", dateString)
+      return dateString
+    }
+
+    console.log("Could not convert date:", dateString)
+    return null
+  } catch (error) {
+    console.log("Error converting date:", error)
+    return null
+  }
+}
+
+/**
  * Extrae coordenadas GPS de los datos EXIF de una imagen
  */
 export const extractGPSFromExif = async (imageUri: string): Promise<GPSCoordinates | null> => {
@@ -47,17 +98,36 @@ export const extractGPSFromExif = async (imageUri: string): Promise<GPSCoordinat
     // Extraer fecha de los datos EXIF
     let dateTime: string | null = null
 
+    console.log("EXIF structure:", {
+      hasExif: !!exifDict.Exif,
+      has0th: !!exifDict["0th"],
+      exifKeys: exifDict.Exif ? Object.keys(exifDict.Exif) : [],
+      zerothKeys: exifDict["0th"] ? Object.keys(exifDict["0th"]) : [],
+    })
+
     // Intentar obtener la fecha de diferentes campos EXIF
     if (exifDict.Exif && exifDict.Exif[PIEXIF.ExifIFD.DateTimeOriginal]) {
       dateTime = exifDict.Exif[PIEXIF.ExifIFD.DateTimeOriginal]
+      console.log("Found DateTimeOriginal:", dateTime)
     } else if (exifDict.Exif && exifDict.Exif[306]) {
       // DateTime en Exif
       dateTime = exifDict.Exif[306]
+      console.log("Found DateTime in Exif[306]:", dateTime)
     } else if (exifDict["0th"] && exifDict["0th"][PIEXIF.ImageIFD.DateTime]) {
       dateTime = exifDict["0th"][PIEXIF.ImageIFD.DateTime]
+      console.log("Found DateTime in 0th:", dateTime)
+    } else if (exifDict["0th"] && exifDict["0th"][306]) {
+      // DateTime en 0th
+      dateTime = exifDict["0th"][306]
+      console.log("Found DateTime in 0th[306]:", dateTime)
     }
 
-    console.log("Extracted DateTime:", dateTime)
+    console.log("Raw dateTime before processing:", dateTime, typeof dateTime)
+
+    // Convertir formato de fecha EXIF usando la función helper
+    dateTime = convertExifDate(dateTime)
+
+    console.log("Final extracted DateTime:", dateTime)
 
     if (exifDict.GPS && Object.keys(exifDict.GPS).length > 0) {
       const lat = exifDict.GPS[PIEXIF.GPSIFD.GPSLatitude]
@@ -164,11 +234,25 @@ export const extractGPSFromImagePicker = async (
       if (gpsData.Latitude && gpsData.Longitude) {
         // También intentar extraer la fecha del EXIF del asset
         let dateTime: string | null = null
+
+        console.log("ImagePicker EXIF data:", {
+          hasDateTimeOriginal: !!asset.exif?.DateTimeOriginal,
+          hasDateTime: !!asset.exif?.DateTime,
+          DateTimeOriginal: asset.exif?.DateTimeOriginal,
+          DateTime: asset.exif?.DateTime,
+          allExifKeys: Object.keys(asset.exif || {}),
+        })
+
         if (asset.exif?.DateTimeOriginal) {
           dateTime = asset.exif.DateTimeOriginal
+          console.log("Using DateTimeOriginal:", dateTime)
         } else if (asset.exif?.DateTime) {
           dateTime = asset.exif.DateTime
+          console.log("Using DateTime:", dateTime)
         }
+
+        // Convertir formato de fecha EXIF si es necesario usando la función helper
+        dateTime = convertExifDate(dateTime)
 
         const coords = {
           lat: gpsData.LatitudeRef === "S" ? -gpsData.Latitude : gpsData.Latitude,

@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import "react-native-get-random-values"
 import React, { useState, useEffect, useRef } from "react"
-import { View, TouchableOpacity, Text, Platform, Dimensions } from "react-native"
+import { View, TouchableOpacity, Text, Platform, Dimensions, ActivityIndicator } from "react-native"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import {
   ArrowLeft02Icon,
@@ -20,8 +20,9 @@ import MapView, { Marker } from "react-native-maps"
 import LottieView from "lottie-react-native"
 import PlaceSearch from "components/UploadCatch/PlaceSearch"
 import { extractGPSFromImagePicker, extractGPSFromDocument, type GPSCoordinates } from "lib/extractGPSCoordinates"
+// import { Confetti } from "react-native-fast-confetti"
 import { twMerge } from "tailwind-merge"
-import { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated"
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, FadeIn, FadeOut } from "react-native-reanimated"
 import Carousel from "react-native-reanimated-carousel"
 import CatchReport, { type CatchReportRef } from "components/UploadCatch/CatchReport"
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view"
@@ -39,8 +40,13 @@ export default function UploadImage() {
   const carouselRef = useRef<any>(null)
   const catchReportRef = useRef<CatchReportRef>(null)
   const scrollViewRef = useRef<KeyboardAwareScrollView>(null)
-  const [heights, setHeights] = useState([0, 0, 0])
-  const heightAnim = useSharedValue(0)
+  const [heights, setHeights] = useState<number[]>([0, 0, 0, 0])
+  const heightAnim = useSharedValue<number>(0)
+  const [isSending, setIsSending] = useState<boolean>(false)
+  const [isSuccess, setIsSuccess] = useState<boolean>(false)
+  const [isError, setIsError] = useState<boolean>(false)
+
+  console.log("Loading...", isSending, "Success?...", isSuccess)
 
   useEffect(() => {
     if (heights[currentStep]) {
@@ -78,11 +84,11 @@ export default function UploadImage() {
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
         exif: true,
         allowsEditing: false,
         selectionLimit: remainingSlots,
         allowsMultipleSelection: true,
+        orderedSelection: true,
       })
 
       if (!result.canceled && result.assets) {
@@ -92,13 +98,18 @@ export default function UploadImage() {
         setImages((prev) => [...(prev || []), ...newImageUris])
 
         if (assetsToAdd[0]) {
+          console.log("Processing first asset:", assetsToAdd[0])
           const gpsData = await extractGPSFromImagePicker(assetsToAdd[0])
+          console.log("GPS data extracted:", gpsData)
           if (gpsData) {
             setCoordinates({
               lat: gpsData.lat,
               lng: gpsData.lng,
             })
+            console.log("Setting image date:", gpsData.date)
             setImageDate(gpsData.date || null)
+          } else {
+            console.log("No GPS data found")
           }
         }
       }
@@ -117,13 +128,18 @@ export default function UploadImage() {
         setImages((prev) => [...(prev || []), ...newImageUris])
 
         if (assetsToAdd[0]) {
+          console.log("Processing first document asset:", assetsToAdd[0])
           const gpsData = await extractGPSFromDocument(assetsToAdd[0].uri)
+          console.log("GPS data extracted from document:", gpsData)
           if (gpsData) {
             setCoordinates({
               lat: gpsData.lat,
               lng: gpsData.lng,
             })
+            console.log("Setting image date from document:", gpsData.date)
             setImageDate(gpsData.date || null)
+          } else {
+            console.log("No GPS data found in document")
           }
         }
       }
@@ -135,7 +151,7 @@ export default function UploadImage() {
   }))
 
   const goToNextStep = () => {
-    if (currentStep < 2) {
+    if (currentStep < 3) {
       const nextStep = currentStep + 1
       setCurrentStep(nextStep)
       carouselRef.current?.scrollTo({ index: nextStep, animated: true })
@@ -555,6 +571,7 @@ export default function UploadImage() {
               if (catchReportRef.current) {
                 catchReportRef.current.submitForm()
               }
+              goToNextStep()
             }}
             className="mx-2 mb-3 flex-row items-center gap-1 self-start rounded-lg bg-[#95fb97] p-2"
           >
@@ -573,7 +590,54 @@ export default function UploadImage() {
         date={imageDate ? imageDate : undefined}
         setDate={setImageDate}
         onInputFocus={scrollToInput}
+        images={images}
+        setIsSending={setIsSending}
+        setIsSuccess={setIsSuccess}
+        setIsError={setIsError}
       />
+    </View>
+  )
+
+  const renderStep4 = () => (
+    <View
+      onLayout={onLayoutStep(3)}
+      className="h-[17rem] px-2 pt-2"
+    >
+      {isSending ? (
+        <Animated.View entering={FadeIn} exiting={FadeOut} className="flex-1 items-center justify-center">
+          <ActivityIndicator
+            size="large"
+            color="#4f46e5"
+          />
+          <Text className="mt-4 font-Inter-SemiBold text-2xl text-gray-700">Subiendo captura...</Text>
+        </Animated.View>
+      ) : isSuccess ? (
+        <>
+          <Animated.View entering={FadeIn} exiting={FadeOut} className="flex-1 items-center justify-center">
+            <LottieView
+              source={require("@assets/animations/Success.json")}
+              autoPlay
+              loop={false}
+              style={{ width: 150, height: 150 }}
+            />
+
+            <Text className="font-Inter-SemiBold text-2xl text-green-700">¡Captura subida con éxito!</Text>
+          </Animated.View>
+        </>
+      ) : isError ? (
+        <Animated.View entering={FadeIn} exiting={FadeOut} className="flex-1 items-center justify-center">
+          <LottieView
+            source={require("@assets/animations/Error.json")}
+            autoPlay
+            loop={true}
+            style={{ width: 180, height: 180 }}
+          />
+
+          <Text className="text-center px-4 font-Inter-SemiBold text-xl text-red-700">
+            Ha succedido un error, si el error persiste contacta con el desarollador.
+          </Text>
+        </Animated.View>
+      ) : null}
     </View>
   )
 
@@ -581,6 +645,7 @@ export default function UploadImage() {
     { key: "step1", index: 0 },
     { key: "step2", index: 1 },
     { key: "step3", index: 2 },
+    { key: "step4", index: 3 },
   ]
 
   return (
@@ -600,7 +665,7 @@ export default function UploadImage() {
         scrollAnimationDuration={300}
         onSnapToItem={onStepChange}
         renderItem={({ item }) => {
-          const stepComponents = [renderStep1(), renderStep2(), renderStep3()]
+          const stepComponents = [renderStep1(), renderStep2(), renderStep3(), renderStep4()]
           return stepComponents[item.index] || <View />
         }}
         enabled={false}

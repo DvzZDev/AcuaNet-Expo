@@ -26,7 +26,7 @@ export default function DropDownProfundidad({
       exiting={FadeOutUp}
       className="absolute left-0 right-0 top-24 z-50"
     >
-      <ScrollView className="h-full self-start overflow-hidden rounded-xl border border-lime-500 bg-lime-300">
+      <ScrollView className="h-[8rem] self-start overflow-hidden rounded-xl border border-lime-500 bg-lime-300">
         {Profundidad.map((tecnica, index) => (
           <TouchableOpacity
             key={index}

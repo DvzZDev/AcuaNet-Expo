@@ -176,3 +176,16 @@ export interface FavSection {
   porcentaje?: number
   volumen_actual?: number
 }
+
+export interface catchReport {
+  embalse: string
+  date: string
+  especie: string
+  peso: string | null
+  profundidad: string | null
+  situacion: string | null
+  tecnica: string | null
+  temperatura: string | null
+  comentarios: string | null
+  images: string[]
+}

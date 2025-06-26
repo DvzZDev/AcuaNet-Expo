@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useMutation } from "@tanstack/react-query"
 import CacheClient from "cache"
 import hashTextToSha256 from "lib/HashText"
 import { supabase } from "lib/supabase"
-import type { FavSection } from "types/index"
+import type { catchReport, FavSection } from "types/index"
+import { v4 as uuidv4 } from "uuid"
+import * as FileSystem from "expo-file-system"
+import * as ImageManipulator from "expo-image-manipulator"
 
 export const CheckCoords = async (embalse: string | string[], setCheckCoords: (data: any) => void) => {
   try {
@@ -334,5 +337,93 @@ export const useNominatim = (place: string) => {
       return AutoComplete(place)
     },
     enabled: place.length > 2,
+  })
+}
+
+export const insertCatchReport = async (catchData: Omit<catchReport, "images">, uuid: string, images: string[]) => {
+  const catchUuid = uuidv4()
+  const filePath = `${uuid}/catch_reports/${catchUuid}/`
+  const uploadedImages: string[] = []
+
+  for (let i = 0; i < images.length; i++) {
+    const imageUri = images[i]
+
+    try {
+      const manipulatedImage = await ImageManipulator.manipulateAsync(
+        imageUri,
+        [
+          { resize: { width: 800 } },
+        ],
+        {
+          compress: 0.5,
+          format: ImageManipulator.SaveFormat.JPEG,
+          base64: true,
+        }
+      )
+
+      const fileName = `image_${i}.jpg` 
+      const fullPath = `${filePath}${fileName}`
+
+      const base64Data = manipulatedImage.base64!
+      const byteCharacters = atob(base64Data)
+      const byteNumbers = new Array(byteCharacters.length)
+      for (let j = 0; j < byteCharacters.length; j++) {
+        byteNumbers[j] = byteCharacters.charCodeAt(j)
+      }
+      const byteArray = new Uint8Array(byteNumbers)
+
+      const { error } = await supabase.storage.from("accounts").upload(fullPath, byteArray, {
+        contentType: "image/jpeg",
+        upsert: false,
+      })
+
+      if (error) {
+        throw new Error(`Error uploading image ${i}: ${error.message}`)
+      }
+
+      uploadedImages.push(fullPath)
+    } catch (uploadError) {
+      console.error(`Error uploading image ${i}:`, uploadError)
+      throw uploadError
+    }
+  }
+
+  const { data, error } = await supabase.from("catch_reports").insert({
+    catch_id: catchUuid,
+    user_id: uuid,
+    embalse: catchData.embalse,
+    fecha: catchData.date,
+    especie: catchData.especie,
+    peso: catchData.peso ? parseFloat(catchData.peso) : null,
+    profundidad: catchData.profundidad,
+    situacion: catchData.situacion,
+    tecnica: catchData.tecnica,
+    temperatura: catchData.temperatura ? parseFloat(catchData.temperatura) : null,
+    comentarios: catchData.comentarios,
+    imagenes: uploadedImages,
+    created_at: new Date().toISOString(),
+  })
+
+  if (error) {
+    console.error("Error inserting catch report:", error)
+    throw new Error(error.message)
+  }
+
+  return { uploadedImages, reportId: catchUuid }
+}
+
+export const useInsertCatchReport = () => {
+  return useMutation({
+    mutationFn: ({
+      catchData,
+      uuid,
+      images,
+    }: {
+      catchData: Omit<catchReport, "images">
+      uuid: string
+      images: string[]
+    }) => {
+      return insertCatchReport(catchData, uuid, images)
+    },
   })
 }
