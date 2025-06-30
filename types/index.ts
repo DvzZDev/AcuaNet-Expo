@@ -188,4 +188,7 @@ export interface catchReport {
   temperatura: string | null
   comentarios: string | null
   images: string[]
+  emb_data?: EmbalseDataHistorical
+  lat?: number
+  lng?: number
 }

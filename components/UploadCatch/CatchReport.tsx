@@ -13,6 +13,7 @@ import DropDownProfundidad from "./DropDownProfundidad"
 import Animated, { FadeInUp, FadeOutUp, SequencedTransition } from "react-native-reanimated"
 import { useStore } from "store"
 import { useInsertCatchReport } from "querys"
+import { EmbalseDataHistorical } from "types/index"
 
 export interface CatchReportRef {
   submitForm: () => void
@@ -26,11 +27,28 @@ interface CatchReportProps {
   setIsSending?: (reactNode: any) => void
   setIsSuccess?: (reactNode: any) => void
   setIsError?: (reactNode: any) => void
+  setEmbalse?: (embalse: string) => void
+  embalseData?: EmbalseDataHistorical
   images: string[]
+  coordinates?: { lat: number; lng: number } | null
 }
 
-const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
-  ({ date, setDate, onInputFocus, setIsSending, setIsSuccess, setIsError, images }, ref) => {
+export const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
+  (
+    {
+      date,
+      setDate,
+      setEmbalse,
+      embalseData,
+      onInputFocus,
+      setIsSending,
+      setIsSuccess,
+      setIsError,
+      images,
+      coordinates,
+    },
+    ref
+  ) => {
     const userUuid = useStore((state) => state.id)
     const insertCatchMutation = useInsertCatchReport()
 
@@ -94,6 +112,8 @@ const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
           const catchData = {
             ...value,
             date: selectedDate.toISOString(),
+            lat: coordinates?.lat,
+            lng: coordinates?.lng,
           }
 
           if (!userUuid) {
@@ -104,6 +124,7 @@ const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
             catchData,
             uuid: userUuid,
             images: images,
+            emb_data: embalseData,
           })
 
           console.log("Reporte de captura creado exitosamente")
@@ -201,7 +222,10 @@ const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
                   )}
                 </View>
                 <PlaceSearchForm
-                  onLocationSelect={(Embalse) => field.setValue(Embalse)}
+                  onLocationSelect={(Embalse) => {
+                    field.setValue(Embalse)
+                    setEmbalse?.(Embalse)
+                  }}
                   onInputFocus={onInputFocus}
                 />
               </View>
@@ -581,5 +605,3 @@ const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
     )
   }
 )
-
-export default CatchReport

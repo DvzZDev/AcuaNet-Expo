@@ -40,9 +40,9 @@ export function getSameWeekLastYearCapacity(embalses: EmbalseDataHistorical[]): 
   }
 }
 
-export function getClosestByDate(embalses: Embalses[], targetDate: Date): Embalses {
-  if (!embalses.length) {
-    throw new Error("Empty embalses array")
+export function getClosestByDate(embalses: Embalses[], targetDate: Date): Embalses | null {
+  if (!embalses?.length) {
+    return null
   }
 
   let closest = embalses[0]

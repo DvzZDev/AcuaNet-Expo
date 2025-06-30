@@ -6,6 +6,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native"
 import {
   ArrowLeft02Icon,
   ArrowRight02Icon,
+  DropletIcon,
   ExchangeIcon,
   Image01FreeIcons,
   ImageUploadIcon,
@@ -24,12 +25,15 @@ import { extractGPSFromImagePicker, extractGPSFromDocument, type GPSCoordinates 
 import { twMerge } from "tailwind-merge"
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, FadeIn, FadeOut } from "react-native-reanimated"
 import Carousel from "react-native-reanimated-carousel"
-import CatchReport, { type CatchReportRef } from "components/UploadCatch/CatchReport"
+import { CatchReport, type CatchReportRef } from "components/UploadCatch/CatchReport"
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view"
+import { getClosestByDate } from "lib/EmbHistorical"
+import { useHistoricalDataCatch } from "querys"
 
 const { width } = Dimensions.get("window")
 
 export default function UploadImage() {
+  const [embalse, setEmbalse] = useState<string | null>(null)
   const [images, setImages] = useState<string[]>([])
   const [coordinates, setCoordinates] = useState<GPSCoordinates | null>(null)
   const [userCoordinates, setUserCoordinates] = useState<GPSCoordinates | null>(null)
@@ -45,8 +49,10 @@ export default function UploadImage() {
   const [isSending, setIsSending] = useState<boolean>(false)
   const [isSuccess, setIsSuccess] = useState<boolean>(false)
   const [isError, setIsError] = useState<boolean>(false)
+  const { data, isLoading } = useHistoricalDataCatch(embalse || "", currentStep)
 
-  console.log("Loading...", isSending, "Success?...", isSuccess)
+  const closesEmbData =
+    data && Array.isArray(data) && data.length > 0 && imageDate ? getClosestByDate(data, new Date(imageDate)) : null
 
   useEffect(() => {
     if (heights[currentStep]) {
@@ -151,8 +157,27 @@ export default function UploadImage() {
   }))
 
   const goToNextStep = () => {
-    if (currentStep < 3) {
+    if (currentStep < 4) {
       const nextStep = currentStep + 1
+
+      // Si estamos pasando del paso 4 (históricos) al paso 5 (envío), enviar el reporte
+      if (currentStep === 3 && nextStep === 4) {
+        // Validar que tenemos todos los datos necesarios
+        const hasCoordinates = coordinates || userCoordinates
+        const hasImages = images.length > 0
+        const hasEmbalse = embalse
+
+        if (!hasCoordinates || !hasImages || !hasEmbalse) {
+          console.warn("No se puede enviar el reporte: faltan datos necesarios")
+          return
+        }
+
+        // Enviar el reporte usando el ref del CatchReport
+        if (catchReportRef.current) {
+          catchReportRef.current.submitForm()
+        }
+      }
+
       setCurrentStep(nextStep)
       carouselRef.current?.scrollTo({ index: nextStep, animated: true })
     }
@@ -567,12 +592,7 @@ export default function UploadImage() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => {
-              if (catchReportRef.current) {
-                catchReportRef.current.submitForm()
-              }
-              goToNextStep()
-            }}
+            onPress={goToNextStep}
             className="mx-2 mb-3 flex-row items-center gap-1 self-start rounded-lg bg-[#95fb97] p-2"
           >
             <HugeiconsIcon
@@ -594,6 +614,9 @@ export default function UploadImage() {
         setIsSending={setIsSending}
         setIsSuccess={setIsSuccess}
         setIsError={setIsError}
+        setEmbalse={setEmbalse}
+        embalseData={data && Array.isArray(data) && data.length > 0 ? data[0] : null}
+        coordinates={coordinates || userCoordinates}
       />
     </View>
   )
@@ -601,10 +624,173 @@ export default function UploadImage() {
   const renderStep4 = () => (
     <View
       onLayout={onLayoutStep(3)}
+      className="px-2 pt-2"
+    >
+      <View className="flex-row items-center justify-between">
+        <View className="mx-2 flex-row items-center self-start rounded-lg bg-[#ffbaba] p-1 pl-2">
+          <Text className="font-Inter-Medium text-lg text-[#ff0000]">4º Recuperación Historicos</Text>
+          <LottieView
+            source={require("@assets/animations/Historical.json")}
+            autoPlay
+            loop
+            style={{ width: 34, height: 25 }}
+          />
+        </View>
+        <View className="flex-row items-center">
+          <TouchableOpacity
+            onPress={goToPrevStep}
+            className="mx-2 mb-3 flex-row items-center gap-1 self-start rounded-lg bg-[#fbd495] p-2"
+          >
+            <HugeiconsIcon
+              icon={ArrowLeft02Icon}
+              size={20}
+              color="#7a5f00"
+              strokeWidth={2}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={goToNextStep}
+            className={`mx-2 mb-3 flex-row items-center gap-1 self-start rounded-lg p-2 ${
+              (coordinates || userCoordinates) && images.length > 0 && embalse
+                ? "bg-[#95fb97]"
+                : "bg-gray-300 opacity-50"
+            }`}
+            disabled={!((coordinates || userCoordinates) && images.length > 0 && embalse)}
+          >
+            <HugeiconsIcon
+              icon={ArrowRight02Icon}
+              size={20}
+              color={(coordinates || userCoordinates) && images.length > 0 && embalse ? "#0c4607" : "#6b7280"}
+              strokeWidth={2}
+            />
+            <Text
+              className={`font-Inter-Medium text-sm ${
+                (coordinates || userCoordinates) && images.length > 0 && embalse ? "text-[#0c4607]" : "text-gray-500"
+              }`}
+            >
+              Enviar
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View>
+        {/* Datos históricos del embalse más cercano */}
+        {!isLoading && closesEmbData && (
+          <Animated.View
+            entering={FadeIn}
+            className="mx-2 mb-4"
+          >
+            <View className="rounded-2xl bg-[#f0f9ff] p-4">
+              <Text className="mb-4 font-Inter-SemiBold text-lg text-[#032e15]">
+                El embalse se encontraba aproximadamente al{" "}
+                <Text className="font-Inter-Black text-emerald-500">{closesEmbData.porcentaje} %</Text> el{" "}
+                <Text className="font-Inter-Black text-emerald-500">
+                  {new Date(imageDate || new Date()).toLocaleDateString("es-ES", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </Text>
+              </Text>
+
+              {/* Fecha del dato */}
+              <View className="flex w-full flex-row items-center gap-6">
+                {/* <View className="h-16 w-16 flex-none items-center justify-center rounded-lg bg-[#6feeac] p-2">
+                  <HugeiconsIcon
+                    icon={Calendar03FreeIcons}
+                    size={40}
+                    color="black"
+                  />
+                </View> */}
+                <View className="flex-1 flex-col justify-center gap-1">
+                  <Text className="font-Inter text-xl font-semibold text-[#3D7764]">Fecha del Boletin</Text>
+                  <Text className="font-Inter-Black text-xl text-[#032e15]">
+                    {closesEmbData.fecha
+                      ? new Date(closesEmbData.fecha).toLocaleDateString("es-ES", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : "No disponible"}
+                  </Text>
+                </View>
+              </View>
+
+              <View className="mt-4 flex-col gap-4">
+                {/* Agua Embalsada */}
+                <View className="flex w-full flex-row items-center gap-6">
+                  <View className="h-16 w-16 flex-none items-center justify-center rounded-lg bg-[#6feeac] p-2">
+                    <HugeiconsIcon
+                      icon={DropletIcon}
+                      size={40}
+                      color="black"
+                    />
+                  </View>
+                  <View className="flex-1 flex-col justify-center gap-1">
+                    <Text className="font-Inter text-xl font-semibold text-[#3D7764]">Agua Embalsada</Text>
+                    <Text className="font-Inter-Black text-4xl text-[#032e15]">
+                      {closesEmbData.volumen_actual}
+                      <Text className="font-Inter-SemiBold text-base"> hm³</Text>
+                    </Text>
+                    <Text className="font-Inter-Bold text-lg text-[#3D7764]">
+                      {closesEmbData.porcentaje != null ? closesEmbData.porcentaje.toFixed(1) : "N/A"}
+                      <Text className="font-Inter-Medium text-base"> % capacidad total</Text>
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </Animated.View>
+        )}
+
+        {isLoading && (
+          <View className="mx-2 mb-4 items-center justify-center py-8">
+            <ActivityIndicator
+              size="large"
+              color="#4f46e5"
+            />
+            <Text className="mt-2 font-Inter-Medium text-gray-600">Recuperando datos históricos...</Text>
+          </View>
+        )}
+
+        {!isLoading && !closesEmbData && embalse && (
+          <View className="mx-2 mb-4">
+            <View className="rounded-lg bg-yellow-100 p-4">
+              <Text className="font-Inter-Medium leading-relaxed text-yellow-800">
+                No hay datos históricos disponibles para este embalse en la fecha seleccionada. Por favor, asegúrate en
+                el paso anterior de que el nombre del embalse es correcto. En algunos casos, los datos pueden no estar
+                disponibles por falta de datos.
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {!isLoading && !embalse && (
+          <View className="mx-2 mb-4">
+            <View className="rounded-lg bg-orange-100 p-4">
+              <Text className="font-Inter-Medium text-orange-800">
+                Para ver los datos históricos, primero debe completar el paso anterior y seleccionar un embalse.
+              </Text>
+            </View>
+          </View>
+        )}
+      </View>
+    </View>
+  )
+
+  const renderStep5 = () => (
+    <View
+      onLayout={onLayoutStep(4)}
       className="h-[17rem] px-2 pt-2"
     >
       {isSending ? (
-        <Animated.View entering={FadeIn} exiting={FadeOut} className="flex-1 items-center justify-center">
+        <Animated.View
+          entering={FadeIn}
+          exiting={FadeOut}
+          className="flex-1 items-center justify-center"
+        >
           <ActivityIndicator
             size="large"
             color="#4f46e5"
@@ -612,20 +798,26 @@ export default function UploadImage() {
           <Text className="mt-4 font-Inter-SemiBold text-2xl text-gray-700">Subiendo captura...</Text>
         </Animated.View>
       ) : isSuccess ? (
-        <>
-          <Animated.View entering={FadeIn} exiting={FadeOut} className="flex-1 items-center justify-center">
-            <LottieView
-              source={require("@assets/animations/Success.json")}
-              autoPlay
-              loop={false}
-              style={{ width: 150, height: 150 }}
-            />
+        <Animated.View
+          entering={FadeIn}
+          exiting={FadeOut}
+          className="flex-1 items-center justify-center"
+        >
+          <LottieView
+            source={require("@assets/animations/Success.json")}
+            autoPlay
+            loop={false}
+            style={{ width: 150, height: 150 }}
+          />
 
-            <Text className="font-Inter-SemiBold text-2xl text-green-700">¡Captura subida con éxito!</Text>
-          </Animated.View>
-        </>
+          <Text className="font-Inter-SemiBold text-2xl text-green-700">¡Captura subida con éxito!</Text>
+        </Animated.View>
       ) : isError ? (
-        <Animated.View entering={FadeIn} exiting={FadeOut} className="flex-1 items-center justify-center">
+        <Animated.View
+          entering={FadeIn}
+          exiting={FadeOut}
+          className="flex-1 items-center justify-center"
+        >
           <LottieView
             source={require("@assets/animations/Error.json")}
             autoPlay
@@ -633,11 +825,23 @@ export default function UploadImage() {
             style={{ width: 180, height: 180 }}
           />
 
-          <Text className="text-center px-4 font-Inter-SemiBold text-xl text-red-700">
+          <Text className="px-4 text-center font-Inter-SemiBold text-xl text-red-700">
             Ha succedido un error, si el error persiste contacta con el desarollador.
           </Text>
         </Animated.View>
-      ) : null}
+      ) : (
+        <Animated.View
+          entering={FadeIn}
+          className="flex-1 items-center justify-center"
+        >
+          <View className="items-center justify-center">
+            <Text className="font-Inter-SemiBold text-xl text-gray-600">Preparando envío...</Text>
+            <Text className="mt-2 text-center font-Inter-Medium text-gray-500">
+              La captura se enviará automáticamente
+            </Text>
+          </View>
+        </Animated.View>
+      )}
     </View>
   )
 
@@ -646,6 +850,7 @@ export default function UploadImage() {
     { key: "step2", index: 1 },
     { key: "step3", index: 2 },
     { key: "step4", index: 3 },
+    { key: "step5", index: 4 },
   ]
 
   return (
@@ -665,7 +870,7 @@ export default function UploadImage() {
         scrollAnimationDuration={300}
         onSnapToItem={onStepChange}
         renderItem={({ item }) => {
-          const stepComponents = [renderStep1(), renderStep2(), renderStep3(), renderStep4()]
+          const stepComponents = [renderStep1(), renderStep2(), renderStep3(), renderStep4(), renderStep5()]
           return stepComponents[item.index] || <View />
         }}
         enabled={false}
