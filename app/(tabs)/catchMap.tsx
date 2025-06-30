@@ -1,5 +1,5 @@
 import { Dimensions, StyleSheet, View, Text, TouchableOpacity } from "react-native"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { ArrowExpand01Icon, ArrowShrink01Icon, CalendarLove01Icon, ImageAdd02Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react-native"
@@ -23,6 +23,7 @@ export default function Geocode() {
   const userId = useStore((state) => state.id)
   const UserCatchReports = useUserCatchReports(userId)
   const [isMapExpanded, setIsMapExpanded] = useState(false)
+  const mapRef = useRef<MapView>(null)
   const collapsedHeight = SCREEN_HEIGHT * 0.4
   const expandedHeight = SCREEN_HEIGHT * 1
   const height = useSharedValue(collapsedHeight)
@@ -32,6 +33,22 @@ export default function Geocode() {
     height.value = withTiming(isMapExpanded ? expandedHeight : collapsedHeight, { duration: 300 })
     scale.value = withTiming(isMapExpanded ? 1.1 : 1, { duration: 300 })
   }, [isMapExpanded, expandedHeight, collapsedHeight, height, scale])
+
+  useEffect(() => {
+    if (UserCatchReports.data && UserCatchReports.data.length > 0 && mapRef.current) {
+      const latestReport = UserCatchReports.data[0]
+      if (latestReport.lat && latestReport.lng) {
+        const newRegion = {
+          latitude: latestReport.lat,
+          longitude: latestReport.lng,
+          latitudeDelta: 0.012,
+          longitudeDelta: 0.012,
+        }
+
+        mapRef.current.animateToRegion(newRegion, 1000)
+      }
+    }
+  }, [UserCatchReports.data])
 
   const animatedContainerStyle = useAnimatedStyle(() => ({
     height: height.value,
@@ -93,7 +110,7 @@ export default function Geocode() {
     <>
       <Stack.Screen
         options={{
-          headerShown: false, // Ocultamos el header del Stack
+          headerShown: false,
         }}
       />
 
@@ -107,7 +124,6 @@ export default function Geocode() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header movido dentro del ScrollView */}
         {!isMapExpanded && (
           <View
             style={{ paddingTop: insets.top + 5 }}
@@ -138,6 +154,7 @@ export default function Geocode() {
 
           <Animated.View style={animatedMapStyle}>
             <MapView
+              ref={mapRef}
               mapType="satellite"
               style={{ flex: 1, borderRadius: 20 }}
               showsCompass
@@ -199,7 +216,7 @@ export default function Geocode() {
             <Text className="mb-3 font-Inter-SemiBold text-2xl text-emerald-950">Tu última captura</Text>
             {UserCatchReports.data?.map((report, index) => (
               <TouchableOpacity key={index}>
-                <View className="mb-2 flex h-36 flex-row gap-4 rounded-lg bg-emerald-900 p-4">
+                <View className="mb-2 flex h-36 flex-row gap-4 rounded-2xl bg-emerald-900 p-2">
                   <View className="aspect-square overflow-hidden rounded-xl bg-green-50">
                     <Image
                       source={{
@@ -207,7 +224,10 @@ export default function Geocode() {
                           ? `https://rxxyplqherusqxdcowgh.supabase.co/storage/v1/object/public/accounts/${report.imagenes[0]}`
                           : "https://via.placeholder.com/150",
                       }}
-                      style={{ width: "100%", flex: 1 }}
+                      style={{
+                        width: "100%",
+                        flex: 1,
+                      }}
                       contentFit="cover"
                     />
                   </View>

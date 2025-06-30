@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useQuery, useMutation } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import CacheClient from "cache"
 import hashTextToSha256 from "lib/HashText"
 import { supabase } from "lib/supabase"
@@ -444,6 +444,8 @@ export const insertCatchReport = async (
 }
 
 export const useInsertCatchReport = () => {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: ({
       catchData,
@@ -457,6 +459,9 @@ export const useInsertCatchReport = () => {
       emb_data?: EmbalseDataHistorical
     }) => {
       return insertCatchReport(catchData, uuid, images, emb_data)
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["userCatchReports", variables.uuid] })
     },
   })
 }
