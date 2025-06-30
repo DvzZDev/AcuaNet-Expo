@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query"
 import CacheClient from "cache"
 import hashTextToSha256 from "lib/HashText"
 import { supabase } from "lib/supabase"
-import type { catchReport, EmbalseDataHistorical, FavSection } from "types/index"
+import type { catchReport, CatchReportDB, EmbalseDataHistorical, FavSection } from "types/index"
 import { v4 as uuidv4 } from "uuid"
 import * as FileSystem from "expo-file-system"
 import * as ImageManipulator from "expo-image-manipulator"
@@ -458,5 +458,31 @@ export const useInsertCatchReport = () => {
     }) => {
       return insertCatchReport(catchData, uuid, images, emb_data)
     },
+  })
+}
+
+export const getUserCatchReports = async (userId: string): Promise<CatchReportDB[]> => {
+  const { data, error } = await supabase
+    .from("catch_reports")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("Error fetching user catch reports:", error)
+    throw new Error(error.message)
+  }
+
+  return data || []
+}
+
+export const useUserCatchReports = (userId: string) => {
+  return useQuery<CatchReportDB[], Error>({
+    queryKey: ["userCatchReports", userId],
+    queryFn: ({ queryKey }) => {
+      const [_key, userId] = queryKey as [string, string]
+      return getUserCatchReports(userId)
+    },
+    enabled: !!userId,
   })
 }

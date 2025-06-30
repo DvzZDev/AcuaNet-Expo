@@ -192,3 +192,23 @@ export interface catchReport {
   lat?: number
   lng?: number
 }
+
+// Tipo que representa la estructura del catch report en la base de datos
+export interface CatchReportDB {
+  catch_id: string
+  user_id: string
+  embalse: string
+  fecha: string
+  especie: string
+  peso: number | null
+  profundidad: string | null
+  situacion: string | null
+  tecnica: string | null
+  temperatura: number | null
+  comentarios: string | null
+  imagenes: string[]
+  created_at: string
+  emb_data?: EmbalseDataHistorical
+  lat?: number
+  lng?: number
+}

@@ -21,7 +21,7 @@ export default function Layout() {
         style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]}
       />
       <StatusBar
-        style="dark"
+        style="light"
         backgroundColor="transparent"
         translucent={false}
       />
