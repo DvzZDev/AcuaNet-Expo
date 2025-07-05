@@ -1,13 +1,12 @@
 export default {
   expo: {
-    name: "AcuaNet",
-    slug: "AcuaNet",
+    name: "acuanet",
+    slug: "acuanet",
     version: "1.0.0",
     orientation: "portrait",
     userInterfaceStyle: "light",
     scheme: "acuanet",
     assetBundlePatterns: ["**/*"],
-
     icon: "./assets/IosIcon.png",
 
     experiments: {
@@ -15,7 +14,6 @@ export default {
     },
 
     plugins: [
-      "expo-router",
       "expo-system-ui",
       [
         "expo-font",

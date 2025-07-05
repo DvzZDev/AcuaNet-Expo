@@ -1,16 +1,17 @@
-import { Link, router } from "expo-router"
 import { Text, TouchableOpacity, View, ScrollView, KeyboardAvoidingView, Platform } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { StatusBar } from "expo-status-bar"
 import { TextInput } from "react-native-gesture-handler"
 import { useForm } from "@tanstack/react-form"
 import { Image } from "expo-image"
+import { useNavigation } from "@react-navigation/native"
 
 import { supabase } from "lib/supabase"
+import { RootStackNavigationProp } from "types/index"
 // import Google from "@assets/icons/google"
 // import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin"
-
 export default function SignIn() {
+  const navigation = useNavigation<RootStackNavigationProp>()
   // GoogleSignin.configure({
   //   scopes: ["https://www.googleapis.com/auth/drive.readonly"],
   //   webClientId: "758524626613-b6ejefvee8qjc9l2idg72lo3fm1n87g5.apps.googleusercontent.com",
@@ -32,12 +33,12 @@ export default function SignIn() {
         alert("Error al iniciar sesión: " + error.message)
         return
       }
-
       console.log("Usuario logueado:", data.user)
-      router.replace("/")
+      navigation.navigate("Tabs", {
+        screen: "Home",
+      })
     },
   })
-
   return (
     <>
       <StatusBar style="light" />
@@ -81,16 +82,14 @@ export default function SignIn() {
                 <View className="mb-8 items-center gap-2">
                   <Text className=" text-center font-Inter-SemiBold text-4xl text-green-100">Inicia sesión</Text>
 
-                  <Text className="text-center font-Inter-Medium text-sm text-green-100">
-                    ¿No tienes una cuenta?{" "}
-                    <Link
-                      href="/auth/signUp"
-                      push={true}
-                      className="font-Inter-Medium text-sm leading-relaxed text-emerald-300"
-                    >
-                      Crear cuenta
-                    </Link>
-                  </Text>
+                  <View className="flex-row items-center justify-center">
+                    <Text className="text-center font-Inter-Medium text-sm text-green-100">
+                      ¿No tienes una cuenta?{" "}
+                    </Text>
+                    <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
+                      <Text className="font-Inter-Medium text-sm leading-relaxed text-emerald-300">Crear cuenta</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
                 <View className="z-40 w-full rounded-3xl bg-emerald-100 p-6">
@@ -218,7 +217,7 @@ export default function SignIn() {
                           alert("Error al iniciar sesión con Google: " + error.message)
                         } else {
                           console.log("Éxito en Supabase:", data)
-                          router.replace("/home")
+                          navigation.navigate("/home")
                         }
                       } else {
                         console.error("No se encontró ID token en la respuesta")

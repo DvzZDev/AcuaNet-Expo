@@ -1,6 +1,5 @@
 import React, { memo } from "react"
 import { Text, TouchableOpacity, View } from "react-native"
-import { router } from "expo-router"
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import { TransactionHistoryFreeIcons } from "@hugeicons/core-free-icons"
@@ -10,6 +9,8 @@ import TrendUp from "@assets/icons/trendUp"
 import TrendDown from "@assets/icons/trendDown"
 import PortugalCard from "@assets/icons/portugalCard"
 import SpainCard from "@assets/icons/spainCard"
+import { useNavigation } from "@react-navigation/native"
+import type { NavigationProp } from "@react-navigation/native"
 
 interface ReorderableEmbalseListProps {
   data: FavSection[]
@@ -17,13 +18,14 @@ interface ReorderableEmbalseListProps {
 }
 
 const EmbalseCard: React.FC<RenderItemParams<FavSection>> = memo(({ item: embalse, drag, isActive }) => {
+  const navigation = useNavigation<NavigationProp<any>>()
   return (
     <ScaleDecorator>
       <View className="relative mx-4 mb-4 w-[17rem] overflow-hidden rounded-lg border border-green-500/50 bg-green-500/20 px-3 py-2">
         {embalse.pais === "Portugal" ? <PortugalCard /> : <SpainCard />}
         <TouchableOpacity
           onPress={() =>
-            router.push(
+            navigation.navigate(
               `/embalse/${embalse.pais === "Portugal" ? embalse.nombre_embalse?.toLocaleLowerCase() : embalse.embalse}`
             )
           }

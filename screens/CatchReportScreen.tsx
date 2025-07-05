@@ -2,29 +2,25 @@ import { Backward01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import ImageCarrousel from "components/CatchReport/ImageCarrousel"
 import { LinearGradient } from "expo-linear-gradient"
-import { Stack, useLocalSearchParams, useRouter } from "expo-router"
 import { useUserCatchReports } from "querys"
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import { ScrollView } from "react-native-gesture-handler"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "store"
+import { useNavigation } from "@react-navigation/native"
+import Animated, { FadeIn } from "react-native-reanimated"
 
-export default function CatchReportPage() {
-  const { catchReportId } = useLocalSearchParams()
+export default function CatchReportPage({ route }: { route: any }) {
+  const { catchReportId } = route.params
+  console.log("CatchReportPage itemId:", catchReportId)
+  const navigation = useNavigation()
   const userId = useStore((state) => state.id)
   const allData = useUserCatchReports(userId)
   const data = allData.data?.find((report) => report.catch_id === catchReportId)
   const { catch_id, fecha, embalse, imagenes } = data || {}
   const insets = useSafeAreaInsets()
-  const router = useRouter()
-
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: false,
-        }}
-      />
       <LinearGradient
         colors={["#effcf3", "#9affa1"]}
         style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]}
@@ -37,7 +33,7 @@ export default function CatchReportPage() {
         {/* Header */}
         <View className="flex-row items-center gap-4 border-gray-300 bg-[#effcf3] px-4 pb-4">
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => navigation.goBack()}
             className="rounded-xl bg-[#14141c] p-2"
           >
             <HugeiconsIcon
@@ -66,9 +62,7 @@ export default function CatchReportPage() {
           </View>
         </View>
 
-        <View>
-          <ImageCarrousel paths={imagenes} />
-        </View>
+        <ImageCarrousel paths={imagenes} />
       </ScrollView>
     </>
   )

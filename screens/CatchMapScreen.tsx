@@ -10,22 +10,23 @@ import {
   Remove01Icon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react-native"
-import AddCatchBottomSheet from "app/catchMap/AddCatchBottomSheet"
+import AddCatchBottomSheet from "@components/CatchMap/AddCatchBottomSheet"
 import { Image } from "expo-image"
 import { LinearGradient } from "expo-linear-gradient"
-import { Stack, useRouter } from "expo-router"
 import { useUserCatchReports } from "querys"
 import { useStore } from "store"
 import MapView, { Marker } from "react-native-maps"
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated"
 import { getFishImage } from "lib/getFishImage"
 import { ScrollView } from "react-native-gesture-handler"
+import { useNavigation } from "@react-navigation/native"
+import { RootStackNavigationProp } from "types/index"
 
 const SCREEN_HEIGHT = Dimensions.get("window").height
 const SCREEN_WIDTH = Dimensions.get("window").width
 
-export default function Geocode() {
-  const router = useRouter()
+export default function CatchMap() {
+  const navigation = useNavigation<RootStackNavigationProp>()
   const insets = useSafeAreaInsets()
   const [isOpen, setIsOpen] = useState(false)
   const userId = useStore((state) => state.id)
@@ -126,12 +127,6 @@ export default function Geocode() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: false,
-        }}
-      />
-
       <LinearGradient
         colors={["#effcf3", "#9affa1"]}
         style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]}
@@ -257,11 +252,11 @@ export default function Geocode() {
             <Text className="mb-3 font-Inter-SemiBold text-2xl text-emerald-950">Tu última captura</Text>
             {UserCatchReports.data?.map((report, index) => (
               <TouchableOpacity
-                onPress={() => router.push(`/catchReport/${report.catch_id}`)}
+                onPress={() => navigation.navigate("CatchReport", { catchReportId: report.catch_id })}
                 key={index}
               >
                 <View className="mb-2 flex h-36 flex-row gap-4 rounded-2xl bg-emerald-900 p-2">
-                  <View className="aspect-square overflow-hidden rounded-xl bg-green-50">
+                  <View className="aspect-square overflow-hidden rounded-xl ">
                     <Image
                       source={{
                         uri: report.imagenes?.[0]

@@ -1,3 +1,19 @@
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
+
+// Stack Navigator Parameter Types
+export type RootStackParamList = {
+  SignIn: undefined
+  SignUp: undefined
+  Tabs: undefined
+  Embalse: { embalse: string }
+  CatchReport: undefined
+}
+
+export type RootStackNavigationProp<T extends keyof RootStackParamList> = NativeStackNavigationProp<
+  RootStackParamList,
+  T
+>
+
 export interface EmbalseDataHistorical {
   capacidad_total: number
   cuenca: string
@@ -193,7 +209,6 @@ export interface catchReport {
   lng?: number
 }
 
-// Tipo que representa la estructura del catch report en la base de datos
 export interface CatchReportDB {
   catch_id: string
   user_id: string
@@ -211,4 +226,14 @@ export interface CatchReportDB {
   emb_data?: EmbalseDataHistorical
   lat?: number
   lng?: number
+}
+
+export type UserCatchReport = {
+  catch_id: string
+}
+
+export type TabStackParamList = {
+  Home: undefined
+  Account: undefined
+  CatchMap: { catchReportId?: string }
 }

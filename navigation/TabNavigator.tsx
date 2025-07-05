@@ -1,18 +1,23 @@
-import { useState } from "react"
-import { Tabs } from "expo-router"
-import { StatusBar } from "expo-status-bar"
+import React, { useState } from "react"
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native"
-import SearchModal from "components/Search/SearchModal"
-import "global.css"
 import { LinearGradient } from "expo-linear-gradient"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import { Home03Icon, MapsLocation01Icon, Search02Icon, UserStoryIcon } from "@hugeicons/core-free-icons"
-import { useStore } from "store"
+import { useStore } from "../store"
 import { Image } from "expo-image"
 
-export default function Layout() {
-  const [isModalVisible, setIsModalVisible] = useState(false)
+import HomeScreen from "../screens/HomeScreen"
+import CatchMapScreen from "../screens/CatchMapScreen"
+import AccountScreen from "../screens/AccountScreen"
+
+import SearchModal from "../components/Search/SearchModal"
+
+const Tab = createBottomTabNavigator()
+
+export default function TabNavigator() {
   const avatarUrl = useStore((state) => state.avatarUrl)
+  const [isModalVisible, setIsModalVisible] = useState(false)
 
   return (
     <>
@@ -20,14 +25,8 @@ export default function Layout() {
         colors={["#effcf3", "#9affa1"]}
         style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]}
       />
-      <StatusBar
-        style="light"
-        backgroundColor="transparent"
-        translucent={false}
-      />
-      <Tabs
+      <Tab.Navigator
         screenOptions={{
-          animation: "fade",
           headerShown: false,
           tabBarStyle: {
             backgroundColor: "#16151a",
@@ -41,8 +40,9 @@ export default function Layout() {
           },
         }}
       >
-        <Tabs.Screen
-          name="index"
+        <Tab.Screen
+          name="Home"
+          component={HomeScreen}
           options={{
             title: "Home",
             tabBarLabel: "Inicio",
@@ -59,8 +59,9 @@ export default function Layout() {
             ),
           }}
         />
-        <Tabs.Screen
-          name="searchButton"
+        <Tab.Screen
+          name="Search"
+          component={View}
           options={{
             tabBarButton: ({ accessibilityState, accessibilityLabel, testID }) => (
               <TouchableOpacity
@@ -80,8 +81,9 @@ export default function Layout() {
             ),
           }}
         />
-        <Tabs.Screen
-          name="catchMap"
+        <Tab.Screen
+          name="CatchMap"
+          component={CatchMapScreen}
           options={{
             headerShown: false,
             tabBarLabel: "CatchMap",
@@ -108,8 +110,9 @@ export default function Layout() {
             },
           }}
         />
-        <Tabs.Screen
-          name="account"
+        <Tab.Screen
+          name="Account"
+          component={AccountScreen}
           options={{
             title: "Cuenta",
             tabBarIcon: () => (
@@ -132,7 +135,7 @@ export default function Layout() {
             ),
           }}
         />
-      </Tabs>
+      </Tab.Navigator>
       <SearchModal
         isVisible={isModalVisible}
         setIsModalVisible={setIsModalVisible}

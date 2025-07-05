@@ -6,11 +6,11 @@ import { useFavSection } from "querys"
 import { FavSection } from "types/index"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import ReorderableEmbalseList from "components/ReorderableEmbalseList"
-import { useStore } from "../../store"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import { UserIcon } from "@hugeicons/core-free-icons"
 import { useFocusEffect } from "@react-navigation/native"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { useStore } from "store"
 
 const EMBALSE_ORDER_KEY = "@embalse_order"
 

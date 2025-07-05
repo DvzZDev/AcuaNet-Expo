@@ -1,4 +1,5 @@
-import { useLocalSearchParams, useNavigation } from "expo-router"
+import { useNavigation, RouteProp } from "@react-navigation/native"
+import { RootStackParamList } from "../types"
 import { useHistoricalData, useLiveData, usePortugalData } from "querys"
 import { useEffect, useState } from "react"
 import { ActivityIndicator, TouchableOpacity, StyleSheet, Text, View } from "react-native"
@@ -19,11 +20,13 @@ import BottomSheetModalComponent from "components/Embalse/BottomSheet/BottomShee
 import { useWeather } from "lib/getWeather"
 import Resume from "components/Embalse/Resume"
 import FavButton from "components/Embalse/FavButton"
-import { useStore } from "../../store"
+import { useStore } from "store"
 
-export default function Embalse() {
+export default function Embalse({ route }: { route: RouteProp<RootStackParamList, "Embalse"> }) {
   const navigation = useNavigation()
-  const { embalse } = useLocalSearchParams()
+  const { embalse } = route.params
+  console.log("EmbalseScreen - Embalse:", embalse)
+
   const emb = Array.isArray(embalse) ? embalse.join(",") : embalse || ""
   const embalseCoded = emb.toLowerCase().replace(/ /g, "-")
   const userId = useStore((state) => state.id)

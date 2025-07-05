@@ -9,7 +9,8 @@
       "~/*": ["src/*"],
       "@assets/*": ["assets/*"],
       "lib/*": ["lib/*"],
-      "types/*": ["types/*"]
+      "types/*": ["types/*"],
+      "@components/*": ["components/*"]
     }
   }
 }

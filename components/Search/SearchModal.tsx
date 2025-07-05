@@ -8,7 +8,8 @@ import Fuse from "fuse.js"
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
 import Spain from "@assets/icons/spain"
 import Portugal from "@assets/icons/portugal"
-import { router } from "expo-router"
+import { useNavigation } from "@react-navigation/native"
+import { RootStackNavigationProp } from "types/index"
 
 type SearchModalProps = {
   isVisible: boolean
@@ -19,10 +20,10 @@ interface NamesType {
   nombre: string
   pais: string
 }
-
 export default function SearchModal({ isVisible, setIsModalVisible }: SearchModalProps) {
   const [value, setValue] = useState("")
   const [hasSearched, setHasSearched] = useState(false)
+  const navigation = useNavigation<RootStackNavigationProp>()
 
   const fuse = new Fuse(Names, {
     keys: ["nombre"],
@@ -40,7 +41,7 @@ export default function SearchModal({ isVisible, setIsModalVisible }: SearchModa
         setIsModalVisible(false)
         setValue("")
         setHasSearched(false)
-        router.push(`/embalse/${FilteredNames[0].nombre}`)
+        navigation.navigate("Embalse", { embalse: FilteredNames[0].nombre })
         return
       }
 
@@ -50,10 +51,10 @@ export default function SearchModal({ isVisible, setIsModalVisible }: SearchModa
         setIsModalVisible(false)
         setValue("")
         setHasSearched(false)
-        router.push(`/embalse/${exactMatch.nombre}`)
+        navigation.navigate("Embalse", { embalse: exactMatch.nombre })
       }
     }
-  }, [value, FilteredNames, setIsModalVisible])
+  }, [value, FilteredNames, setIsModalVisible, navigation])
 
   const searchModalRef = useRef<BottomSheetModal>(null)
   const handlePresentModalPress = useCallback(() => {
@@ -151,7 +152,7 @@ export default function SearchModal({ isVisible, setIsModalVisible }: SearchModa
                   setIsModalVisible(false)
                   setValue("")
                   setHasSearched(false)
-                  router.push(`/embalse/${name.nombre}`)
+                  navigation.navigate("Embalse", { embalse: name.nombre })
                 }}
                 key={index}
                 className={`flex-row items-center justify-between rounded-b-2xl p-2 ${index < FilteredNames.length - 1 ? "border-b border-green-300" : ""}`}
