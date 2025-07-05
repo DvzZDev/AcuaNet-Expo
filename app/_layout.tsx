@@ -80,7 +80,6 @@ export default function RootLayout() {
     }
   }, [loaded, error, sessionChecked, setId, setAvatarUrl])
 
-  // Hide the splash screen and set navigation bar styles once fonts are loaded
   useEffect(() => {
     if ((loaded || error) && !isLoading) {
       if (Platform.OS === "android") {
@@ -98,8 +97,8 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <BottomSheetModalProvider>
+      <GestureHandlerRootView>
+        <BottomSheetModalProvider>C
           <ThemeProvider>
             <SafeAreaProvider>
               <StatusBar style="dark" />
@@ -108,18 +107,11 @@ export default function RootLayout() {
                   headerStyle: {
                     backgroundColor: "#f0fdf4",
                   },
+                  headerTitleStyle: {
+                    fontFamily: "Inter-Bold",
+                  },
                   headerShadowVisible: false,
-                  title: "",
-                  headerLeft: () => (
-                    <Image
-                      source={require("../assets/LogoBlack.png")}
-                      style={{
-                        width: 150,
-                        height: 40,
-                        marginLeft: 10,
-                      }}
-                    />
-                  ),
+                  title: "Acua",
                 }}
               >
                 <Stack.Screen

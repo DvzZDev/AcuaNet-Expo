@@ -1,12 +1,19 @@
 import { Dimensions, StyleSheet, View, Text, TouchableOpacity } from "react-native"
 import { useEffect, useState, useRef } from "react"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { ArrowExpand01Icon, ArrowShrink01Icon, CalendarLove01Icon, ImageAdd02Icon } from "@hugeicons/core-free-icons"
+import {
+  ArrowExpand01Icon,
+  ArrowShrink01Icon,
+  CalendarLove01Icon,
+  ImageAdd02Icon,
+  PlusSignIcon,
+  Remove01Icon,
+} from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import AddCatchBottomSheet from "app/catchMap/AddCatchBottomSheet"
 import { Image } from "expo-image"
 import { LinearGradient } from "expo-linear-gradient"
-import { Stack } from "expo-router"
+import { Stack, useRouter } from "expo-router"
 import { useUserCatchReports } from "querys"
 import { useStore } from "store"
 import MapView, { Marker } from "react-native-maps"
@@ -18,6 +25,7 @@ const SCREEN_HEIGHT = Dimensions.get("window").height
 const SCREEN_WIDTH = Dimensions.get("window").width
 
 export default function Geocode() {
+  const router = useRouter()
   const insets = useSafeAreaInsets()
   const [isOpen, setIsOpen] = useState(false)
   const userId = useStore((state) => state.id)
@@ -54,7 +62,6 @@ export default function Geocode() {
     height: height.value,
     width: SCREEN_WIDTH,
     paddingHorizontal: isMapExpanded ? 0 : 16,
-    borderRadius: isMapExpanded ? 0 : 15,
     overflow: "hidden",
   }))
 
@@ -106,6 +113,17 @@ export default function Geocode() {
     longitudeDelta: 0.012,
   }
 
+  const zoomMap = (zoomIn: boolean) => {
+    if (!mapRef.current) return
+
+    mapRef.current.getCamera().then((camera) => {
+      if (camera.zoom !== undefined) {
+        camera.zoom = zoomIn ? camera.zoom + 1 : camera.zoom - 1
+        mapRef.current?.animateCamera(camera, { duration: 300 })
+      }
+    })
+  }
+
   return (
     <>
       <Stack.Screen
@@ -153,36 +171,59 @@ export default function Geocode() {
           )}
 
           <Animated.View style={animatedMapStyle}>
-            <MapView
-              ref={mapRef}
-              mapType="satellite"
-              style={{ flex: 1, borderRadius: 20 }}
-              showsCompass
-              showsScale
-              showsMyLocationButton
-              zoomControlEnabled
-              initialRegion={embalseCoordinates}
-            >
-              {markers.map((marker) => (
-                <Marker
-                  key={marker.key}
-                  coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
-                  anchor={{ x: 0.5, y: 0.5 }}
-                >
-                  <View
-                    className="items-center justify-center rounded-full border-2 border-green-500 shadow-lg"
-                    style={{ width: 33, height: 33 }}
+            <View style={{ flex: 1, borderRadius: 15, overflow: "hidden" }}>
+              <MapView
+                ref={mapRef}
+                mapType="satellite"
+                style={{ flex: 1 }}
+                initialRegion={embalseCoordinates}
+              >
+                {markers.map((marker) => (
+                  <Marker
+                    key={marker.key}
+                    coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
+                    anchor={{ x: 0.5, y: 0.5 }}
                   >
-                    <Image
-                      source={{ uri: marker.imagen }}
-                      style={{ width: 29, height: 29, borderRadius: 14.5 }}
-                      contentFit="cover"
-                    />
-                  </View>
-                </Marker>
-              ))}
-            </MapView>
+                    <View
+                      className="items-center justify-center rounded-full border-2 border-green-500 shadow-lg"
+                      style={{ width: 33, height: 33 }}
+                    >
+                      <Image
+                        source={{ uri: marker.imagen }}
+                        style={{ width: 29, height: 29, borderRadius: 14.5 }}
+                        contentFit="cover"
+                      />
+                    </View>
+                  </Marker>
+                ))}
+              </MapView>
+            </View>
           </Animated.View>
+
+          <View className={`absolute  flex gap-2 ${isMapExpanded ? "bottom-40 right-3" : "bottom-8 right-8"}`}>
+            <TouchableOpacity
+              onPress={() => zoomMap(true)}
+              className="rounded-full bg-[#14141c] p-2 shadow-lg"
+            >
+              <HugeiconsIcon
+                icon={PlusSignIcon}
+                size={24}
+                color="#14b981"
+                strokeWidth={2}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => zoomMap(false)}
+              className="rounded-full bg-[#14141c] p-2 shadow-lg"
+            >
+              <HugeiconsIcon
+                icon={Remove01Icon}
+                size={24}
+                color="#14b981"
+                strokeWidth={2}
+              />
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity
             onPress={() => setIsMapExpanded(!isMapExpanded)}
@@ -215,7 +256,10 @@ export default function Geocode() {
           <View className="mx-4 mt-6 flex-col ">
             <Text className="mb-3 font-Inter-SemiBold text-2xl text-emerald-950">Tu última captura</Text>
             {UserCatchReports.data?.map((report, index) => (
-              <TouchableOpacity key={index}>
+              <TouchableOpacity
+                onPress={() => router.push(`/catchReport/${report.catch_id}`)}
+                key={index}
+              >
                 <View className="mb-2 flex h-36 flex-row gap-4 rounded-2xl bg-emerald-900 p-2">
                   <View className="aspect-square overflow-hidden rounded-xl bg-green-50">
                     <Image
