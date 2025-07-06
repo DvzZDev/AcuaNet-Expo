@@ -106,11 +106,11 @@ export default function FavButton({ userId, embalse, pais }: { userId: string; e
     }
   }
   return (
-    <View className="rounded-2xl bg-red-200 p-3 ">
+    <View className="rounded-2xl bg-red-200 p-2">
       <TouchableOpacity onPress={toggleFav}>
         <HugeiconsIcon
           icon={FavouriteIcon}
-          size={30}
+          size={25}
           fill={isFavourite ? "red" : "white"}
           color={isFavourite ? "red" : "white"}
         />

@@ -18,7 +18,7 @@ interface ChipsReportProps {
   situacion?: string
   temperatura?: number
   tecnica?: string
-  profundidad?: number
+  profundidad?: string
   fecha?: Date | undefined
 }
 
@@ -31,6 +31,8 @@ export default function ChipsReport({
   profundidad,
   fecha,
 }: ChipsReportProps) {
+
+  console.log("prof", profundidad)
   return (
     <View className="w-full flex-row flex-wrap gap-3">
       {/* Especie */}
@@ -102,7 +104,7 @@ export default function ChipsReport({
             color="#c505ff"
             strokeWidth={1.5}
           />
-          <Text className="font-Inter-Bold text-base text-[#c505ff]">{String(profundidad)} m</Text>
+          <Text className="font-Inter-Bold text-base text-[#c505ff]">{profundidad} m</Text>
         </View>
       )}
 

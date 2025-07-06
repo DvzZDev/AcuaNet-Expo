@@ -1,13 +1,14 @@
 import { useNavigation, RouteProp } from "@react-navigation/native"
 import { RootStackParamList } from "../types"
 import { useHistoricalData, useLiveData, usePortugalData } from "querys"
-import { useEffect, useState } from "react"
-import { ActivityIndicator, TouchableOpacity, StyleSheet, Text, View } from "react-native"
+import { useEffect, useLayoutEffect, useState } from "react"
+import { ActivityIndicator, TouchableOpacity, StyleSheet, Text, View, Dimensions, Platform } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
 import Calendar from "@assets/icons/calendar"
 import Ai from "@assets/icons/ai"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import {
+  Backward01Icon,
   CalendarCheckIn01Icon,
   ChartLineData02FreeIcons,
   LiveStreaming02Icon,
@@ -40,31 +41,61 @@ export default function Embalse({ route }: { route: RouteProp<RootStackParamList
   const { data: historicalData, isLoading: isLoadingHistorical } = useHistoricalData(emb, isPortugal)
   const { data: portugalData, isLoading: isLoadingPortugal } = usePortugalData(emb, isPortugal)
 
-  useEffect(() => {
-    const headerTitle = emb || "N/D"
-    const truncateText = (text: string, maxLength: number = 26) => {
-      return text.length > maxLength ? text.substring(0, maxLength) + "..." : text
-    }
-
+  useLayoutEffect(() => {
     navigation.setOptions({
+      headerTransparent: Platform.OS === "ios",
+      headerBlurEffect: Platform.OS === "ios" ? "light" : undefined,
+      headerShadowVisible: false,
+      headerStyle: {
+        backgroundColor: Platform.OS === "ios" ? "transparent" : "#effcf3",
+      },
+      headerBackVisible: false,
+
       headerLeft: () => (
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          className="rounded-xl bg-[#14141c] p-2"
+          style={{ marginLeft: 8 }}
+        >
+          <HugeiconsIcon
+            icon={Backward01Icon}
+            size={20}
+            color="#14b981"
+            strokeWidth={1.5}
+          />
+        </TouchableOpacity>
+      ),
+
+      headerTitle: () => (
         <Text
           style={{
             fontSize: 25,
-            fontFamily: "Inter-Black",
-            color: "#032E15",
-            paddingLeft: "auto",
-            maxWidth: 600,
-            lineHeight: 32,
+            fontFamily: "Inter-SemiBold",
+            color: "#022c22",
+            textAlign: "center",
+            maxWidth: Dimensions.get("window").width * 0.6,
           }}
           numberOfLines={1}
           ellipsizeMode="tail"
         >
-          {truncateText(headerTitle)}
+          {embalse || "Reporte"}
         </Text>
       ),
+
+      headerTitleAlign: "center",
+
+      headerRight: () => (
+        <FavButton
+          userId={userId}
+          embalse={emb}
+          pais={coordinates.pais || "N/D"}
+        />
+      ),
+
+      headerShown: true,
+      animation: "fade",
     })
-  }, [emb, navigation])
+  }, [coordinates.pais, emb, embalse, navigation, userId])
 
   return (
     <>
@@ -112,11 +143,6 @@ export default function Embalse({ route }: { route: RouteProp<RootStackParamList
               </Text>
             </View>
           </View>
-          <FavButton
-            userId={userId}
-            embalse={emb}
-            pais={coordinates.pais || "N/D"}
-          />
         </View>
 
         <Resume

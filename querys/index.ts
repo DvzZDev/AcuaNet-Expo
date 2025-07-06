@@ -531,3 +531,25 @@ export const useHistoricalWeather = (lat: number | null, lng: number | null, fec
     refetchOnReconnect: false,
   })
 }
+
+export const getDeleteCatchReport = async (catchId: string) => {
+  const { data, error } = await supabase.from("catch_reports").delete().eq("catch_id", catchId)
+  if (error) {
+    console.error("Error deleting catch report:", error)
+    throw new Error(error.message)
+  }
+  return data
+}
+
+export const useDeleteCatchReporte = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (catchId: string) => {
+      return getDeleteCatchReport(catchId)
+    },
+    onSuccess: (_data, catchId) => {
+      queryClient.invalidateQueries({ queryKey: ["userCatchReports"] })
+    },
+  })
+}

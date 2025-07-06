@@ -1,6 +1,7 @@
-import { Dimensions, StyleSheet, View, Text, TouchableOpacity } from "react-native"
-import { useEffect, useState, useRef } from "react"
+import { Dimensions, StyleSheet, View, Text, TouchableOpacity, TouchableHighlight, Alert } from "react-native"
+import { useEffect, useState, useRef, useLayoutEffect } from "react"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable"
 import {
   ArrowExpand01Icon,
   ArrowShrink01Icon,
@@ -8,15 +9,24 @@ import {
   ImageAdd02Icon,
   PlusSignIcon,
   Remove01Icon,
+  Delete02Icon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import AddCatchBottomSheet from "@components/CatchMap/AddCatchBottomSheet"
 import { Image } from "expo-image"
 import { LinearGradient } from "expo-linear-gradient"
-import { useUserCatchReports } from "querys"
+import { useDeleteCatchReporte, useUserCatchReports } from "querys"
 import { useStore } from "store"
 import MapView, { Marker } from "react-native-maps"
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated"
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  SharedValue,
+  SequencedTransition,
+  FadeIn,
+  FadeOut,
+} from "react-native-reanimated"
 import { getFishImage } from "lib/getFishImage"
 import { ScrollView } from "react-native-gesture-handler"
 import { useNavigation } from "@react-navigation/native"
@@ -29,14 +39,50 @@ export default function CatchMap() {
   const navigation = useNavigation<RootStackNavigationProp<"CatchReport">>()
   const insets = useSafeAreaInsets()
   const [isOpen, setIsOpen] = useState(false)
+  const [mapKey, setMapKey] = useState(0) // Add key to force map re-render
   const userId = useStore((state) => state.id)
   const UserCatchReports = useUserCatchReports(userId)
+  const deleteCatchMutation = useDeleteCatchReporte()
   const [isMapExpanded, setIsMapExpanded] = useState(false)
   const mapRef = useRef<MapView>(null)
+  const swipeableRefs = useRef<Map<string, any>>(new Map())
   const collapsedHeight = SCREEN_HEIGHT * 0.4
   const expandedHeight = SCREEN_HEIGHT * 1
   const height = useSharedValue(collapsedHeight)
   const scale = useSharedValue(1)
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerStyle: {
+        backgroundColor: "#effcf3",
+      },
+      headerShadowVisible: false,
+
+      headerTitle: () => (
+        <Text className="font-Inter-Medium text-3xl">
+          Catch <Text className="font-Inter-Black text-4xl text-emerald-500">Map</Text>
+        </Text>
+      ),
+
+      headerTitleAlign: "left",
+
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => setIsOpen(true)}
+          className="right-4 w-fit rounded-full bg-[#14141c] p-2"
+        >
+          <HugeiconsIcon
+            icon={ImageAdd02Icon}
+            size="30"
+            color="#10b981"
+          />
+        </TouchableOpacity>
+      ),
+
+      headerShown: true,
+      animation: "fade",
+    })
+  }, [navigation])
 
   useEffect(() => {
     height.value = withTiming(isMapExpanded ? expandedHeight : collapsedHeight, { duration: 300 })
@@ -56,6 +102,16 @@ export default function CatchMap() {
 
         mapRef.current.animateToRegion(newRegion, 1000)
       }
+    }
+  }, [UserCatchReports.data])
+
+  // Force map re-render when markers change
+  useEffect(() => {
+    if (UserCatchReports.data) {
+      // Add small delay to ensure images are loaded
+      setTimeout(() => {
+        setMapKey((prev) => prev + 1)
+      }, 100)
     }
   }, [UserCatchReports.data])
 
@@ -100,10 +156,11 @@ export default function CatchMap() {
     UserCatchReports.data?.map((report, index) => {
       const imageUrl = report.imagenes?.[0]
       return {
-        key: index,
+        key: `${report.catch_id}-${index}`, // Use unique key based on catch_id
         latitude: report.lat!,
         longitude: report.lng!,
         imagen: `https://rxxyplqherusqxdcowgh.supabase.co/storage/v1/object/public/accounts/${imageUrl}`,
+        catchId: report.catch_id, // Add catchId for reference
       }
     }) || []
 
@@ -125,6 +182,112 @@ export default function CatchMap() {
     })
   }
 
+  const styles = StyleSheet.create({
+    rightAction: {
+      width: 80,
+      height: "100%",
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "#dc2626",
+      borderTopRightRadius: 15,
+      borderBottomRightRadius: 15,
+    },
+    separator: {
+      width: "100%",
+      borderTopWidth: 1,
+    },
+    swipeable: {
+      height: "100%",
+      width: "100%",
+      borderRadius: 15,
+      backgroundColor: "papayawhip",
+      alignItems: "center",
+    },
+  })
+
+  const handleDeleteCatch = (catchId: string) => {
+    if (!catchId) {
+      Alert.alert("Error", "No se puede eliminar el reporte. Datos inválidos.")
+      return
+    }
+
+    Alert.alert(
+      "¿Eliminar CatchReport?",
+      "Esta acción es permanente y no se puede revertir.",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Eliminar",
+          onPress: async () => {
+            try {
+              console.log("Elemento eliminado")
+              deleteCatchMutation.mutate(catchId, {
+                onSuccess: () => {
+                  console.log("Captura eliminada exitosamente")
+                  const swipeableRef = swipeableRefs.current.get(catchId)
+                  if (swipeableRef) {
+                    swipeableRef.close()
+                  }
+                },
+                onError: (error) => {
+                  console.error("Error al eliminar la captura:", error)
+                  Alert.alert("Error", "No se pudo eliminar la captura. Inténtalo más tarde.")
+                },
+              })
+            } catch (error) {
+              console.error("Error inesperado:", error)
+              Alert.alert("Error", "Ocurrió un error inesperado. Inténtalo más tarde.")
+            }
+          },
+          style: "destructive",
+        },
+      ],
+      { cancelable: true }
+    )
+  }
+
+  const RightActionButton = ({ catchId }: { catchId: string }) => {
+    return (
+      <TouchableOpacity
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          width: "100%",
+        }}
+        onPress={() => handleDeleteCatch(catchId)}
+      >
+        <HugeiconsIcon
+          icon={Delete02Icon}
+          size={30}
+          color="#fef2f2"
+          strokeWidth={2}
+        />
+      </TouchableOpacity>
+    )
+  }
+
+  function createRightAction(catchId: string) {
+    return (prog: SharedValue<number>, drag: SharedValue<number>) => {
+      return (
+        <Animated.View
+          style={[
+            styles.rightAction,
+            {
+              transform: [{ scale: prog.value > 0.5 ? 1.05 : 1 }],
+              opacity: prog.value > 0.2 ? 1 : 0.8,
+            },
+          ]}
+        >
+          <RightActionButton catchId={catchId} />
+        </Animated.View>
+      )
+    }
+  }
+
   return (
     <>
       <LinearGradient
@@ -134,30 +297,12 @@ export default function CatchMap() {
 
       <ScrollView
         contentInsetAdjustmentBehavior="never"
-        contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + 80,
+        }}
         showsVerticalScrollIndicator={false}
+        style={{ overflow: "visible", marginTop: 15 }}
       >
-        {!isMapExpanded && (
-          <View
-            style={{ paddingTop: insets.top + 5 }}
-            className="flex-row items-center justify-between border-gray-300 bg-[#effcf3] px-4 pb-4"
-          >
-            <Text className="font-Inter-Medium text-3xl">
-              Catch <Text className="font-Inter-Black text-4xl text-emerald-500">Map</Text>
-            </Text>
-            <TouchableOpacity
-              onPress={() => setIsOpen(true)}
-              className="right-2 w-fit rounded-full bg-[#14141c] p-2"
-            >
-              <HugeiconsIcon
-                icon={ImageAdd02Icon}
-                size="30"
-                color="#10b981"
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-
         <Animated.View style={animatedContainerStyle}>
           {!isMapExpanded && (
             <Text className="mb-2 font-Inter-SemiBold text-2xl text-emerald-950">
@@ -168,6 +313,7 @@ export default function CatchMap() {
           <Animated.View style={animatedMapStyle}>
             <View style={{ flex: 1, borderRadius: 15, overflow: "hidden" }}>
               <MapView
+                key={mapKey}
                 ref={mapRef}
                 mapType="satellite"
                 style={{ flex: 1 }}
@@ -187,6 +333,16 @@ export default function CatchMap() {
                         source={{ uri: marker.imagen }}
                         style={{ width: 29, height: 29, borderRadius: 14.5 }}
                         contentFit="cover"
+                        cachePolicy="memory-disk"
+                        recyclingKey={marker.key}
+                        onLoad={() => {
+                          if (mapRef.current) {
+                            mapRef.current.forceUpdate?.()
+                          }
+                        }}
+                        placeholder={{
+                          uri: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjkiIGhlaWdodD0iMjkiIHZpZXdCb3g9IjAgMCAyOSAyOSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTQuNSIgY3k9IjE0LjUiIHI9IjE0LjUiIGZpbGw9IiMxMGI5ODEiLz4KPC9zdmc+Cg==",
+                        }}
                       />
                     </View>
                   </Marker>
@@ -248,61 +404,93 @@ export default function CatchMap() {
         </Animated.View>
 
         {!isMapExpanded && (
-          <View className="mx-4 mt-6 flex-col ">
-            <Text className="mb-3 font-Inter-SemiBold text-2xl text-emerald-950">Tu última captura</Text>
-            {UserCatchReports.data?.map((report, index) => (
-              <TouchableOpacity
-                onPress={() => navigation.navigate("CatchReport", { catchReportId: report.catch_id })}
-                key={index}
+          <Animated.View
+            layout={SequencedTransition}
+            className="mt-6 flex-col"
+          >
+            <Text className="mx-4 mb-3 font-Inter-SemiBold text-2xl text-emerald-950">Tu última captura</Text>
+
+            {UserCatchReports.data?.map((report) => (
+              <Animated.View
+                key={report.catch_id}
+                layout={SequencedTransition}
+                entering={FadeIn}
+                exiting={FadeOut}
+                className="mx-4 mb-2"
+                style={{
+                  borderRadius: 15,
+                  backgroundColor: "#dc2626",
+                  overflow: "hidden",
+                }}
               >
-                <View className="mb-2 flex h-36 flex-row gap-4 rounded-2xl bg-emerald-900 p-2">
-                  <View className="aspect-square overflow-hidden rounded-xl ">
-                    <Image
-                      source={{
-                        uri: report.imagenes?.[0]
-                          ? `https://rxxyplqherusqxdcowgh.supabase.co/storage/v1/object/public/accounts/${report.imagenes[0]}`
-                          : "https://via.placeholder.com/150",
-                      }}
-                      style={{
-                        width: "100%",
-                        flex: 1,
-                      }}
-                      contentFit="cover"
-                    />
-                  </View>
-
-                  <View className="flex-col gap-2">
-                    <Text className="font-Inter-SemiBold text-2xl text-green-200">{report.embalse}</Text>
-                    <View className="flex-row items-center justify-center gap-2 rounded-2xl  bg-green-800 px-2 py-1">
-                      <HugeiconsIcon
-                        icon={CalendarLove01Icon}
-                        size={15}
-                        color="red"
-                        strokeWidth={1.5}
-                      />
-                      <Text className="font-Inter-Medium text-base text-green-300">
-                        {new Date(report.fecha).toLocaleDateString("es-Es", {
-                          year: "numeric",
-                          month: "long",
-                          day: "2-digit",
-                        })}
-                      </Text>
-                    </View>
-
-                    <View className="flex-row items-center gap-2 self-start rounded-2xl  bg-green-800 px-2 py-1">
-                      {getFishImage(report.especie) && (
+                <ReanimatedSwipeable
+                  ref={(ref) => {
+                    if (ref) {
+                      swipeableRefs.current.set(report.catch_id, ref)
+                    }
+                  }}
+                  renderRightActions={createRightAction(report.catch_id)}
+                  containerStyle={{ overflow: "visible" }}
+                  rightThreshold={40}
+                  friction={2}
+                  overshootFriction={8}
+                  enableTrackpadTwoFingerGesture
+                  dragOffsetFromRightEdge={80}
+                >
+                  <TouchableHighlight
+                    onPress={() => navigation.navigate("CatchReport", { catchReportId: report.catch_id })}
+                  >
+                    <View
+                      className="flex h-36 flex-row gap-4 bg-emerald-900 p-2"
+                      style={{ borderTopLeftRadius: 15, borderBottomLeftRadius: 15 }}
+                    >
+                      <View className="aspect-square overflow-hidden rounded-xl">
                         <Image
-                          source={getFishImage(report.especie)}
-                          style={{ height: 20, width: 35, borderRadius: 7.5 }}
+                          source={{
+                            uri: report.imagenes?.[0]
+                              ? `https://rxxyplqherusqxdcowgh.supabase.co/storage/v1/object/public/accounts/${report.imagenes[0]}`
+                              : "https://via.placeholder.com/150",
+                          }}
+                          style={{ width: "100%", flex: 1 }}
+                          contentFit="cover"
                         />
-                      )}
-                      <Text className="font-Inter-Medium text-base text-green-300">{report.especie}</Text>
+                      </View>
+
+                      <View className="flex-col gap-2">
+                        <Text className="font-Inter-SemiBold text-2xl text-green-200">{report.embalse}</Text>
+
+                        <View className="flex-row items-center justify-center gap-2 rounded-2xl bg-green-800 px-2 py-1">
+                          <HugeiconsIcon
+                            icon={CalendarLove01Icon}
+                            size={15}
+                            color="red"
+                            strokeWidth={1.5}
+                          />
+                          <Text className="font-Inter-Medium text-base text-green-300">
+                            {new Date(report.fecha).toLocaleDateString("es-Es", {
+                              year: "numeric",
+                              month: "long",
+                              day: "2-digit",
+                            })}
+                          </Text>
+                        </View>
+
+                        <View className="flex-row items-center gap-2 self-start rounded-2xl bg-green-800 px-2 py-1">
+                          {getFishImage(report.especie) && (
+                            <Image
+                              source={getFishImage(report.especie)}
+                              style={{ height: 20, width: 35, borderRadius: 7.5 }}
+                            />
+                          )}
+                          <Text className="font-Inter-Medium text-base text-green-300">{report.especie}</Text>
+                        </View>
+                      </View>
                     </View>
-                  </View>
-                </View>
-              </TouchableOpacity>
+                  </TouchableHighlight>
+                </ReanimatedSwipeable>
+              </Animated.View>
             ))}
-          </View>
+          </Animated.View>
         )}
 
         <AddCatchBottomSheet

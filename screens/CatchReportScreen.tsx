@@ -92,6 +92,7 @@ export default function CatchReportPage({ route }: { route: any }) {
     navigation.setOptions({
       headerTransparent: Platform.OS === "ios",
       headerBlurEffect: Platform.OS === "ios" ? "light" : undefined,
+      headerShadowVisible: false,
       headerStyle: {
         backgroundColor: Platform.OS === "ios" ? "transparent" : "#effcf3",
       },
@@ -181,7 +182,7 @@ export default function CatchReportPage({ route }: { route: any }) {
             situacion={situacion || undefined}
             temperatura={temperatura || undefined}
             tecnica={tecnica || undefined}
-            profundidad={profundidad ? Number(profundidad) : undefined}
+            profundidad={profundidad || undefined}
             fecha={fecha ? new Date(fecha) : undefined}
           />
 
