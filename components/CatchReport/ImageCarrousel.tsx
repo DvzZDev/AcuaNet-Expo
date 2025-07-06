@@ -56,8 +56,6 @@ export default function ImageCarrousel({ paths }: { paths?: string[] }) {
   const [modalVisible, setModalVisible] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
-  console.log(selectedImage)
-
   const openImageModal = (imagePath: string) => {
     if (!imagePath.startsWith("#")) {
       setSelectedImage(imagePath)

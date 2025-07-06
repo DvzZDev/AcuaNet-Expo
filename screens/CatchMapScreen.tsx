@@ -26,7 +26,7 @@ const SCREEN_HEIGHT = Dimensions.get("window").height
 const SCREEN_WIDTH = Dimensions.get("window").width
 
 export default function CatchMap() {
-  const navigation = useNavigation<RootStackNavigationProp>()
+  const navigation = useNavigation<RootStackNavigationProp<"CatchReport">>()
   const insets = useSafeAreaInsets()
   const [isOpen, setIsOpen] = useState(false)
   const userId = useStore((state) => state.id)
@@ -290,10 +290,12 @@ export default function CatchMap() {
                     </View>
 
                     <View className="flex-row items-center gap-2 self-start rounded-2xl  bg-green-800 px-2 py-1">
-                      <Image
-                        source={getFishImage(report.especie)}
-                        style={{ height: 20, width: 35, borderRadius: 7.5 }}
-                      />
+                      {getFishImage(report.especie) && (
+                        <Image
+                          source={getFishImage(report.especie)}
+                          style={{ height: 20, width: 35, borderRadius: 7.5 }}
+                        />
+                      )}
                       <Text className="font-Inter-Medium text-base text-green-300">{report.especie}</Text>
                     </View>
                   </View>

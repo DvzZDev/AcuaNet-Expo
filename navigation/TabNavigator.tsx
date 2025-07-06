@@ -38,6 +38,7 @@ export default function TabNavigator() {
             color: "#b3e8ba",
             fontFamily: "Inter",
           },
+          animation: "shift",
         }}
       >
         <Tab.Screen

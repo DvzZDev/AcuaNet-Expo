@@ -6,7 +6,9 @@ export type RootStackParamList = {
   SignUp: undefined
   Tabs: undefined
   Embalse: { embalse: string }
-  CatchReport: undefined
+  CatchReport: {
+    catchReportId?: string
+  }
 }
 
 export type RootStackNavigationProp<T extends keyof RootStackParamList> = NativeStackNavigationProp<
@@ -226,6 +228,8 @@ export interface CatchReportDB {
   emb_data?: EmbalseDataHistorical
   lat?: number
   lng?: number
+  weather?: WeatherData
+  estacion?: string
 }
 
 export type UserCatchReport = {

@@ -16,7 +16,7 @@ export interface DailyFishingActivity {
   }
 }
 
-function getFishActivityLevel(age: number): number {
+export function getFishActivityLevel(age: number): number {
   const normalizedAge = age % 29.5
   const distanceToNewMoon = Math.min(normalizedAge, 29.5 - normalizedAge)
   const distanceToFullMoon = Math.abs(normalizedAge - 14.75)
@@ -31,7 +31,7 @@ function getFishActivityLevel(age: number): number {
   }
 }
 
-function getFishActivityEmoji(activityLevel: number): string {
+export function getFishActivityEmoji(activityLevel: number): string {
   return "🐟".repeat(activityLevel)
 }
 
@@ -58,6 +58,7 @@ export function getNext7DaysFishingActivity(weatherData?: any): DailyFishingActi
 
     const lunarAge = Moon.lunarAge(currentDate)
     const lunarPhase = Moon.lunarPhaseEmoji(currentDate)
+    const lunarPhaseName = translateLunarPhase(Moon.lunarPhase(currentDate))
     const activityLevel = getFishActivityLevel(lunarAge)
     const activityEmoji = getFishActivityEmoji(activityLevel)
     const visibility = getMoonVisibility(lunarAge)
@@ -125,4 +126,19 @@ export function generateFishingActivitySummary(activities: DailyFishingActivity[
   }
 
   return summary
+}
+
+export function translateLunarPhase(phase: string): string {
+  const phaseTranslations: Record<string, string> = {
+    New: "Luna Nueva",
+    "Waxing Crescent": "Luna Creciente",
+    "First Quarter": "Cuarto Creciente",
+    "Waxing Gibbous": "Gibosa Creciente",
+    Full: "Luna Llena",
+    "Waning Gibbous": "Gibosa Menguante",
+    "Last Quarter": "Cuarto Menguante",
+    "Waning Crescent": "Luna Menguante",
+  }
+
+  return phaseTranslations[phase] || phase
 }

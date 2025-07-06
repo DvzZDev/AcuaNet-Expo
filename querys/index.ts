@@ -491,3 +491,43 @@ export const useUserCatchReports = (userId: string) => {
     enabled: !!userId,
   })
 }
+
+export const getHistoricalWeather = async (lat: number | null, lng: number | null, date: Date) => {
+  console.log("Fetching historical weather for:", lat, lng, date)
+  try {
+    const formattedDate = date.toISOString().split("T")[0]
+    console.log("Formated Date", formattedDate)
+    const weatherApi = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${lat},${lng}/${formattedDate}?unitGroup=metric&elements=datetime%2CresolvedAddress%2Ctempmax%2Ctempmin%2Ctemp%2Cwindspeed%2Cwinddir%2Cpressure%2Cconditions%2Cdescription%2Cicon&key=${process.env.EXPO_PUBLIC_WEATHER_KEY}&contentType=json&lang=es`
+    const res = await fetch(weatherApi, {
+      headers: {
+        "User-Agent": "AcuaNet-App/1.0.0",
+      },
+    })
+
+    if (!res.ok) {
+      throw new Error(`Weather API error: ${res.status} ${res.statusText}`)
+    }
+
+    const weatherData = await res.json()
+    return weatherData
+  } catch (error) {
+    console.error("Error fetching historical weather:", error)
+    throw new Error("Failed to fetch historical weather data")
+  }
+}
+
+export const useHistoricalWeather = (lat: number | null, lng: number | null, fecha: Date) => {
+  return useQuery({
+    queryKey: ["historicalWeather", lat, lng, fecha.toISOString()],
+    queryFn: ({ queryKey }) => {
+      const [_key, lat, lng, fechaStr] = queryKey as [string, number, number, string]
+      return getHistoricalWeather(lat, lng, new Date(fechaStr))
+    },
+    enabled: lat !== null && lng !== null,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+  })
+}
