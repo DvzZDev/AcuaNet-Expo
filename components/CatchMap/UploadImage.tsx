@@ -1,5 +1,5 @@
 import "react-native-get-random-values"
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
+import React, { useEffect, useRef, useMemo, useCallback, useReducer } from "react"
 import { View, Dimensions } from "react-native"
 import MapView from "react-native-maps"
 import { type GPSCoordinates } from "lib/extractGPSCoordinates"
@@ -14,6 +14,7 @@ import Step3CompleteData from "./Step3CompleteData"
 import Step4HistoricalData from "./Step4HistoricalData"
 import Step5UploadStatus from "./Step5UploadStatus"
 import { pickImage } from "./PickImage"
+import { inicialStateImageReducer, uploadImageReducer } from "hooks/useUploadImage"
 
 const { width } = Dimensions.get("window")
 const MAX_IMAGES = 3
@@ -25,17 +26,20 @@ interface StepData {
 }
 
 export default function UploadImage() {
-  const [embalse, setEmbalse] = useState<string | null>(null)
-  const [images, setImages] = useState<string[]>([])
-  const [coordinates, setCoordinates] = useState<GPSCoordinates | null>(null)
-  const [userCoordinates, setUserCoordinates] = useState<GPSCoordinates | null>(null)
-  const [imageDate, setImageDate] = useState<string | null>(null)
-  const [currentStep, setCurrentStep] = useState(0)
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [heights, setHeights] = useState<number[]>([0, 0, 0, 0, 0])
-  const [isSending, setIsSending] = useState<boolean>(false)
-  const [isSuccess, setIsSuccess] = useState<boolean>(false)
-  const [isError, setIsError] = useState<boolean>(false)
+  const [state, dispatch] = useReducer(uploadImageReducer, inicialStateImageReducer)
+  const {
+    embalse,
+    images,
+    isSending,
+    isSuccess,
+    isError,
+    coordinates,
+    userCoordinates,
+    imageDate,
+    currentStep,
+    isEditMode,
+    heights,
+  } = state
 
   const mapRef = useRef<MapView>(null)
   const carouselRef = useRef<any>(null)
@@ -70,16 +74,25 @@ export default function UploadImage() {
   }, [userCoordinates])
 
   const resetImageData = useCallback(() => {
-    setCoordinates(null)
-    setImageDate(null)
+    dispatch({ type: "setCoordinates", payload: null })
+    dispatch({ type: "setImageDate", payload: null })
   }, [])
 
   const resetAllData = useCallback(() => {
-    setImages([])
+    dispatch({ type: "setImages", payload: [] })
     resetImageData()
   }, [resetImageData])
 
   const handlePickImage = useCallback(async () => {
+    const setImages = (value: string[]) => dispatch({ type: "setImages", payload: value })
+    const setCoordinates = (value: GPSCoordinates) => dispatch({ type: "setCoordinates", payload: value })
+    const setImageDate = (value: string | null | ((prevState: string | null) => string | null)) => {
+      if (typeof value === "function") {
+        dispatch({ type: "setImageDate", payload: value(imageDate) })
+      } else {
+        dispatch({ type: "setImageDate", payload: value })
+      }
+    }
     await pickImage({
       images,
       MAX_IMAGES,
@@ -88,10 +101,10 @@ export default function UploadImage() {
       setCoordinates,
       setImageDate,
     })
-  }, [images, resetImageData])
+  }, [images, resetImageData, imageDate])
 
   const goToStep = useCallback((step: number) => {
-    setCurrentStep(step)
+    dispatch({ type: "setCurrentStep", payload: step })
     carouselRef.current?.scrollTo({ index: step, animated: true })
   }, [])
 
@@ -134,18 +147,13 @@ export default function UploadImage() {
   const onLayoutStep = useCallback(
     (index: number) => (event: any) => {
       const h = event.nativeEvent.layout.height
-      setHeights((prev) => {
-        if (prev[index] === h) return prev
-        const newHeights = [...prev]
-        newHeights[index] = h
-        return newHeights
-      })
+      dispatch({ type: "setHeights", payload: heights.map((height, i) => (i === index ? h : height)) })
     },
-    []
+    [heights]
   )
 
   const onStepChange = useCallback((index: number) => {
-    setCurrentStep(index)
+    dispatch({ type: "setCurrentStep", payload: index })
   }, [])
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -182,9 +190,9 @@ export default function UploadImage() {
         userCoordinates={userCoordinates}
         images={images}
         isEditMode={isEditMode}
-        onToggleEdit={() => setIsEditMode(!isEditMode)}
-        onDragEnd={setCoordinates}
-        onLocationSelect={setUserCoordinates}
+        onToggleEdit={() => dispatch({ type: "setIsEditMode", payload: !isEditMode })}
+        onDragEnd={(value) => dispatch({ type: "setCoordinates", payload: value })}
+        onLocationSelect={(value) => dispatch({ type: "setUserCoordinates", payload: value })}
         onInputFocus={scrollToInput}
         onPrev={goToPrevStep}
         onNext={goToNextStep}
@@ -199,13 +207,13 @@ export default function UploadImage() {
     () => (
       <Step3CompleteData
         imageDate={imageDate}
-        setImageDate={setImageDate}
+        setImageDate={(value) => dispatch({ type: "setImageDate", payload: value })}
         onInputFocus={scrollToInput}
         images={images}
-        setIsSending={setIsSending}
-        setIsSuccess={setIsSuccess}
-        setIsError={setIsError}
-        setEmbalse={setEmbalse}
+        setIsSending={(value) => dispatch({ type: "setIsSending", payload: value })}
+        setIsSuccess={(value) => dispatch({ type: "setIsSuccess", payload: value })}
+        setIsError={(value) => dispatch({ type: "setIsError", payload: value })}
+        setEmbalse={(value: string | null) => dispatch({ type: "setEmbalse", payload: value ?? "" })}
         embalseData={data && Array.isArray(data) && data.length > 0 ? data[0] : null}
         coordinates={coordinates || userCoordinates}
         onPrev={goToPrevStep}

@@ -5,7 +5,6 @@ import hashTextToSha256 from "lib/HashText"
 import { supabase } from "lib/supabase"
 import type { catchReport, CatchReportDB, EmbalseDataHistorical, FavSection } from "types/index"
 import { v4 as uuidv4 } from "uuid"
-import * as FileSystem from "expo-file-system"
 import * as ImageManipulator from "expo-image-manipulator"
 
 export const CheckCoords = async (embalse: string | string[], setCheckCoords: (data: any) => void) => {
@@ -232,6 +231,7 @@ export const useHistoricalData = (embalse: string, isPortugal: boolean) => {
     enabled: !isPortugal,
   })
 }
+
 export const useHistoricalDataCatch = (embalse: string, step: number) => {
   return useQuery({
     queryKey: ["historicalData", embalse],
