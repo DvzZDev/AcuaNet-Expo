@@ -37,14 +37,14 @@ const SCREEN_WIDTH = Dimensions.get("window").width
 
 export default function CatchMap() {
   const navigation = useNavigation<RootStackNavigationProp<"CatchReport">>()
+  const userId = useStore((state) => state.id)
   const insets = useSafeAreaInsets()
   const [isOpen, setIsOpen] = useState(false)
-  const [mapKey, setMapKey] = useState(0) // Add key to force map re-render
-  const userId = useStore((state) => state.id)
-  const UserCatchReports = useUserCatchReports(userId)
-  const deleteCatchMutation = useDeleteCatchReporte()
+  const [mapKey, setMapKey] = useState(0)
   const [isMapExpanded, setIsMapExpanded] = useState(false)
   const mapRef = useRef<MapView>(null)
+  const UserCatchReports = useUserCatchReports(userId)
+  const deleteCatchMutation = useDeleteCatchReporte()
   const swipeableRefs = useRef<Map<string, any>>(new Map())
   const collapsedHeight = SCREEN_HEIGHT * 0.4
   const expandedHeight = SCREEN_HEIGHT * 1
@@ -105,10 +105,8 @@ export default function CatchMap() {
     }
   }, [UserCatchReports.data])
 
-  // Force map re-render when markers change
   useEffect(() => {
     if (UserCatchReports.data) {
-      // Add small delay to ensure images are loaded
       setTimeout(() => {
         setMapKey((prev) => prev + 1)
       }, 100)

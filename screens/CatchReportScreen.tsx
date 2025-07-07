@@ -9,7 +9,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "store"
 import { useNavigation } from "@react-navigation/native"
 import { useLayoutEffect, useCallback } from "react"
-
 import { useHeaderHeight } from "@react-navigation/elements"
 import { supabase } from "lib/supabase"
 import { useQueryClient } from "@tanstack/react-query"
