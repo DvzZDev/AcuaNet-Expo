@@ -22,7 +22,6 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  SharedValue,
   SequencedTransition,
   FadeIn,
   FadeOut,
@@ -269,17 +268,9 @@ export default function CatchMap() {
   }
 
   function createRightAction(catchId: string) {
-    return (prog: SharedValue<number>, drag: SharedValue<number>) => {
+    return () => {
       return (
-        <Animated.View
-          style={[
-            styles.rightAction,
-            {
-              transform: [{ scale: prog.value > 0.5 ? 1.05 : 1 }],
-              opacity: prog.value > 0.2 ? 1 : 0.8,
-            },
-          ]}
-        >
+        <Animated.View style={styles.rightAction}>
           <RightActionButton catchId={catchId} />
         </Animated.View>
       )
