@@ -1,14 +1,14 @@
 import { Platform } from "react-native"
 import * as ImagePicker from "expo-image-picker"
 import * as DocumentPicker from "expo-document-picker"
-import { extractGPSFromImagePicker, extractGPSFromDocument, GPSCoordinates } from "../../lib/extractGPSCoordinates"
+import { extractGPSFromImagePicker, extractGPSFromDocument } from "../../lib/extractGPSCoordinates"
 
 interface PickImageParams {
   images: string[]
   MAX_IMAGES: number
   resetImageData: () => void
-  setImages: (value: string[]) => void
-  setCoordinates: (value: GPSCoordinates) => void
+  setImages: React.Dispatch<React.SetStateAction<string[]>>
+  setCoordinates: React.Dispatch<React.SetStateAction<{ lat: number; lng: number } | null>>
   setImageDate: React.Dispatch<React.SetStateAction<string | null>>
 }
 
@@ -42,7 +42,7 @@ export const pickImage = async ({
       if (!result.canceled && result.assets) {
         const assetsToAdd = result.assets.slice(0, remainingSlots)
         const newImageUris = assetsToAdd.map((asset) => asset.uri)
-        setImages([...images, ...newImageUris])
+        setImages((prev) => [...prev, ...newImageUris])
 
         if (assetsToAdd[0]) {
           const gpsData = await extractGPSFromImagePicker(assetsToAdd[0])
@@ -66,7 +66,7 @@ export const pickImage = async ({
         const remainingSlots = MAX_IMAGES - images.length
         const assetsToAdd = result.assets.slice(0, remainingSlots)
         const newImageUris = assetsToAdd.map((asset) => asset.uri)
-        setImages([...images, ...newImageUris])
+        setImages((prev) => [...prev, ...newImageUris])
 
         if (assetsToAdd[0]) {
           const gpsData = await extractGPSFromDocument(assetsToAdd[0].uri)
