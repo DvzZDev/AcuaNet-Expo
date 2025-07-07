@@ -46,18 +46,27 @@ export default function UploadImage() {
   const catchReportRef = useRef<CatchReportRef>(null)
   const scrollViewRef = useRef<KeyboardAwareScrollView>(null)
   const heightAnim = useSharedValue<number>(0)
+  const defaultDate = useRef(new Date())
 
   const activeCoordinates = useMemo(() => coordinates || userCoordinates, [coordinates, userCoordinates])
-  const memoizedDate = useMemo(() => (imageDate ? new Date(imageDate) : new Date()), [imageDate])
+  const memoizedDate = useMemo(() => {
+    if (imageDate) {
+      return new Date(imageDate)
+    }
+    // Return a stable date object instead of creating new one on each render
+    return defaultDate.current
+  }, [imageDate])
 
   const { data, isLoading } = useHistoricalDataCatch(embalse || "", currentStep)
   useHistoricalWeather(activeCoordinates?.lat ?? null, activeCoordinates?.lng ?? null, memoizedDate)
 
+  const currentHeight = heights[currentStep]
+
   useEffect(() => {
-    if (heights[currentStep]) {
-      heightAnim.value = withTiming(heights[currentStep], { duration: 200 })
+    if (currentHeight) {
+      heightAnim.value = withTiming(currentHeight, { duration: 200 })
     }
-  }, [currentStep, heights, heightAnim])
+  }, [currentStep, currentHeight, heightAnim])
 
   useEffect(() => {
     if (userCoordinates && mapRef.current) {
@@ -76,12 +85,12 @@ export default function UploadImage() {
   const resetImageData = useCallback(() => {
     dispatch({ type: "setCoordinates", payload: null })
     dispatch({ type: "setImageDate", payload: null })
-  }, [dispatch])
+  }, [])
 
   const resetAllData = useCallback(() => {
     dispatch({ type: "setImages", payload: [] })
     resetImageData()
-  }, [resetImageData, dispatch])
+  }, [resetImageData])
 
   const handlePickImage = useCallback(async () => {
     const setImagesWrapper = (value: React.SetStateAction<string[]>) => {
@@ -116,15 +125,12 @@ export default function UploadImage() {
       setCoordinates: setCoordinatesWrapper,
       setImageDate: setImageDateWrapper,
     })
-  }, [images, coordinates, imageDate, resetImageData, dispatch])
+  }, [images, coordinates, imageDate, resetImageData])
 
-  const goToStep = useCallback(
-    (step: number) => {
-      dispatch({ type: "setCurrentStep", payload: step })
-      carouselRef.current?.scrollTo({ index: step, animated: true })
-    },
-    [dispatch]
-  )
+  const goToStep = useCallback((step: number) => {
+    dispatch({ type: "setCurrentStep", payload: step })
+    carouselRef.current?.scrollTo({ index: step, animated: true })
+  }, [])
 
   const goToNextStep = useCallback(() => {
     if (currentStep < 4) {
@@ -162,6 +168,26 @@ export default function UploadImage() {
     }
   }, [])
 
+  const setIsSendingCallback = useCallback((sending: boolean) => {
+    dispatch({ type: "setIsSending", payload: sending })
+  }, [])
+
+  const setIsSuccessCallback = useCallback((success: boolean) => {
+    dispatch({ type: "setIsSuccess", payload: success })
+  }, [])
+
+  const setIsErrorCallback = useCallback((error: boolean) => {
+    dispatch({ type: "setIsError", payload: error })
+  }, [])
+
+  const setImageDateCallback = useCallback((date: string | null) => {
+    dispatch({ type: "setImageDate", payload: date })
+  }, [])
+
+  const setEmbalseCallback = useCallback((embalse: string | null) => {
+    dispatch({ type: "setEmbalse", payload: embalse })
+  }, [])
+
   const onLayoutStep = useCallback(
     (index: number) => (event: any) => {
       const h = event.nativeEvent.layout.height
@@ -175,12 +201,9 @@ export default function UploadImage() {
     []
   )
 
-  const onStepChange = useCallback(
-    (index: number) => {
-      dispatch({ type: "setCurrentStep", payload: index })
-    },
-    [dispatch]
-  )
+  const onStepChange = useCallback((index: number) => {
+    dispatch({ type: "setCurrentStep", payload: index })
+  }, [])
 
   const animatedStyle = useAnimatedStyle(() => ({
     height: heightAnim.value,
@@ -233,13 +256,13 @@ export default function UploadImage() {
     () => (
       <Step3CompleteData
         imageDate={imageDate}
-        setImageDate={(date) => dispatch({ type: "setImageDate", payload: date })}
+        setImageDate={setImageDateCallback}
         onInputFocus={scrollToInput}
         images={images}
-        setIsSending={(sending) => dispatch({ type: "setIsSending", payload: sending })}
-        setIsSuccess={(success) => dispatch({ type: "setIsSuccess", payload: success })}
-        setIsError={(error) => dispatch({ type: "setIsError", payload: error })}
-        setEmbalse={(embalse) => dispatch({ type: "setEmbalse", payload: embalse })}
+        setIsSending={setIsSendingCallback}
+        setIsSuccess={setIsSuccessCallback}
+        setIsError={setIsErrorCallback}
+        setEmbalse={setEmbalseCallback}
         embalseData={data && Array.isArray(data) && data.length > 0 ? data[0] : null}
         coordinates={coordinates || userCoordinates}
         onPrev={goToPrevStep}
@@ -248,7 +271,22 @@ export default function UploadImage() {
         catchReportRef={catchReportRef}
       />
     ),
-    [imageDate, scrollToInput, images, data, coordinates, userCoordinates, goToPrevStep, goToNextStep, onLayoutStep]
+    [
+      imageDate,
+      setImageDateCallback,
+      scrollToInput,
+      images,
+      setIsSendingCallback,
+      setIsSuccessCallback,
+      setIsErrorCallback,
+      setEmbalseCallback,
+      data,
+      coordinates,
+      userCoordinates,
+      goToPrevStep,
+      goToNextStep,
+      onLayoutStep,
+    ]
   )
 
   const renderStep4 = useCallback(() => {

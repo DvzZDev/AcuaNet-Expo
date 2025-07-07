@@ -126,8 +126,6 @@ export const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
             images: images,
             emb_data: embalseData,
           })
-
-          console.log("Reporte de captura creado exitosamente")
         } catch (error) {
           console.error("Error al enviar el reporte:", error)
         }
@@ -145,10 +143,10 @@ export const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
           const currentDate = new Date()
           setSelectedDate(currentDate)
           form.setFieldValue("date", currentDate.toISOString())
-          setDate?.(currentDate.toISOString())
+          // Don't call setDate here to avoid infinite loop
         }
       }
-    }, [date, form, setDate])
+    }, [date, form])
 
     useImperativeHandle(ref, () => ({
       submitForm: () => {
