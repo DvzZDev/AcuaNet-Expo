@@ -6,6 +6,7 @@ import { Cancel01Icon, Edit03Icon, TickIcon } from "@hugeicons/core-free-icons"
 import DateTimePicker from "@react-native-community/datetimepicker"
 import { useState, useImperativeHandle, forwardRef, useEffect } from "react"
 import DropDownEspecie from "./DropDownEspecie"
+import DropDownEpoca from "./DropDownEpoca"
 import DropDownTecnica from "./DropDownTecnica"
 import DropDownSituacion from "./DropDownSituacion"
 import { ScrollView } from "react-native-gesture-handler"
@@ -28,6 +29,8 @@ interface CatchReportProps {
   setIsSuccess?: (reactNode: any) => void
   setIsError?: (reactNode: any) => void
   setEmbalse?: (embalse: string) => void
+  setEpoca?: (epoca: string | null) => void
+  epocaValue?: string | null
   embalseData?: EmbalseDataHistorical
   images: string[]
   coordinates?: { lat: number; lng: number } | null
@@ -39,6 +42,8 @@ export const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
       date,
       setDate,
       setEmbalse,
+      setEpoca,
+      epocaValue,
       embalseData,
       onInputFocus,
       setIsSending,
@@ -74,6 +79,7 @@ export const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
       return new Date()
     })
     const [especieSelector, setEspecieSelector] = useState(false)
+    const [epocaSelector, setEpocaSelector] = useState(false)
     const [tecnicaSelector, setTecnicaSelector] = useState(false)
     const [situacion, setSituacion] = useState(false)
     const [profundidad, setProfundidad] = useState(false)
@@ -100,6 +106,7 @@ export const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
         embalse: "",
         date: date || "",
         especie: "",
+        epoca: epocaValue || "",
         peso: "",
         tecnica: "",
         situacion: "",
@@ -221,6 +228,7 @@ export const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
                 </View>
                 <PlaceSearchForm
                   onLocationSelect={(Embalse) => {
+                    console.log("Embalse seleccionado:", Embalse)
                     field.setValue(Embalse)
                     setEmbalse?.(Embalse)
                   }}
@@ -360,12 +368,69 @@ export const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
             )}
           </form.Field>
 
+          {/* Época */}
+          <form.Field
+            name="epoca"
+            validators={{
+              onChange: ({ value }) => (value ? undefined : "La epoca de captura es obligatoria"),
+            }}
+          >
+            {(field) => (
+              <>
+                <View className="relative gap-2">
+                  <View className="flex-row items-center gap-2">
+                    <Text className="font-Inter-SemiBold text-lg text-green-950">
+                      Epoca <Text className="text-xs text-red-500">*</Text>
+                    </Text>
+                    {field.state.meta.errors.length > 0 && (
+                      <Text className="rounded-lg bg-yellow-100 p-1 text-xs text-red-500">
+                        {field.state.meta.errors[0]}
+                      </Text>
+                    )}
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setEpocaSelector(!epocaSelector)}
+                    className="relative flex-row items-center justify-between rounded-lg border border-green-300 bg-green-200 px-3 py-3"
+                  >
+                    <Text
+                      className={`font-Inter-Medium text-base ${field.state.value ? "text-[#052e16]" : "text-[#71947d]"}`}
+                    >
+                      {field.state.value ? field.state.value : "Selecciona una época"}
+                    </Text>
+
+                    {field.state.value && (
+                      <TouchableOpacity
+                        onPress={() => field.setValue("")}
+                        className="absolute right-3 rounded-lg border border-lime-500 bg-lime-300 p-1"
+                      >
+                        <HugeiconsIcon
+                          icon={Cancel01Icon}
+                          size={16}
+                          color="#3f6212"
+                          strokeWidth={1.5}
+                        />
+                      </TouchableOpacity>
+                    )}
+                  </TouchableOpacity>
+                  <DropDownEpoca
+                    setEpocaSelector={setEpocaSelector}
+                    epocaSelector={epocaSelector}
+                    setEpoca={(value) => {
+                      field.setValue(value)
+                      setEpoca?.(value)
+                    }}
+                  />
+                </View>
+              </>
+            )}
+          </form.Field>
+
           {/* Peso */}
           <form.Field
             name="peso"
             validators={{
               onChange: ({ value }) =>
-                /^[0-9]*\.?[0-9]*$/.test(value) ? undefined : "Solo se permiten números y decimales",
+                /^[0-9]*[.,]?[0-9]*$/.test(value) ? undefined : "Solo se permiten números y decimales",
             }}
           >
             {(field) => (
@@ -382,14 +447,18 @@ export const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
                   <View className="flex-row items-center justify-between rounded-lg border border-green-300 bg-green-200 px-3 ">
                     <TextInput
                       value={field.state.value}
-                      onChangeText={field.setValue}
+                      onChangeText={(text) => {
+                        // Reemplazar coma por punto para consistencia interna
+                        const normalizedText = text.replace(",", ".")
+                        field.setValue(normalizedText)
+                      }}
                       onFocus={(event) => {
                         if (onInputFocus) {
                           // @ts-ignore - findNodeHandle funciona con event.target
                           onInputFocus(findNodeHandle(event.target))
                         }
                       }}
-                      placeholder="1kg = 1 | 500gr = 0.5"
+                      placeholder="1kg = 1 | 500gr = 0,5"
                       placeholderTextColor="#71947d"
                       keyboardType="numeric"
                       className="ios:leading-[0] flex-1 font-Inter-Medium text-base text-green-950"
@@ -486,7 +555,7 @@ export const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
             name="temperatura"
             validators={{
               onChange: ({ value }) =>
-                /^[0-9]*\.?[0-9]*$/.test(value) ? undefined : "Solo se permiten números y decimales",
+                /^[0-9]*[.,]?[0-9]*$/.test(value) ? undefined : "Solo se permiten números y decimales",
             }}
           >
             {(field) => (
@@ -503,7 +572,11 @@ export const CatchReport = forwardRef<CatchReportRef, CatchReportProps>(
                   <View className="flex-row items-center justify-between rounded-lg border border-green-300 bg-green-200 px-3 ">
                     <TextInput
                       value={field.state.value}
-                      onChangeText={field.setValue}
+                      onChangeText={(text) => {
+                        // Reemplazar coma por punto para consistencia interna
+                        const normalizedText = text.replace(",", ".")
+                        field.setValue(normalizedText)
+                      }}
                       onFocus={(event) => {
                         if (onInputFocus) {
                           // @ts-ignore - findNodeHandle funciona con event.target

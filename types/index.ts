@@ -9,6 +9,7 @@ export type RootStackParamList = {
   CatchReport: {
     catchReportId?: string
   }
+  Gallery: undefined
 }
 
 export type RootStackNavigationProp<T extends keyof RootStackParamList> = NativeStackNavigationProp<
@@ -197,6 +198,7 @@ export interface FavSection {
 
 export interface catchReport {
   embalse: string
+  epoca: string
   date: string
   especie: string
   peso: string | null

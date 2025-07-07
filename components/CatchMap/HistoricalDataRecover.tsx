@@ -1,7 +1,7 @@
 import { DropletIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import { getClosestByDate } from "lib/EmbHistorical"
-import { useMemo } from "react"
+import { useMemo, useEffect } from "react"
 import { ActivityIndicator, Text, View } from "react-native"
 import Animated, { FadeIn } from "react-native-reanimated"
 
@@ -16,6 +16,12 @@ export default function HistoricalDataDisplay({
   isLoading: boolean
   embalse: string | null
 }) {
+  useEffect(() => {
+    console.log("HistoricalDataDisplay - embalse:", embalse)
+    console.log("HistoricalDataDisplay - data:", data ? Array.isArray(data) && data.length : "No data")
+    console.log("HistoricalDataDisplay - imageDate:", imageDate)
+  }, [embalse, data, imageDate])
+
   const closesEmbData = useMemo(() => {
     return data && Array.isArray(data) && data.length > 0 && imageDate
       ? getClosestByDate(data, new Date(imageDate))

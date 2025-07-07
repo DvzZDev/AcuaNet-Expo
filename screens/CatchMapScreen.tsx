@@ -10,6 +10,7 @@ import {
   PlusSignIcon,
   Remove01Icon,
   Delete02Icon,
+  Album02Icon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import AddCatchBottomSheet from "@components/CatchMap/AddCatchBottomSheet"
@@ -56,14 +57,15 @@ export default function CatchMap() {
         backgroundColor: "#effcf3",
       },
       headerShadowVisible: false,
+      headerTitleAlign: "left",
+      headerShown: isMapExpanded ? false : true,
+      animation: "fade",
 
       headerTitle: () => (
         <Text className="font-Inter-Medium text-3xl">
           Catch <Text className="font-Inter-Black text-4xl text-emerald-500">Map</Text>
         </Text>
       ),
-
-      headerTitleAlign: "left",
 
       headerRight: () => (
         <TouchableOpacity
@@ -77,11 +79,8 @@ export default function CatchMap() {
           />
         </TouchableOpacity>
       ),
-
-      headerShown: true,
-      animation: "fade",
     })
-  }, [navigation])
+  }, [navigation, isMapExpanded])
 
   useEffect(() => {
     height.value = withTiming(isMapExpanded ? expandedHeight : collapsedHeight, { duration: 300 })
@@ -117,6 +116,7 @@ export default function CatchMap() {
     width: SCREEN_WIDTH,
     paddingHorizontal: isMapExpanded ? 0 : 16,
     overflow: "hidden",
+    marginTop: isMapExpanded ? -15 : 0,
   }))
 
   const animatedMapStyle = useAnimatedStyle(() => ({
@@ -153,11 +153,11 @@ export default function CatchMap() {
     UserCatchReports.data?.map((report, index) => {
       const imageUrl = report.imagenes?.[0]
       return {
-        key: `${report.catch_id}-${index}`, // Use unique key based on catch_id
+        key: `${report.catch_id}-${index}`,
         latitude: report.lat!,
         longitude: report.lng!,
         imagen: `https://rxxyplqherusqxdcowgh.supabase.co/storage/v1/object/public/accounts/${imageUrl}`,
-        catchId: report.catch_id, // Add catchId for reference
+        catchId: report.catch_id,
       }
     }) || []
 
@@ -290,11 +290,14 @@ export default function CatchMap() {
           paddingBottom: insets.bottom + 80,
         }}
         showsVerticalScrollIndicator={false}
-        style={{ overflow: "visible", marginTop: 15 }}
+        style={{
+          overflow: "visible",
+          marginTop: isMapExpanded ? 0 : 15,
+        }}
       >
         <Animated.View style={animatedContainerStyle}>
           {!isMapExpanded && (
-            <Text className="mb-2 font-Inter-SemiBold text-2xl text-emerald-950">
+            <Text className="mb-3 font-Inter-SemiBold text-2xl text-emerald-950">
               {markers.length > 0 ? "Tu último pin 📷" : "No hay capturas registradas 🎣"}
             </Text>
           )}
@@ -313,6 +316,7 @@ export default function CatchMap() {
                     key={marker.key}
                     coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
                     anchor={{ x: 0.5, y: 0.5 }}
+                    onPress={() => navigation.navigate("CatchReport", { catchReportId: marker.catchId })}
                   >
                     <View
                       className="items-center justify-center rounded-full border-2 border-green-500 shadow-lg"
@@ -397,9 +401,25 @@ export default function CatchMap() {
             layout={SequencedTransition}
             className="mt-6 flex-col"
           >
-            <Text className="mx-4 mb-3 font-Inter-SemiBold text-2xl text-emerald-950">Tu última captura</Text>
+            <View className="mx-4 mb-3 flex-row items-center justify-between">
+              <Text className="font-Inter-SemiBold text-2xl text-emerald-950">Tus últimas 3 capturas</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("Gallery")}
+                className="rounded-2xl bg-purple-200 p-2"
+              >
+                <View className="flex-row items-center justify-center gap-1">
+                  <HugeiconsIcon
+                    icon={Album02Icon}
+                    size={20}
+                    color="#6b21a8"
+                    strokeWidth={1.5}
+                  />
+                  <Text className="font-Inter-SemiBold text-purple-800">Ver todas</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
 
-            {UserCatchReports.data?.map((report) => (
+            {UserCatchReports.data?.slice(0, 3)?.map((report) => (
               <Animated.View
                 key={report.catch_id}
                 layout={SequencedTransition}

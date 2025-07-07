@@ -7,13 +7,18 @@ import {
   AiIdeaFreeIcons,
   Angle01FreeIcons,
   Calendar01FreeIcons,
+  Leaf01Icon,
   MountainIcon,
+  SnowIcon,
+  Sun01Icon,
+  TreeIcon,
   WeightScale01FreeIcons,
 } from "@hugeicons/core-free-icons"
 import WaterTemp from "@assets/icons/watertemp"
 
 interface ChipsReportProps {
   especie?: string
+  epoca?: string
   peso?: number
   situacion?: string
   temperatura?: number
@@ -24,6 +29,7 @@ interface ChipsReportProps {
 
 export default function ChipsReport({
   especie,
+  epoca,
   peso,
   situacion,
   temperatura,
@@ -31,8 +37,7 @@ export default function ChipsReport({
   profundidad,
   fecha,
 }: ChipsReportProps) {
-
-  console.log("prof", profundidad)
+  console.log("epoca", epoca)
   return (
     <View className="w-full flex-row flex-wrap gap-3">
       {/* Especie */}
@@ -48,6 +53,65 @@ export default function ChipsReport({
         </View>
       )}
 
+      {/* Época */}
+      {epoca && (
+        <View
+          className={`h-12 flex-row items-center justify-center gap-2 self-start rounded-2xl px-2 py-1 ${
+            epoca === "Primavera"
+              ? "bg-green-200"
+              : epoca === "Verano"
+                ? "bg-yellow-200"
+                : epoca === "Otoño"
+                  ? "bg-orange-200"
+                  : epoca === "Invierno"
+                    ? "bg-blue-200"
+                    : "bg-gray-200"
+          }`}
+        >
+          <HugeiconsIcon
+            icon={
+              epoca === "Primavera"
+                ? TreeIcon
+                : epoca === "Verano"
+                  ? Sun01Icon
+                  : epoca === "Otoño"
+                    ? Leaf01Icon
+                    : epoca === "Invierno"
+                      ? SnowIcon
+                      : TreeIcon
+            }
+            size={24}
+            color={
+              epoca === "Primavera"
+                ? "#166534"
+                : epoca === "Verano"
+                  ? "#92400e"
+                  : epoca === "Otoño"
+                    ? "#9a3412"
+                    : epoca === "Invierno"
+                      ? "#1e3a8a"
+                      : "#6a6c6e"
+            }
+            strokeWidth={1.5}
+          />
+          <Text
+            className={`font-Inter-Bold text-base ${
+              epoca === "Primavera"
+                ? "text-green-800"
+                : epoca === "Verano"
+                  ? "text-yellow-800"
+                  : epoca === "Otoño"
+                    ? "text-orange-800"
+                    : epoca === "Invierno"
+                      ? "text-blue-800"
+                      : "text-gray-800"
+            }`}
+          >
+            {String(epoca)}
+          </Text>
+        </View>
+      )}
+
       {/* Peso */}
       {peso && (
         <View className="h-12 flex-row items-center justify-center gap-2 self-start rounded-2xl bg-[#efeaff] px-2 py-1">
@@ -58,40 +122,6 @@ export default function ChipsReport({
             strokeWidth={1.5}
           />
           <Text className="font-Inter-Bold text-base text-[#6837ed]">{String(peso)} kg</Text>
-        </View>
-      )}
-
-      {/* Situación */}
-      {situacion && (
-        <View className="h-12 flex-row items-center justify-center gap-2 self-start rounded-2xl bg-[#c6f7ac] px-2 py-1">
-          <HugeiconsIcon
-            icon={MountainIcon}
-            size={24}
-            color="#287200"
-            strokeWidth={1.5}
-          />
-          <Text className="font-Inter-Bold text-base text-[#287200]">{String(situacion)}</Text>
-        </View>
-      )}
-
-      {/* Temperatura */}
-      {temperatura && (
-        <View className="h-12 flex-row items-center justify-center gap-2 self-start rounded-2xl bg-[#e5f3fe] px-2 py-1">
-          <WaterTemp />
-          <Text className="font-Inter-Bold text-base text-[#2669d3]">{String(temperatura)}°</Text>
-        </View>
-      )}
-
-      {/* Técnica */}
-      {tecnica && (
-        <View className="h-12 flex-row items-center justify-center gap-2 self-start rounded-2xl bg-[#fcf4db] px-2 py-1">
-          <HugeiconsIcon
-            icon={AiIdeaFreeIcons}
-            size={24}
-            color="#a25a27"
-            strokeWidth={1.5}
-          />
-          <Text className="font-Inter-Bold text-base text-[#a25a27]">{String(tecnica)}</Text>
         </View>
       )}
 
@@ -134,6 +164,40 @@ export default function ChipsReport({
               }
             })()}
           </Text>
+        </View>
+      )}
+
+      {/* Temperatura */}
+      {temperatura && (
+        <View className="h-12 flex-row items-center justify-center gap-2 self-start rounded-2xl bg-[#e5f3fe] px-2 py-1">
+          <WaterTemp />
+          <Text className="font-Inter-Bold text-base text-[#2669d3]">{String(temperatura)}°</Text>
+        </View>
+      )}
+
+      {/* Situación */}
+      {situacion && (
+        <View className="h-12 flex-row items-center justify-center gap-2 self-start rounded-2xl bg-[#c6f7ac] px-2 py-1">
+          <HugeiconsIcon
+            icon={MountainIcon}
+            size={24}
+            color="#287200"
+            strokeWidth={1.5}
+          />
+          <Text className="font-Inter-Bold text-base text-[#287200]">{String(situacion)}</Text>
+        </View>
+      )}
+
+      {/* Técnica */}
+      {tecnica && (
+        <View className="h-12 flex-row items-center justify-center gap-2 self-start rounded-2xl bg-[#fcf4db] px-2 py-1">
+          <HugeiconsIcon
+            icon={AiIdeaFreeIcons}
+            size={24}
+            color="#a25a27"
+            strokeWidth={1.5}
+          />
+          <Text className="font-Inter-Bold text-base text-[#a25a27]">{String(tecnica)}</Text>
         </View>
       )}
     </View>

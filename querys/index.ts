@@ -232,14 +232,16 @@ export const useHistoricalData = (embalse: string, isPortugal: boolean) => {
     enabled: !isPortugal,
   })
 }
+
 export const useHistoricalDataCatch = (embalse: string, step: number) => {
   return useQuery({
     queryKey: ["historicalData", embalse],
     queryFn: ({ queryKey }) => {
       const [_key, embalse] = queryKey
+      console.log("Consultando datos históricos para embalse:", embalse)
       return HistoricalDataTest(embalse)
     },
-    enabled: step === 3 && Boolean(embalse?.trim()),
+    enabled: step >= 3 && Boolean(embalse?.trim()),
   })
 }
 
@@ -397,29 +399,31 @@ export const insertCatchReport = async (
     }
   }
 
-  console.log("Datos a insertar:", {
-    catch_id: catchUuid,
-    user_id: uuid,
-    embalse: catchData.embalse,
-    fecha: catchData.date,
-    especie: catchData.especie,
-    peso: catchData.peso ? parseFloat(catchData.peso) : null,
-    profundidad: catchData.profundidad,
-    situacion: catchData.situacion,
-    tecnica: catchData.tecnica,
-    temperatura: catchData.temperatura ? parseFloat(catchData.temperatura) : null,
-    comentarios: catchData.comentarios,
-    imagenes: uploadedImages,
-    created_at: new Date().toISOString(),
-    emb_data: emb_data,
-    lat: catchData.lat,
-    lng: catchData.lng,
-  })
+  // console.log("Datos a insertar:", {
+  //   catch_id: catchUuid,
+  //   user_id: uuid,
+  //   embalse: catchData.embalse,
+  //   fecha: catchData.date,
+  //   estacion: catchData.epoca,
+  //   especie: catchData.especie,
+  //   peso: catchData.peso ? parseFloat(catchData.peso) : null,
+  //   profundidad: catchData.profundidad,
+  //   situacion: catchData.situacion,
+  //   tecnica: catchData.tecnica,
+  //   temperatura: catchData.temperatura ? parseFloat(catchData.temperatura) : null,
+  //   comentarios: catchData.comentarios,
+  //   imagenes: uploadedImages,
+  //   created_at: new Date().toISOString(),
+  //   emb_data: emb_data,
+  //   lat: catchData.lat,
+  //   lng: catchData.lng,
+  // })
 
   const { data, error } = await supabase.from("catch_reports").insert({
     catch_id: catchUuid,
     user_id: uuid,
     embalse: catchData.embalse,
+    estacion: catchData.epoca,
     fecha: catchData.date,
     especie: catchData.especie,
     peso: catchData.peso ? parseFloat(catchData.peso) : null,
@@ -488,6 +492,7 @@ export const useUserCatchReports = (userId: string) => {
       const [_key, userId] = queryKey as [string, string]
       return getUserCatchReports(userId)
     },
+    staleTime: 1000 * 60 * 10,
     enabled: !!userId,
   })
 }

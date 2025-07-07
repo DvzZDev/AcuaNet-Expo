@@ -19,6 +19,7 @@ import SignUpScreen from "./screens/SignUpScreen"
 import TabNavigator from "./navigation/TabNavigator"
 import EmbalseScreen from "./screens/EmbalseScreen"
 import CatchReportScreen from "./screens/CatchReportScreen"
+import CatchGalleryScreen from "screens/CatchGalleryScreen"
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 const queryClient = new QueryClient()
@@ -104,7 +105,6 @@ export default function App() {
     return null
   }
 
-  // No renderizar hasta que se haya determinado la ruta inicial
   if (initialRoute === null) {
     return null
   }
@@ -171,6 +171,19 @@ export default function App() {
                       },
                       headerBackVisible: true,
                       headerBackButtonDisplayMode: "minimal",
+                    }}
+                  />
+
+                  <Stack.Screen
+                    name="Gallery"
+                    component={CatchGalleryScreen}
+                    options={{
+                      headerShown: true,
+                      title: "",
+                      headerTitleAlign: "left",
+                      headerStyle: {
+                        backgroundColor: "#effcf3",
+                      },
                     }}
                   />
                 </Stack.Navigator>

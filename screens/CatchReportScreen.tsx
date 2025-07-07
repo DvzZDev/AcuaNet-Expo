@@ -39,6 +39,7 @@ export default function CatchReportPage({ route }: { route: any }) {
     tecnica,
     situacion,
     especie,
+    estacion,
     fecha,
     embalse,
     imagenes,
@@ -178,6 +179,7 @@ export default function CatchReportPage({ route }: { route: any }) {
           <ChipsReport
             especie={especie || undefined}
             peso={peso || undefined}
+            epoca={estacion}
             situacion={situacion || undefined}
             temperatura={temperatura || undefined}
             tecnica={tecnica || undefined}

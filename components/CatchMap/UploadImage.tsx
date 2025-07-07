@@ -41,6 +41,9 @@ export default function UploadImage() {
     isError,
   } = state
 
+  // Estado adicional para manejar la época
+  const [epoca, setEpoca] = useState<string | null>(null)
+
   const mapRef = useRef<MapView>(null)
   const carouselRef = useRef<any>(null)
   const catchReportRef = useRef<CatchReportRef>(null)
@@ -58,6 +61,16 @@ export default function UploadImage() {
   }, [imageDate])
 
   const { data, isLoading } = useHistoricalDataCatch(embalse || "", currentStep)
+
+  useEffect(() => {
+    console.log("UploadImage - Embalse actual:", embalse)
+    console.log("UploadImage - Paso actual:", currentStep)
+    console.log(
+      "UploadImage - Datos históricos disponibles:",
+      data ? (Array.isArray(data) ? data.length : "objeto") : "no data"
+    )
+  }, [embalse, currentStep, data])
+
   useHistoricalWeather(activeCoordinates?.lat ?? null, activeCoordinates?.lng ?? null, memoizedDate)
 
   const currentHeight = heights[currentStep]
@@ -188,6 +201,10 @@ export default function UploadImage() {
     dispatch({ type: "setEmbalse", payload: embalse })
   }, [])
 
+  const setEpocaCallback = useCallback((nuevaEpoca: string | null) => {
+    setEpoca(nuevaEpoca)
+  }, [])
+
   const onLayoutStep = useCallback(
     (index: number) => (event: any) => {
       const h = event.nativeEvent.layout.height
@@ -263,6 +280,8 @@ export default function UploadImage() {
         setIsSuccess={setIsSuccessCallback}
         setIsError={setIsErrorCallback}
         setEmbalse={setEmbalseCallback}
+        setEpoca={setEpocaCallback}
+        epoca={epoca}
         embalseData={data && Array.isArray(data) && data.length > 0 ? data[0] : null}
         coordinates={coordinates || userCoordinates}
         onPrev={goToPrevStep}
@@ -280,6 +299,8 @@ export default function UploadImage() {
       setIsSuccessCallback,
       setIsErrorCallback,
       setEmbalseCallback,
+      setEpocaCallback,
+      epoca,
       data,
       coordinates,
       userCoordinates,

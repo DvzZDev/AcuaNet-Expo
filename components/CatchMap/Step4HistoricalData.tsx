@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { View } from "react-native"
 import StepHeader from "./StepHeader"
 import HistoricalDataDisplay from "./HistoricalDataRecover"
@@ -31,6 +31,14 @@ export default function Step4HistoricalData({
   canNext,
   onLayout,
 }: Step4HistoricalDataProps) {
+  useEffect(() => {
+    console.log("Step4HistoricalData - embalse:", embalse)
+    console.log(
+      "Step4HistoricalData - data disponible:",
+      data ? (Array.isArray(data) ? data.length : "objeto") : "no data"
+    )
+  }, [embalse, data])
+
   return (
     <View
       onLayout={onLayout}

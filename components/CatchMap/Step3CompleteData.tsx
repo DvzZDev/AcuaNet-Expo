@@ -13,6 +13,8 @@ interface Step3CompleteDataProps {
   setIsSuccess: (value: boolean) => void
   setIsError: (value: boolean) => void
   setEmbalse: (value: string | null) => void
+  setEpoca: (value: string | null) => void
+  epoca: string | null
   embalseData: any
   coordinates: GPSCoordinates | null
   onPrev: () => void
@@ -30,6 +32,8 @@ export default function Step3CompleteData({
   setIsSuccess,
   setIsError,
   setEmbalse,
+  setEpoca,
+  epoca,
   embalseData,
   coordinates,
   onPrev,
@@ -37,6 +41,13 @@ export default function Step3CompleteData({
   onLayout,
   catchReportRef,
 }: Step3CompleteDataProps) {
+  // Esto garantiza que cada vez que el usuario cambie el embalse en el CatchReport
+  // se actualiza correctamente el estado en el componente padre
+  const handleEmbalseChange = (embalseValue: string | null) => {
+    console.log("Embalse cambiado a:", embalseValue)
+    setEmbalse(embalseValue)
+  }
+
   return (
     <View
       onLayout={onLayout}
@@ -60,7 +71,9 @@ export default function Step3CompleteData({
         setIsSending={setIsSending}
         setIsSuccess={setIsSuccess}
         setIsError={setIsError}
-        setEmbalse={setEmbalse}
+        setEmbalse={handleEmbalseChange}
+        setEpoca={setEpoca}
+        epocaValue={epoca}
         embalseData={embalseData}
         coordinates={coordinates}
       />

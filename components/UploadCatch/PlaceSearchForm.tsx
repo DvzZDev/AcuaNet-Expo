@@ -79,6 +79,7 @@ export default function PlaceSearchForm({ onLocationSelect, onInputFocus }: Plac
     } else {
       shortName = result.name || result.display_name.split(",")[0]
     }
+    console.log("Seleccionando embalse:", shortName)
     onLocationSelect(shortName)
     setSearchText(shortName)
     setIsSearching(false)
