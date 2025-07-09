@@ -103,7 +103,7 @@ export default function ImageCarrousel({ paths }: { paths?: string[] }) {
         pagingEnabled={true}
         autoPlayInterval={paths && paths.length > 0 ? 3000 : 2000}
         data={displayData}
-        style={{ width: "100%" }}
+        style={{ width: "100%", borderBottomEndRadius: 15, borderBottomStartRadius: 20 }}
         onConfigurePanGesture={(g: { enabled: (arg0: boolean) => any }) => {
           "worklet"
           g.enabled(false)

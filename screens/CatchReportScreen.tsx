@@ -2,7 +2,7 @@ import { Backward01Icon, Delete02Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import ImageCarrousel from "components/CatchReport/ImageCarrousel"
 import { LinearGradient } from "expo-linear-gradient"
-import { useUserCatchReports } from "querys"
+import { useHistoricalWeather, useUserCatchReports } from "querys"
 import { StyleSheet, Text, TouchableOpacity, View, Platform, Alert, Dimensions } from "react-native"
 import { ScrollView } from "react-native-gesture-handler"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -17,6 +17,7 @@ import ReportComents from "@components/CatchReport/ReportComents"
 import EmbStatusReport from "@components/CatchReport/EmbStatusReport"
 import MapReport from "@components/CatchReport/MapReport"
 import ChipsReport from "@components/CatchReport/ChipsReport"
+import HistoricalWeather from "@components/CatchReport/HistoricalWeather"
 
 export default function CatchReportPage({ route }: { route: any }) {
   const { catchReportId } = route.params
@@ -44,6 +45,13 @@ export default function CatchReportPage({ route }: { route: any }) {
     embalse,
     imagenes,
   } = data || {}
+
+  const fechaFormatted = fecha ? new Date(fecha) : undefined
+  const historicalWeather = useHistoricalWeather(
+    lat !== undefined && lat !== null ? lat : undefined,
+    lng !== undefined && lng !== null ? lng : undefined,
+    fechaFormatted || new Date()
+  )
 
   const handleDelete = useCallback(async () => {
     if (!catch_id) {
@@ -201,6 +209,13 @@ export default function CatchReportPage({ route }: { route: any }) {
               fecha={fecha ? new Date(fecha) : new Date()}
             />
           ) : null}
+
+          {fecha && lat && lng && historicalWeather?.data && (
+            <HistoricalWeather
+              fecha={fecha}
+              weatherData={historicalWeather.data}
+            />
+          )}
 
           <LunarReport date={fecha ? new Date(fecha) : new Date()} />
 

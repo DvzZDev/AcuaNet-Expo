@@ -521,14 +521,18 @@ export const getHistoricalWeather = async (lat: number | null, lng: number | nul
   }
 }
 
-export const useHistoricalWeather = (lat: number | null, lng: number | null, fecha: Date) => {
+export const useHistoricalWeather = (lat: number | undefined, lng: number | undefined, fecha: Date) => {
+  // Check if fecha is actually a valid Date before proceeding
+  const isValidDate = fecha && !isNaN(fecha.getTime())
+
   return useQuery({
-    queryKey: ["historicalWeather", lat, lng, fecha.toISOString()],
+    queryKey: ["historicalWeather", lat, lng, isValidDate ? fecha.toISOString() : null],
     queryFn: ({ queryKey }) => {
-      const [_key, lat, lng, fechaStr] = queryKey as [string, number, number, string]
-      return getHistoricalWeather(lat, lng, new Date(fechaStr))
+      const [_key, lat, lng, fechaStr] = queryKey as [string, number | undefined, number | undefined, string | null]
+      if (!fechaStr) throw new Error("Invalid date for historical weather")
+      return getHistoricalWeather(lat!, lng!, new Date(fechaStr))
     },
-    enabled: lat !== null && lng !== null,
+    enabled: lat !== undefined && lng !== undefined && isValidDate,
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,

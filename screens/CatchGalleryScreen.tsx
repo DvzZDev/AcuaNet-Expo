@@ -107,22 +107,24 @@ export default function CatchGalleryScreen() {
                         contentFit="cover"
                       />
 
-                      <View className="absolute bottom-3 left-3 right-3 z-30 h-fit flex-row flex-wrap items-center gap-2">
-                        <View
+                      <View className="absolute  bottom-3 left-3 right-3 z-30 h-fit flex-row flex-wrap items-center gap-2">
+                        <BlurView
                           style={{
                             borderWidth: 1,
+                            position: "relative",
                           }}
-                          className="overflow-hidden rounded-full border-gray-100/20 px-2 py-1"
+                          intensity={15}
+                          tint="systemMaterialDark"
+                          experimentalBlurMethod="dimezisBlurView"
+                          className="relative overflow-hidden rounded-full border-gray-100/20 px-2 py-1"
                         >
                           <Text className="z-40 font-Inter-SemiBold text-sm text-green-200">{report.embalse}</Text>
-                          <BlurView
-                            intensity={20}
-                            tint="dark"
-                            experimentalBlurMethod="dimezisBlurView"
-                            style={{ ...StyleSheet.absoluteFillObject }}
-                          />
-                        </View>
-                        <View
+                        </BlurView>
+
+                        <BlurView
+                          intensity={15}
+                          tint="systemMaterialDark"
+                          experimentalBlurMethod="dimezisBlurView"
                           style={{
                             borderWidth: 1,
                           }}
@@ -135,13 +137,7 @@ export default function CatchGalleryScreen() {
                               day: "numeric",
                             })}
                           </Text>
-                          <BlurView
-                            intensity={20}
-                            tint="dark"
-                            experimentalBlurMethod="dimezisBlurView"
-                            style={{ ...StyleSheet.absoluteFillObject }}
-                          />
-                        </View>
+                        </BlurView>
                       </View>
                     </View>
                   </TouchableHighlight>
