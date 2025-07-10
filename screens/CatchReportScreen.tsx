@@ -1,14 +1,14 @@
-import { Backward01Icon, Delete02Icon } from "@hugeicons/core-free-icons"
+import { Backward01Icon, Delete02Icon, MoreVerticalIcon, MoreVerticalSquare01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import ImageCarrousel from "components/CatchReport/ImageCarrousel"
 import { LinearGradient } from "expo-linear-gradient"
 import { useHistoricalWeather, useUserCatchReports } from "querys"
-import { StyleSheet, Text, TouchableOpacity, View, Platform, Alert, Dimensions } from "react-native"
+import { StyleSheet, Text, TouchableOpacity, View, Platform, Alert, Dimensions, Image } from "react-native"
 import { ScrollView } from "react-native-gesture-handler"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "store"
 import { useNavigation } from "@react-navigation/native"
-import { useLayoutEffect, useCallback } from "react"
+import { useLayoutEffect, useCallback, useRef, useState } from "react"
 import { useHeaderHeight } from "@react-navigation/elements"
 import { supabase } from "lib/supabase"
 import { useQueryClient } from "@tanstack/react-query"
@@ -18,6 +18,10 @@ import EmbStatusReport from "@components/CatchReport/EmbStatusReport"
 import MapReport from "@components/CatchReport/MapReport"
 import ChipsReport from "@components/CatchReport/ChipsReport"
 import HistoricalWeather from "@components/CatchReport/HistoricalWeather"
+import ViewShot from "react-native-view-shot"
+import * as Sharing from "expo-sharing"
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
+import { BlurView } from "expo-blur"
 
 export default function CatchReportPage({ route }: { route: any }) {
   const { catchReportId } = route.params
@@ -28,6 +32,37 @@ export default function CatchReportPage({ route }: { route: any }) {
   const userId = useStore((state) => state.id)
   const allData = useUserCatchReports(userId)
   const data = allData.data?.find((report) => report.catch_id === catchReportId)
+  const viewRef = useRef<ViewShot>(null)
+  const [isCapturing, setIsCapturing] = useState(false)
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false)
+
+  console.log(isOptionsOpen)
+
+  const generarStory = async () => {
+    try {
+      if (!viewRef.current?.capture) {
+        Alert.alert("Error", "No se puede capturar la imagen en este momento")
+        return
+      }
+      setIsCapturing(true)
+      await new Promise((resolve) => setTimeout(resolve, 700))
+      const uri = await viewRef.current.capture()
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri)
+      } else {
+        Alert.alert("Error", "No se puede compartir en este dispositivo")
+      }
+
+      setIsCapturing(false)
+    } catch (error) {
+      console.error("Error al capturar imagen:", error)
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+      Alert.alert("Error", "No se pudo capturar la imagen: " + errorMessage)
+      setIsCapturing(false)
+    }
+  }
+
   const {
     catch_id,
     peso,
@@ -140,18 +175,51 @@ export default function CatchReportPage({ route }: { route: any }) {
       headerTitleAlign: "center",
 
       headerRight: () => (
-        <TouchableOpacity
-          onPress={() => handleDelete()}
-          className="rounded-xl bg-red-100 p-2"
-          style={{ marginRight: 8 }}
-        >
-          <HugeiconsIcon
-            icon={Delete02Icon}
-            size={20}
-            color="red"
-            strokeWidth={1.5}
-          />
-        </TouchableOpacity>
+        <View style={{ position: "relative", marginRight: 8 }}>
+          <TouchableOpacity
+            onPress={() => setIsOptionsOpen(!isOptionsOpen)}
+            className="rounded-xl bg-emerald-100 p-2"
+          >
+            <HugeiconsIcon
+              icon={MoreVerticalIcon}
+              size={24}
+              color="#10b981"
+              strokeWidth={4}
+            />
+          </TouchableOpacity>
+          {isOptionsOpen && (
+            <Animated.View
+              entering={FadeIn.duration(150)}
+              exiting={FadeOut.duration(150)}
+              className="absolute right-0 top-10 z-10 w-[15rem] overflow-hidden rounded-lg shadow-lg"
+            >
+              <BlurView
+                intensity={80}
+                experimentalBlurMethod="dimezisBlurView"
+                tint="light"
+                className="relative"
+              ></BlurView>
+            </Animated.View>
+          )}
+
+          {/* <TouchableOpacity
+            onPress={generarStory}
+            className="mr-2 rounded-xl bg-blue-100 p-2"
+          >
+            <Text style={{ color: "blue", fontSize: 12, fontWeight: "bold", lineHeight: 0 }}>Share</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => handleDelete()}
+            className="rounded-xl bg-red-100 p-2"
+          >
+            <HugeiconsIcon
+              icon={Delete02Icon}
+              size={20}
+              color="red"
+              strokeWidth={1.5}
+            />
+          </TouchableOpacity> */}
+        </View>
       ),
 
       headerShown: true,
@@ -182,45 +250,86 @@ export default function CatchReportPage({ route }: { route: any }) {
         }}
         showsVerticalScrollIndicator={false}
       >
-        <ImageCarrousel paths={imagenes} />
-        <View className="m-4">
-          <ChipsReport
-            especie={especie || undefined}
-            peso={peso || undefined}
-            epoca={estacion}
-            situacion={situacion || undefined}
-            temperatura={temperatura || undefined}
-            tecnica={tecnica || undefined}
-            profundidad={profundidad || undefined}
-            fecha={fecha ? new Date(fecha) : undefined}
-          />
+        <ViewShot
+          ref={viewRef}
+          options={{
+            format: "jpg",
+            quality: 0.9,
+            result: "tmpfile",
+          }}
+        >
+          <LinearGradient
+            colors={["#effcf3", "#9affa1"]}
+            style={{ minHeight: "100%" }}
+          >
+            <View className="relative">
+              <ImageCarrousel paths={imagenes} />
+              {isCapturing && (
+                <View className="absolute bottom-2 right-0 z-20 w-full flex-row items-end justify-between px-3 py-2">
+                  <View className="h-fit w-[10rem] rounded-lg shadow-md">
+                    <Image
+                      source={require("../assets/Publi.webp")}
+                      style={{
+                        width: "100%",
+                        height: 45,
+                      }}
+                      resizeMode="contain"
+                    />
+                  </View>
+                  <View className="h-fit w-[8rem] rounded-lg shadow-md">
+                    <Image
+                      source={require("../assets/Stores.webp")}
+                      style={{
+                        width: "100%",
+                        height: 70,
+                      }}
+                      resizeMode="contain"
+                    />
+                  </View>
+                </View>
+              )}
+            </View>
 
-          <MapReport
-            catch_id={catch_id}
-            imagenes={imagenes && imagenes[0]}
-            lat={lat}
-            lng={lng}
-          />
+            <View className="m-4">
+              <ChipsReport
+                especie={especie || undefined}
+                peso={peso || undefined}
+                epoca={estacion}
+                situacion={situacion || undefined}
+                temperatura={temperatura || undefined}
+                tecnica={tecnica || undefined}
+                profundidad={profundidad || undefined}
+                fecha={fecha ? new Date(fecha) : undefined}
+              />
 
-          {emb_data ? (
-            <EmbStatusReport
-              embalse={embalse || "n/d"}
-              emb_data={emb_data}
-              fecha={fecha ? new Date(fecha) : new Date()}
-            />
-          ) : null}
+              <MapReport
+                catch_id={catch_id}
+                imagenes={imagenes && imagenes[0]}
+                lat={lat}
+                lng={lng}
+              />
 
-          {fecha && lat && lng && historicalWeather?.data && (
-            <HistoricalWeather
-              fecha={fecha}
-              weatherData={historicalWeather.data}
-            />
-          )}
+              {emb_data ? (
+                <EmbStatusReport
+                  embalse={embalse || "n/d"}
+                  emb_data={emb_data}
+                  fecha={fecha ? new Date(fecha) : new Date()}
+                />
+              ) : null}
 
-          <LunarReport date={fecha ? new Date(fecha) : new Date()} />
+              {fecha && lat && lng && historicalWeather?.data && (
+                <HistoricalWeather
+                  fecha={fecha}
+                  weatherData={historicalWeather.data}
+                />
+              )}
 
-          {comentarios ? <ReportComents comentarios={comentarios} /> : null}
-        </View>
+              <LunarReport date={fecha ? new Date(fecha) : new Date()} />
+
+              {comentarios ? <ReportComents comentarios={comentarios} /> : null}
+            </View>
+          </LinearGradient>
+        </ViewShot>
       </ScrollView>
     </>
   )

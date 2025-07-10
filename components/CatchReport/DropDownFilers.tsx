@@ -135,104 +135,110 @@ export default function DropDownFilters({ onSelect }: { onSelect?: (args: [strin
           className="absolute left-0 top-10 z-10 w-[15rem] overflow-hidden rounded-lg shadow-lg"
         >
           <BlurView
-            intensity={80}
+            intensity={60}
             experimentalBlurMethod="dimezisBlurView"
-            tint="light"
+            tint="extraLight"
             className="relative"
           >
-            <TouchableOpacity
-              onPress={() => toggleOrden("createdAt")}
-              className="flex-row items-center justify-between border-gray-500 p-2"
-              style={{ borderBottomWidth: 1 }}
-            >
-              <Text className="font-Inter-Medium text-lg text-gray-800">Fecha de creación</Text>
-              {filters.createdAt === "asc" ? (
-                <HugeiconsIcon
-                  icon={ArrowUp01FreeIcons}
-                  size={20}
-                  color="black"
-                  style={{ transform: [{ rotate: "180deg" }] }}
-                />
-              ) : filters.createdAt === "desc" ? (
-                <HugeiconsIcon
-                  icon={ArrowDown01FreeIcons}
-                  size={20}
-                  color="black"
-                />
-              ) : null}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => toggleOrden("capturedAt")}
-              className="flex-row items-center justify-between border-gray-500 p-2"
-              style={{ borderBottomWidth: 1 }}
-            >
-              <Text className="font-Inter-Medium text-lg text-gray-800">Fecha de captura</Text>
-              {filters.capturedAt === "asc" ? (
-                <HugeiconsIcon
-                  icon={ArrowUp01FreeIcons}
-                  size={20}
-                  color="black"
-                  style={{ transform: [{ rotate: "180deg" }] }}
-                />
-              ) : filters.capturedAt === "desc" ? (
-                <HugeiconsIcon
-                  icon={ArrowDown01FreeIcons}
-                  size={20}
-                  color="black"
-                />
-              ) : null}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setIsEspecieOpen(!isEspecieOpen)}
-              className="flex-row items-center justify-between border-gray-500 p-2"
-              style={{ borderBottomWidth: 1 }}
-            >
-              <Text className="font-Inter-Medium text-lg text-gray-800">Especie</Text>
-              {filters.especie ? (
-                <View className="flex-row items-center">
-                  <Image
-                    source={ESPECIES_PESCA.find((e) => e.name === filters.especie)?.image}
-                    style={{ width: 40, height: 20 }}
-                    contentFit="contain"
+            <View className="bg-white/10">
+              <TouchableOpacity
+                onPress={() => toggleOrden("createdAt")}
+                className="flex-row items-center justify-between border-gray-400 p-2"
+                style={{ borderBottomWidth: 1 }}
+              >
+                <Text className="font-Inter-Medium text-lg text-gray-800">Fecha de creación</Text>
+                {filters.createdAt === "asc" ? (
+                  <HugeiconsIcon
+                    icon={ArrowUp01FreeIcons}
+                    size={20}
+                    color="black"
+                    style={{ transform: [{ rotate: "180deg" }] }}
                   />
-                  <TouchableOpacity
-                    onPress={() => {
-                      setFilters((prev) => ({ ...prev, especie: null }))
-                      onSelect?.(["especie", null])
-                    }}
-                    className="ml-1 rounded-full bg-red-500 p-1"
-                  >
-                    <HugeiconsIcon
-                      icon={Cancel01Icon}
-                      size={12}
-                      color="white"
-                      strokeWidth={3}
+                ) : filters.createdAt === "desc" ? (
+                  <HugeiconsIcon
+                    icon={ArrowDown01FreeIcons}
+                    size={20}
+                    color="black"
+                  />
+                ) : null}
+              </TouchableOpacity>
+            </View>
+
+            <View className="bg-white/10">
+              <TouchableOpacity
+                onPress={() => toggleOrden("capturedAt")}
+                className="flex-row items-center justify-between border-gray-400 p-2"
+                style={{ borderBottomWidth: 1 }}
+              >
+                <Text className="font-Inter-Medium text-lg text-gray-800">Fecha de captura</Text>
+                {filters.capturedAt === "asc" ? (
+                  <HugeiconsIcon
+                    icon={ArrowUp01FreeIcons}
+                    size={20}
+                    color="black"
+                    style={{ transform: [{ rotate: "180deg" }] }}
+                  />
+                ) : filters.capturedAt === "desc" ? (
+                  <HugeiconsIcon
+                    icon={ArrowDown01FreeIcons}
+                    size={20}
+                    color="black"
+                  />
+                ) : null}
+              </TouchableOpacity>
+            </View>
+
+            <View className="bg-white/10">
+              <TouchableOpacity
+                onPress={() => setIsEspecieOpen(!isEspecieOpen)}
+                className="flex-row items-center justify-between border-gray-400 p-2"
+                style={{ borderBottomWidth: 1 }}
+              >
+                <Text className="font-Inter-Medium text-lg text-gray-800">Especie</Text>
+                {filters.especie ? (
+                  <View className="flex-row items-center">
+                    <Image
+                      source={ESPECIES_PESCA.find((e) => e.name === filters.especie)?.image}
+                      style={{ width: 40, height: 20 }}
+                      contentFit="contain"
                     />
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <HugeiconsIcon
-                  icon={isEspecieOpen ? ArrowUp01FreeIcons : ArrowDown01FreeIcons}
-                  size={20}
-                  color="black"
-                />
-              )}
-            </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setFilters((prev) => ({ ...prev, especie: null }))
+                        onSelect?.(["especie", null])
+                      }}
+                      className="ml-1 rounded-full bg-red-500 p-1"
+                    >
+                      <HugeiconsIcon
+                        icon={Cancel01Icon}
+                        size={12}
+                        color="white"
+                        strokeWidth={3}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <HugeiconsIcon
+                    icon={isEspecieOpen ? ArrowUp01FreeIcons : ArrowDown01FreeIcons}
+                    size={20}
+                    color="black"
+                  />
+                )}
+              </TouchableOpacity>
+            </View>
 
             {isEspecieOpen && (
               <BlurView
-                className="border-t border-gray-500"
-                intensity={80}
+                className="border-t border-gray-400"
+                intensity={60}
                 experimentalBlurMethod="dimezisBlurView"
-                tint="light"
+                tint="extraLight"
               >
                 {ESPECIES_PESCA.map((especie) => (
                   <TouchableOpacity
                     key={especie.name}
                     onPress={() => selectEspecie(especie.name)}
-                    className={`flex-row items-center justify-between border-b border-gray-500 p-2 ${filters.especie === especie.name ? "bg-blue-100" : ""}`}
+                    className={`flex-row items-center justify-between border-b border-gray-400 p-2 ${filters.especie === especie.name ? "bg-blue-100" : ""}`}
                   >
                     <Text className="font-Inter-Medium text-base text-gray-800">{especie.name}</Text>
                     <Image
@@ -245,46 +251,48 @@ export default function DropDownFilters({ onSelect }: { onSelect?: (args: [strin
               </BlurView>
             )}
 
-            <TouchableOpacity
-              onPress={() => setIsEmbalseOpen(!isEmbalseOpen)}
-              className="flex-row items-center justify-between p-2"
-            >
-              <Text className="font-Inter-Medium text-lg text-gray-800">Embalse</Text>
-              {filters.embalse ? (
-                <View className="flex-row items-center">
-                  <Text className="mr-1 font-Inter-Medium text-sm text-gray-600">{filters.embalse}</Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      setFilters((prev) => ({ ...prev, embalse: null }))
-                      onSelect?.(["embalse", null])
-                    }}
-                    className="rounded-full bg-red-500 p-1"
-                  >
-                    <HugeiconsIcon
-                      icon={Cancel01Icon}
-                      size={12}
-                      color="white"
-                      strokeWidth={3}
-                    />
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <HugeiconsIcon
-                  icon={isEmbalseOpen ? ArrowUp01FreeIcons : ArrowDown01FreeIcons}
-                  size={20}
-                  color="black"
-                />
-              )}
-            </TouchableOpacity>
+            <View className="bg-white/10">
+              <TouchableOpacity
+                onPress={() => setIsEmbalseOpen(!isEmbalseOpen)}
+                className="flex-row items-center justify-between p-2"
+              >
+                <Text className="font-Inter-Medium text-lg text-gray-800">Embalse</Text>
+                {filters.embalse ? (
+                  <View className="flex-row items-center">
+                    <Text className="mr-1 font-Inter-Medium text-sm text-gray-600">{filters.embalse}</Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setFilters((prev) => ({ ...prev, embalse: null }))
+                        onSelect?.(["embalse", null])
+                      }}
+                      className="rounded-full bg-red-500 p-1"
+                    >
+                      <HugeiconsIcon
+                        icon={Cancel01Icon}
+                        size={12}
+                        color="white"
+                        strokeWidth={3}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <HugeiconsIcon
+                    icon={isEmbalseOpen ? ArrowUp01FreeIcons : ArrowDown01FreeIcons}
+                    size={20}
+                    color="black"
+                  />
+                )}
+              </TouchableOpacity>
+            </View>
 
             {isEmbalseOpen && (
               <BlurView
-                className="border-t border-gray-500"
-                intensity={80}
+                className="border-t border-gray-400"
+                intensity={60}
                 experimentalBlurMethod="dimezisBlurView"
-                tint="light"
+                tint="extraLight"
               >
-                <View className="border-b border-gray-500 p-2">
+                <View className="border-b border-gray-400 p-2">
                   <TextInput
                     value={searchText}
                     onChangeText={setSearchText}
@@ -298,7 +306,7 @@ export default function DropDownFilters({ onSelect }: { onSelect?: (args: [strin
                   <TouchableOpacity
                     key={embalse.nombre}
                     onPress={() => selectEmbalse(embalse.nombre)}
-                    className={`flex-row items-center justify-between border-b border-gray-500 p-2 ${filters.embalse === embalse.nombre ? "bg-blue-100" : ""}`}
+                    className={`flex-row items-center justify-between border-b border-gray-400 p-2 ${filters.embalse === embalse.nombre ? "bg-blue-100" : ""}`}
                   >
                     <Text className="font-Inter-Medium text-base text-gray-800">{embalse.nombre}</Text>
                     <Text className="font-Inter-Regular text-sm text-gray-500">{embalse.pais}</Text>
