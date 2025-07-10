@@ -1,14 +1,20 @@
-import { Backward01Icon, Delete02Icon, MoreVerticalIcon, MoreVerticalSquare01Icon } from "@hugeicons/core-free-icons"
+import {
+  Backward01Icon,
+  Delete02Icon,
+  MoreVerticalIcon,
+  MoreVerticalSquare01Icon,
+  Share01Icon,
+} from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import ImageCarrousel from "components/CatchReport/ImageCarrousel"
 import { LinearGradient } from "expo-linear-gradient"
-import { useHistoricalWeather, useUserCatchReports } from "querys"
+import { useDeleteCatchReporte, useHistoricalWeather, useUserCatchReports } from "querys"
 import { StyleSheet, Text, TouchableOpacity, View, Platform, Alert, Dimensions, Image } from "react-native"
 import { ScrollView } from "react-native-gesture-handler"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useStore } from "store"
 import { useNavigation } from "@react-navigation/native"
-import { useLayoutEffect, useCallback, useRef, useState } from "react"
+import { useLayoutEffect, useCallback, useRef, useState, useEffect } from "react"
 import { useHeaderHeight } from "@react-navigation/elements"
 import { supabase } from "lib/supabase"
 import { useQueryClient } from "@tanstack/react-query"
@@ -33,6 +39,7 @@ export default function CatchReportPage({ route }: { route: any }) {
   const allData = useUserCatchReports(userId)
   const data = allData.data?.find((report) => report.catch_id === catchReportId)
   const viewRef = useRef<ViewShot>(null)
+  const deleteCatchMutation = useDeleteCatchReporte()
   const [isCapturing, setIsCapturing] = useState(false)
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
 
@@ -81,12 +88,12 @@ export default function CatchReportPage({ route }: { route: any }) {
     imagenes,
   } = data || {}
 
-  const fechaFormatted = fecha ? new Date(fecha) : undefined
-  const historicalWeather = useHistoricalWeather(
-    lat !== undefined && lat !== null ? lat : undefined,
-    lng !== undefined && lng !== null ? lng : undefined,
-    fechaFormatted || new Date()
-  )
+  // const fechaFormatted = fecha ? new Date(fecha) : undefined
+  // const historicalWeather = useHistoricalWeather(
+  //   lat !== undefined && lat !== null ? lat : undefined,
+  //   lng !== undefined && lng !== null ? lng : undefined,
+  //   fechaFormatted || new Date()
+  // )
 
   const handleDelete = useCallback(async () => {
     if (!catch_id) {
@@ -106,17 +113,8 @@ export default function CatchReportPage({ route }: { route: any }) {
           text: "Eliminar",
           onPress: async () => {
             try {
-              const { error } = await supabase.from("catch_reports").delete().eq("catch_id", catch_id)
-              if (error) {
-                console.error("Error al eliminar el reporte:", error)
-                Alert.alert("Error", "No se pudo eliminar el reporte. Inténtalo más tarde.")
-                return
-              }
-
+              deleteCatchMutation.mutateAsync(catch_id)
               navigation.goBack()
-
-              await queryClient.invalidateQueries({ queryKey: ["userCatchReports", userId] })
-              await queryClient.invalidateQueries({ queryKey: ["catchReports"] })
 
               console.log("Elemento eliminado")
             } catch (error) {
@@ -129,7 +127,7 @@ export default function CatchReportPage({ route }: { route: any }) {
       ],
       { cancelable: true }
     )
-  }, [catch_id, navigation, queryClient, userId])
+  }, [catch_id, deleteCatchMutation, navigation])
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -138,6 +136,7 @@ export default function CatchReportPage({ route }: { route: any }) {
       headerShadowVisible: false,
       headerStyle: {
         backgroundColor: Platform.OS === "ios" ? "transparent" : "#effcf3",
+        overflow: "visible",
       },
       headerBackVisible: false,
 
@@ -187,45 +186,13 @@ export default function CatchReportPage({ route }: { route: any }) {
               strokeWidth={4}
             />
           </TouchableOpacity>
-          {isOptionsOpen && (
-            <Animated.View
-              entering={FadeIn.duration(150)}
-              exiting={FadeOut.duration(150)}
-              className="absolute right-0 top-10 z-10 w-[15rem] overflow-hidden rounded-lg shadow-lg"
-            >
-              <BlurView
-                intensity={80}
-                experimentalBlurMethod="dimezisBlurView"
-                tint="light"
-                className="relative"
-              ></BlurView>
-            </Animated.View>
-          )}
-
-          {/* <TouchableOpacity
-            onPress={generarStory}
-            className="mr-2 rounded-xl bg-blue-100 p-2"
-          >
-            <Text style={{ color: "blue", fontSize: 12, fontWeight: "bold", lineHeight: 0 }}>Share</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => handleDelete()}
-            className="rounded-xl bg-red-100 p-2"
-          >
-            <HugeiconsIcon
-              icon={Delete02Icon}
-              size={20}
-              color="red"
-              strokeWidth={1.5}
-            />
-          </TouchableOpacity> */}
         </View>
       ),
 
       headerShown: true,
       animation: "fade",
     })
-  }, [navigation, embalse, handleDelete])
+  }, [navigation, embalse, handleDelete, isOptionsOpen])
 
   if (!data) {
     return (
@@ -237,6 +204,56 @@ export default function CatchReportPage({ route }: { route: any }) {
 
   return (
     <>
+      {isOptionsOpen && (
+        <Animated.View
+          entering={FadeIn.duration(200)}
+          exiting={FadeOut.duration(150)}
+          className="absolute right-2 top-0 z-50 w-40 overflow-hidden rounded-2xl"
+        >
+          <BlurView
+            intensity={200}
+            experimentalBlurMethod="dimezisBlurView"
+            tint="extraLight"
+            className="rounded-2xl"
+          >
+            <View className="">
+              <TouchableOpacity
+                onPress={() => {
+                  setIsOptionsOpen(false)
+                  generarStory()
+                }}
+                style={{ borderBottomWidth: 1 }}
+                className="flex-row items-center gap-1 border-b-gray-400 p-2"
+              >
+                <HugeiconsIcon
+                  icon={Share01Icon}
+                  size={22}
+                  color="#2563eb"
+                  strokeWidth={1.5}
+                />
+                <Text className="font-Inter-Medium text-lg text-blue-600">Compartir</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setIsOptionsOpen(false)
+                  handleDelete()
+                }}
+                className="flex-row items-center gap-2 p-2"
+              >
+                <HugeiconsIcon
+                  icon={Delete02Icon}
+                  size={22}
+                  color="#dc2626"
+                  strokeWidth={1.5}
+                />
+                <Text className="font-Inter-Medium text-lg text-red-600">Eliminar</Text>
+              </TouchableOpacity>
+            </View>
+          </BlurView>
+        </Animated.View>
+      )}
+
       <LinearGradient
         colors={["#effcf3", "#9affa1"]}
         style={[StyleSheet.absoluteFillObject, { zIndex: -1 }]}
@@ -317,12 +334,12 @@ export default function CatchReportPage({ route }: { route: any }) {
                 />
               ) : null}
 
-              {fecha && lat && lng && historicalWeather?.data && (
+              {/* {fecha && lat && lng && historicalWeather?.data && (
                 <HistoricalWeather
                   fecha={fecha}
                   weatherData={historicalWeather.data}
                 />
-              )}
+              )} */}
 
               <LunarReport date={fecha ? new Date(fecha) : new Date()} />
 
