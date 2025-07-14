@@ -107,7 +107,7 @@ const getWildcard = (contentKey: string) => {
 
 const CustomBackground = ({ style, contentKey }: BottomSheetBackgroundProps & { contentKey: string }) => (
   <View
-    className="flex-1 rounded-t-[20px]"
+    className="flex-1 rounded-t-[30px]"
     style={[
       {
         backgroundColor: getBgColor(contentKey),
@@ -205,7 +205,7 @@ export default function BottomSheetModalComponent({
     >
       {contentKey && (
         <BottomSheetView
-          className={`flex-1 rounded-t-[20px] ${contentKey === "lunarTable" || contentKey === "maps" ? "px-0" : "px-4"} relative`}
+          className={`flex-1 rounded-t-[30px] ${contentKey === "lunarTable" || contentKey === "maps" ? "px-0" : "px-4"} relative`}
           style={{
             backgroundColor: getBgColor(contentKey),
             paddingBottom: contentKey === "maps" ? 0 : Math.max(insets.bottom, 30),

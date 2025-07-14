@@ -43,7 +43,7 @@ export default function CatchMap() {
   const [mapKey, setMapKey] = useState(0)
   const [isMapExpanded, setIsMapExpanded] = useState(false)
   const mapRef = useRef<MapView>(null)
-  const UserCatchReports = useUserCatchReports(userId)
+  const UserCatchReports = useUserCatchReports(userId || "")
   const deleteCatchMutation = useDeleteCatchReporte()
   const swipeableRefs = useRef<Map<string, any>>(new Map())
   const collapsedHeight = SCREEN_HEIGHT * 0.4

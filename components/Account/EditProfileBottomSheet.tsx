@@ -42,7 +42,7 @@ export default function EditProfileBottomSheet({
 
   const CustomBackground = ({ style }: BottomSheetBackgroundProps) => (
     <View
-      className="flex-1 rounded-t-[20px]"
+      className="flex-1 rounded-t-[30px]"
       style={[
         {
           backgroundColor: "#14141c",
@@ -230,6 +230,11 @@ export default function EditProfileBottomSheet({
       enableDynamicSizing
       enableDismissOnClose
       backdropComponent={renderBackdrop}
+      style={{
+        borderTopLeftRadius: 50,
+        borderTopRightRadius: 50,
+        backgroundColor: "#14141c",
+      }}
       enablePanDownToClose
       keyboardBehavior="interactive"
       android_keyboardInputMode="adjustResize"

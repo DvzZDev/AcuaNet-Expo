@@ -1,6 +1,6 @@
 import { supabase } from "../lib/supabase"
 import { Alert, Text, TouchableOpacity, View, TextInput, Modal } from "react-native"
-import { useEffect, useLayoutEffect, useState } from "react"
+import { useLayoutEffect, useState } from "react"
 import { Image } from "expo-image"
 import { useStore } from "../store"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -43,18 +43,11 @@ export default function AccountScreen() {
 
       headerTitle: () => (
         <Text className="font-Inter-Medium text-3xl">
-          Cuenta Acua<Text className="font-Inter-Black text-4xl text-emerald-500">Net</Text>
+          Configura tu <Text className="font-Inter-Black text-3xl text-emerald-500">Cuenta</Text>
         </Text>
       ),
     })
   })
-
-  useEffect(() => {
-    if (!userId) {
-      console.log("Waiting for user ID from store...")
-      return
-    }
-  }, [userId])
 
   const signOut = async () => {
     Alert.alert(
