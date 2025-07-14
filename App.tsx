@@ -8,29 +8,87 @@ import * as SplashScreen from "expo-splash-screen"
 import { ThemeProvider } from "./components/Theme/theme"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
-import { supabase } from "./lib/supabase"
+import { setupAuthListener, supabase } from "./lib/supabase"
 import { useStore } from "./store"
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query"
-import { RootStackParamList } from "./types"
+import { RootStackNavigationProp, RootStackParamList } from "./types"
 import "./global.css"
-
+import * as NavigationBar from "expo-navigation-bar"
 import SignInScreen from "./screens/SignInScreen"
 import SignUpScreen from "./screens/SignUpScreen"
 import TabNavigator from "./navigation/TabNavigator"
 import EmbalseScreen from "./screens/EmbalseScreen"
 import CatchReportScreen from "./screens/CatchReportScreen"
 import CatchGalleryScreen from "screens/CatchGalleryScreen"
+import WelcomeScreen from "screens/WelcomeScreen"
+import RecoverPassword from "screens/RecoverPassword"
+import * as Linking from "expo-linking"
+import ConfirmEmail from "screens/ConfirmEmail"
+import { Alert } from "react-native"
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 const queryClient = new QueryClient()
+const prefix = Linking.createURL("/")
 
 export default function App() {
   const [sessionChecked, setSessionChecked] = useState(false)
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList | null>(null)
   const [isUserSignedIn, setIsUserSignedIn] = useState(false)
+  const [isNavigationReady, setIsNavigationReady] = useState(false)
   const setId = useStore((state) => state.setId)
   const setAvatarUrl = useStore((state) => state.setAvatarUrl)
-  console.log("is User signed", isUserSignedIn)
+  const navigationRef = React.createRef<any>()
+
+  const linking = {
+    prefixes: [prefix, "acuanet://", "exp+acuanet://"],
+    config: {
+      screens: {
+        Welcome: "welcome",
+        SignIn: "signin",
+        SignUp: "signup",
+        RecoverPassword: {
+          path: "recover-password",
+          parse: {
+            token: (token: any) => token,
+          },
+        },
+        ConfirmEmail: {
+          path: "confirm-email",
+        },
+        Tabs: {
+          path: "tabs",
+          screens: {
+            Home: "home",
+            Search: "search",
+            CatchMap: "catch-map",
+            Account: "account",
+          },
+        },
+        Embalse: "embalse",
+        CatchReport: "catch-report",
+        Gallery: "gallery",
+      },
+    },
+  }
+
+  const handleDeepLink = (url: string) => {
+    if (!url || !isNavigationReady || !navigationRef.current) {
+      return
+    }
+
+    try {
+      if (url.includes("type=email_change")) {
+        console.log("Navigating to ConfirmEmail screen")
+        navigationRef.current.navigate("ConfirmEmail")
+      } else if (url.includes("type=")) {
+        // Si hay otro tipo de link que no sea email_change
+        Alert.alert("Error", "Este enlace ya ha sido usado o ha ocurrido un error", [{ text: "OK" }])
+      }
+    } catch (error) {
+      console.error("Error handling deep link:", error)
+      Alert.alert("Error", "Ha ocurrido un error al procesar el enlace", [{ text: "OK" }])
+    }
+  }
 
   const [loaded, error] = useFonts({
     Inter: require("./assets/fonts/Inter.ttf"),
@@ -42,7 +100,42 @@ export default function App() {
     "Inter-Regular": require("./assets/fonts/InterDisplay-Regular.ttf"),
     "Inter-SemiBold": require("./assets/fonts/InterDisplay-SemiBold.ttf"),
     "Inter-Black-Italic": require("./assets/fonts/Inter_BlackItalic.ttf"),
+    "Black-Rolmer": require("./assets/fonts/BlackRolmer-Regular.otf"),
+    "Black-Oblique": require("./assets/fonts/BlackRolmer-Oblique.otf"),
   })
+
+  // useEffect simplificado para deep links
+  useEffect(() => {
+    setupAuthListener()
+
+    const handleInitialURL = async () => {
+      const initialUrl = await Linking.getInitialURL()
+      if (initialUrl) {
+        handleDeepLink(initialUrl)
+      }
+    }
+
+    const linkingSubscription = Linking.addEventListener("url", (event) => {
+      handleDeepLink(event.url)
+    })
+
+    if (isNavigationReady) {
+      handleInitialURL()
+    }
+
+    return () => linkingSubscription?.remove()
+  }, [isNavigationReady])
+
+  useEffect(() => {
+    if (sessionChecked) {
+      const timeout = setTimeout(() => {
+        NavigationBar.setPositionAsync("absolute")
+        NavigationBar.setBackgroundColorAsync("#ffffff01")
+      }, 100)
+
+      return () => clearTimeout(timeout)
+    }
+  }, [sessionChecked])
 
   useEffect(() => {
     const prepareApp = async () => {
@@ -73,7 +166,7 @@ export default function App() {
 
           setInitialRoute("Tabs")
         } else {
-          setInitialRoute("SignIn")
+          setInitialRoute("Welcome")
           setIsUserSignedIn(false)
         }
       } catch (err) {
@@ -89,18 +182,6 @@ export default function App() {
     }
   }, [loaded, error, sessionChecked, setId, setAvatarUrl])
 
-  // useEffect(() => {
-  //   if ((loaded || error) && !isLoading) {
-  //     if (Platform.OS === "android") {
-  //       NavigationBar.setPositionAsync("absolute")
-  //       NavigationBar.setBackgroundColorAsync("#ffffff01")
-  //       NavigationBar.setButtonStyleAsync("dark")
-  //     }
-
-  //     SplashScreen.hideAsync()
-  //   }
-  // }, [loaded, error, isLoading])
-
   if (!loaded && !error) {
     return null
   }
@@ -115,8 +196,17 @@ export default function App() {
         <BottomSheetModalProvider>
           <ThemeProvider>
             <SafeAreaProvider>
-              <StatusBar style="dark" />
-              <NavigationContainer>
+              <StatusBar
+                style="auto"
+                translucent
+              />
+              <NavigationContainer
+                ref={navigationRef}
+                linking={linking}
+                onReady={() => {
+                  setIsNavigationReady(true)
+                }}
+              >
                 <Stack.Navigator
                   initialRouteName={initialRoute}
                   screenOptions={{
@@ -136,8 +226,20 @@ export default function App() {
                     component={SignInScreen}
                   />
                   <Stack.Screen
+                    name="Welcome"
+                    component={WelcomeScreen}
+                  />
+                  <Stack.Screen
                     name="SignUp"
                     component={SignUpScreen}
+                  />
+                  <Stack.Screen
+                    name="RecoverPassword"
+                    component={RecoverPassword}
+                  />
+                  <Stack.Screen
+                    name="ConfirmEmail"
+                    component={ConfirmEmail}
                   />
                   <Stack.Screen
                     name="Tabs"

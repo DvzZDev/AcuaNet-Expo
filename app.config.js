@@ -1,11 +1,12 @@
 export default {
   expo: {
-    name: "acuanet",
-    slug: "acuanet",
+    name: "AcuaNet",
+    slug: "AcuaNet",
     version: "1.0.0",
     orientation: "portrait",
     userInterfaceStyle: "light",
     scheme: "acuanet",
+    platforms: ["ios", "android"],
     assetBundlePatterns: ["**/*"],
     icon: "./assets/IosIcon.png",
 
@@ -71,6 +72,17 @@ export default {
           apiKey: process.env.EXPO_GOOGLE_MAPS_API_KEY,
         },
       },
+      intentFilters: [
+        {
+          action: "VIEW",
+          data: [
+            {
+              scheme: "acuanet",
+            },
+          ],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+      ],
     },
 
     extra: {
