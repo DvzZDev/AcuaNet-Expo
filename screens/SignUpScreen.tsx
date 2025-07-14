@@ -14,6 +14,7 @@ import { useState } from "react"
 export default function SignUpScreen() {
   const navigation = useNavigation()
   const [pwVisible, setPwVisible] = useState(false)
+  const [focused, setFocused] = useState<"name" | "lastName" | "email" | "password" | "acceptTerms" | null>(null)
 
   const form = useForm({
     defaultValues: {
@@ -113,12 +114,23 @@ export default function SignUpScreen() {
                     <form.Field
                       name="name"
                       validators={{
-                        onChange: ({ value }) => (!value ? "El nombre es requerido" : undefined),
+                        onSubmit: ({ value }) => (!value ? "El nombre es requerido" : undefined),
                       }}
                     >
                       {(field) => (
                         <View className="flex-1 flex-col gap-2">
-                          <View className="h-12 flex-row items-center gap-2 rounded-full bg-green-100 px-2">
+                          <View
+                            style={{
+                              borderWidth: 2,
+                              borderColor:
+                                field.state.meta.errors.length > 0
+                                  ? "#ef4444"
+                                  : focused === "name"
+                                    ? "#10b981"
+                                    : "transparent",
+                            }}
+                            className="h-12 flex-row items-center gap-2 rounded-full bg-green-100 px-2"
+                          >
                             <HugeiconsIcon
                               icon={UserIcon}
                               size={24}
@@ -132,8 +144,12 @@ export default function SignUpScreen() {
                               aria-labelledby="labelName"
                               value={field.state.value}
                               onChangeText={field.handleChange}
-                              onBlur={field.handleBlur}
+                              onBlur={() => {
+                                field.handleBlur()
+                                setFocused(null)
+                              }}
                               returnKeyType="next"
+                              onFocus={() => setFocused("name")}
                               textAlignVertical="center"
                               placeholder="Nombre"
                               placeholderTextColor="#047857"
@@ -149,12 +165,23 @@ export default function SignUpScreen() {
                     <form.Field
                       name="lastName"
                       validators={{
-                        onChange: ({ value }) => (!value ? "Los apellidos son requeridos" : undefined),
+                        onSubmit: ({ value }) => (!value ? "Los apellidos son requeridos" : undefined),
                       }}
                     >
                       {(field) => (
                         <View className="flex-1 flex-col gap-2">
-                          <View className="flex-row items-center gap-2 rounded-full bg-green-100 px-2">
+                          <View
+                            style={{
+                              borderWidth: 2,
+                              borderColor:
+                                field.state.meta.errors.length > 0
+                                  ? "#ef4444"
+                                  : focused === "lastName"
+                                    ? "#10b981"
+                                    : "transparent",
+                            }}
+                            className="h-12 flex-row items-center gap-2 rounded-full bg-green-100 px-2"
+                          >
                             <HugeiconsIcon
                               icon={UserIcon}
                               size={24}
@@ -163,13 +190,17 @@ export default function SignUpScreen() {
                             />
                             <TextInput
                               style={{ lineHeight: Platform.OS === "ios" ? 0 : undefined }}
-                              className="h-12 flex-1 rounded-md font-Inter-Medium text-base text-emerald-900"
+                              className="flex-1 rounded-md font-Inter-Medium text-base text-emerald-900"
                               aria-label="input"
                               aria-labelledby="labelLastName"
                               value={field.state.value}
                               onChangeText={field.handleChange}
-                              onBlur={field.handleBlur}
+                              onBlur={() => {
+                                field.handleBlur()
+                                setFocused(null)
+                              }}
                               returnKeyType="next"
+                              onFocus={() => setFocused("lastName")}
                               textAlignVertical="center"
                               placeholder="Apellidos"
                               placeholderTextColor="#047857"
@@ -186,7 +217,7 @@ export default function SignUpScreen() {
                   <form.Field
                     name="email"
                     validators={{
-                      onChange: ({ value }) => {
+                      onSubmit: ({ value }) => {
                         if (!value) return "El email es requerido"
                         if (!/\S+@\S+\.\S+/.test(value)) return "Email inválido"
                         return undefined
@@ -195,7 +226,18 @@ export default function SignUpScreen() {
                   >
                     {(field) => (
                       <View className="flex-col gap-2">
-                        <View className="flex-row items-center gap-2 rounded-full bg-green-100 px-2">
+                        <View
+                          style={{
+                            borderWidth: 2,
+                            borderColor:
+                              field.state.meta.errors.length > 0
+                                ? "#ef4444"
+                                : focused === "email"
+                                  ? "#10b981"
+                                  : "transparent",
+                          }}
+                          className="h-12 flex-row items-center gap-2 rounded-full bg-green-100 px-2"
+                        >
                           <HugeiconsIcon
                             icon={Mail01Icon}
                             size={24}
@@ -204,16 +246,21 @@ export default function SignUpScreen() {
                           />
                           <TextInput
                             style={{ lineHeight: Platform.OS === "ios" ? 0 : undefined }}
-                            className="h-12 flex-1 rounded-md font-Inter-Medium text-base text-emerald-900"
+                            className="flex-1 rounded-md font-Inter-Medium text-base text-emerald-900"
                             aria-label="input"
                             aria-labelledby="labelEmail"
                             value={field.state.value}
                             onChangeText={field.handleChange}
-                            onBlur={field.handleBlur}
+                            onBlur={() => {
+                              field.handleBlur()
+                              setFocused(null)
+                            }}
                             keyboardType="email-address"
                             autoCapitalize="none"
+                            autoCorrect={false}
                             returnKeyType="next"
                             autoComplete="email"
+                            onFocus={() => setFocused("email")}
                             textAlignVertical="center"
                             placeholder="Ingresa tu email"
                             placeholderTextColor="#047857"
@@ -229,7 +276,7 @@ export default function SignUpScreen() {
                   <form.Field
                     name="password"
                     validators={{
-                      onChange: ({ value }) => {
+                      onSubmit: ({ value }) => {
                         if (!value) return "La contraseña es requerida"
                         if (value.length < 6) return "La contraseña debe tener al menos 6 caracteres"
                         return undefined
@@ -238,7 +285,18 @@ export default function SignUpScreen() {
                   >
                     {(field) => (
                       <View className="flex-col gap-2">
-                        <View className="flex-row items-center gap-2 rounded-full bg-green-100 px-2">
+                        <View
+                          style={{
+                            borderWidth: 2,
+                            borderColor:
+                              field.state.meta.errors.length > 0
+                                ? "#ef4444"
+                                : focused === "password"
+                                  ? "#10b981"
+                                  : "transparent",
+                          }}
+                          className="h-12 flex-row items-center gap-2 rounded-full bg-green-100 px-2"
+                        >
                           <HugeiconsIcon
                             icon={LockPasswordIcon}
                             size={24}
@@ -247,15 +305,19 @@ export default function SignUpScreen() {
                           />
                           <TextInput
                             style={{ lineHeight: Platform.OS === "ios" ? 0 : undefined }}
-                            className="h-12 flex-1 font-Inter-Medium text-base text-emerald-900"
+                            className="flex-1 rounded-md font-Inter-Medium text-base text-emerald-900"
                             aria-label="input"
                             aria-labelledby="labelPassword"
                             secureTextEntry={!pwVisible}
                             value={field.state.value}
                             onChangeText={field.handleChange}
-                            onBlur={field.handleBlur}
+                            onBlur={() => {
+                              field.handleBlur()
+                              setFocused(null)
+                            }}
                             returnKeyType="next"
                             autoCapitalize="none"
+                            onFocus={() => setFocused("password")}
                             textAlignVertical="center"
                             autoComplete="password"
                             placeholder="Ingresa tu contraseña"
@@ -283,7 +345,7 @@ export default function SignUpScreen() {
                   <form.Field
                     name="acceptTerms"
                     validators={{
-                      onChange: ({ value }) => (!value ? "Debes aceptar los términos y condiciones" : undefined),
+                      onSubmit: ({ value }) => (!value ? "Debes aceptar los términos y condiciones" : undefined),
                     }}
                   >
                     {(field) => (

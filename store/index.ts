@@ -1,10 +1,10 @@
 import { create } from "zustand"
 
 interface StoreState {
-  id: string
+  id: string | null
   avatarUrl: string | null
   dirtyFavs: boolean
-  setId: (newId: string) => void
+  setId: (newId: string | null) => void
   setAvatarUrl: (newUrl: string | null) => void
   setDirtyFavs: (dirty: boolean) => void
   setNewEmail: (newEmail: string) => void
@@ -12,11 +12,11 @@ interface StoreState {
 }
 
 export const useStore = create<StoreState>((set) => ({
-  id: "",
+  id: null,
   avatarUrl: null,
   dirtyFavs: false,
   newEmail: null,
-  setId: (newId: string) =>
+  setId: (newId: string | null) =>
     set(() => ({
       id: newId,
     })),

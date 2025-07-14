@@ -26,7 +26,7 @@ export default function AccountScreen() {
   const userId = useStore((state) => state.id)
   const navigation = useNavigation<RootStackNavigationProp<"Account">>()
   const insets = useSafeAreaInsets()
-  const userData = useAccountData(userId)
+  const userData = useAccountData(userId || "")
   const [isBtsEditrOpen, setIsBtsEditrOpen] = useState(false)
   const [confirmText, setConfirmText] = useState("")
   const [showDeleteModal, setShowDeleteModal] = useState(false)

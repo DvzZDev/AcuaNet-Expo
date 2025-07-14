@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import { NavigationContainer } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { SafeAreaProvider } from "react-native-safe-area-context"
@@ -8,10 +8,10 @@ import * as SplashScreen from "expo-splash-screen"
 import { ThemeProvider } from "./components/Theme/theme"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
-import { setupAuthListener, supabase } from "./lib/supabase"
+import { supabase } from "./lib/supabase"
 import { useStore } from "./store"
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query"
-import { RootStackNavigationProp, RootStackParamList } from "./types"
+
 import "./global.css"
 import * as NavigationBar from "expo-navigation-bar"
 import SignInScreen from "./screens/SignInScreen"
@@ -24,17 +24,130 @@ import WelcomeScreen from "screens/WelcomeScreen"
 import RecoverPassword from "screens/RecoverPassword"
 import * as Linking from "expo-linking"
 import ConfirmEmail from "screens/ConfirmEmail"
-import { Alert } from "react-native"
+import { Alert, Keyboard, TouchableWithoutFeedback } from "react-native"
+import { RootStackParamList } from "./types"
 
-const Stack = createNativeStackNavigator<RootStackParamList>()
+type AuthStackParamList = Pick<RootStackParamList, "Welcome" | "SignIn" | "SignUp" | "RecoverPassword" | "ConfirmEmail">
+
+type AppStackParamList = Pick<RootStackParamList, "Tabs" | "Embalse" | "CatchReport" | "Gallery">
+
+const AuthStack = createNativeStackNavigator<AuthStackParamList>()
+const AppStack = createNativeStackNavigator<AppStackParamList>()
 const queryClient = new QueryClient()
 const prefix = Linking.createURL("/")
 
+function AuthNavigator() {
+  return (
+    <AuthStack.Navigator
+      initialRouteName="Welcome"
+      screenOptions={{
+        headerShown: false,
+        headerStyle: {
+          backgroundColor: "#f0fdf4",
+        },
+        headerTitleStyle: {
+          fontFamily: "Inter-Bold",
+        },
+        headerShadowVisible: false,
+        title: "Acua",
+      }}
+    >
+      <AuthStack.Screen
+        name="Welcome"
+        component={WelcomeScreen}
+      />
+      <AuthStack.Screen
+        name="SignIn"
+        component={SignInScreen}
+      />
+      <AuthStack.Screen
+        name="SignUp"
+        component={SignUpScreen}
+      />
+      <AuthStack.Screen
+        name="RecoverPassword"
+        component={RecoverPassword}
+      />
+      <AuthStack.Screen
+        name="ConfirmEmail"
+        component={ConfirmEmail}
+      />
+    </AuthStack.Navigator>
+  )
+}
+
+function AppNavigator() {
+  return (
+    <AppStack.Navigator
+      initialRouteName="Tabs"
+      screenOptions={{
+        headerShown: false,
+        headerStyle: {
+          backgroundColor: "#f0fdf4",
+        },
+        headerTitleStyle: {
+          fontFamily: "Inter-Bold",
+        },
+        headerShadowVisible: false,
+        title: "Acua",
+      }}
+    >
+      <AppStack.Screen
+        name="Tabs"
+        component={TabNavigator}
+      />
+      <AppStack.Screen
+        name="Embalse"
+        component={EmbalseScreen}
+        options={{
+          headerShown: true,
+          title: "",
+          headerTitleAlign: "left",
+          headerStyle: {
+            backgroundColor: "#effcf3",
+          },
+          headerBackVisible: true,
+          headerBackButtonDisplayMode: "minimal",
+          headerRight: () => null,
+          headerLeft: () => null,
+        }}
+      />
+      <AppStack.Screen
+        name="CatchReport"
+        component={CatchReportScreen}
+        options={{
+          headerShown: true,
+          title: "",
+          headerTitleAlign: "left",
+          headerStyle: {
+            backgroundColor: "#effcf3",
+          },
+          headerBackVisible: true,
+          headerBackButtonDisplayMode: "minimal",
+        }}
+      />
+      <AppStack.Screen
+        name="Gallery"
+        component={CatchGalleryScreen}
+        options={{
+          headerShown: true,
+          title: "",
+          headerTitleAlign: "left",
+          headerStyle: {
+            backgroundColor: "#effcf3",
+          },
+        }}
+      />
+    </AppStack.Navigator>
+  )
+}
+
 export default function App() {
   const [sessionChecked, setSessionChecked] = useState(false)
-  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList | null>(null)
   const [isUserSignedIn, setIsUserSignedIn] = useState(false)
   const [isNavigationReady, setIsNavigationReady] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
   const setId = useStore((state) => state.setId)
   const setAvatarUrl = useStore((state) => state.setAvatarUrl)
   const navigationRef = React.createRef<any>()
@@ -71,6 +184,35 @@ export default function App() {
     },
   }
 
+  const handleSessionChange = useCallback(
+    async (session: any) => {
+      try {
+        if (session?.user?.id) {
+          setId(session.user.id)
+          setIsUserSignedIn(true)
+
+          const filePath = `${session.user.id}/Avatar.png`
+          const { data: Davatar, error: Eavatar } = await supabase.storage
+            .from("accounts")
+            .createSignedUrl(filePath, 3600)
+
+          if (Eavatar || !Davatar?.signedUrl) {
+            setAvatarUrl(null)
+          } else {
+            setAvatarUrl(Davatar.signedUrl)
+          }
+        } else {
+          setId(null)
+          setAvatarUrl(null)
+          setIsUserSignedIn(false)
+        }
+      } catch (error) {
+        console.error("Error handling session change:", error)
+      }
+    },
+    [setId, setAvatarUrl]
+  )
+
   const handleDeepLink = (url: string) => {
     if (!url || !isNavigationReady || !navigationRef.current) {
       return
@@ -78,10 +220,8 @@ export default function App() {
 
     try {
       if (url.includes("type=email_change")) {
-        console.log("Navigating to ConfirmEmail screen")
         navigationRef.current.navigate("ConfirmEmail")
       } else if (url.includes("type=")) {
-        // Si hay otro tipo de link que no sea email_change
         Alert.alert("Error", "Este enlace ya ha sido usado o ha ocurrido un error", [{ text: "OK" }])
       }
     } catch (error) {
@@ -104,10 +244,49 @@ export default function App() {
     "Black-Oblique": require("./assets/fonts/BlackRolmer-Oblique.otf"),
   })
 
-  // useEffect simplificado para deep links
   useEffect(() => {
-    setupAuthListener()
+    let authListener: any
 
+    const setupAuth = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession()
+
+        if (error) {
+          console.error("Error fetching initial session:", error)
+        }
+
+        await handleSessionChange(session)
+
+        authListener = supabase.auth.onAuthStateChange(async (event, session) => {
+          if (event === "SIGNED_IN") {
+            queryClient.invalidateQueries()
+          } else if (event === "SIGNED_OUT") {
+            queryClient.clear()
+          }
+
+          await handleSessionChange(session)
+        })
+      } catch (err) {
+        console.error("Error setting up auth:", err)
+      } finally {
+        setIsLoading(false)
+        setSessionChecked(true)
+      }
+    }
+
+    if (loaded || error) {
+      setupAuth()
+    }
+
+    return () => {
+      authListener?.data?.subscription?.unsubscribe()
+    }
+  }, [loaded, error, handleSessionChange])
+
+  useEffect(() => {
     const handleInitialURL = async () => {
       const initialUrl = await Linking.getInitialURL()
       if (initialUrl) {
@@ -127,7 +306,7 @@ export default function App() {
   }, [isNavigationReady])
 
   useEffect(() => {
-    if (sessionChecked) {
+    if (sessionChecked && !isLoading) {
       const timeout = setTimeout(() => {
         NavigationBar.setPositionAsync("absolute")
         NavigationBar.setBackgroundColorAsync("#ffffff01")
@@ -135,165 +314,47 @@ export default function App() {
 
       return () => clearTimeout(timeout)
     }
-  }, [sessionChecked])
+  }, [sessionChecked, isLoading])
 
   useEffect(() => {
-    const prepareApp = async () => {
-      try {
-        await SplashScreen.preventAutoHideAsync()
-
-        const { data, error } = await supabase.auth.getSession()
-
-        if (error) {
-          console.error("Error fetching session:", error)
-        }
-
-        if (data.session?.user?.id) {
-          setId(data.session.user.id)
-          setIsUserSignedIn(true)
-
-          const filePath = `${data.session.user.id}/Avatar.png`
-          const { data: Davatar, error: Eavatar } = await supabase.storage
-            .from("accounts")
-            .createSignedUrl(filePath, 3600)
-
-          if (Eavatar || !Davatar?.signedUrl) {
-            console.log("Usuario sin foto de perfil o error al obtenerla:", Eavatar?.message)
-            setAvatarUrl(null)
-          } else {
-            setAvatarUrl(Davatar.signedUrl)
-          }
-
-          setInitialRoute("Tabs")
-        } else {
-          setInitialRoute("Welcome")
-          setIsUserSignedIn(false)
-        }
-      } catch (err) {
-        console.error("Error durante la comprobación de sesión:", err)
-      } finally {
-        setSessionChecked(true)
-        SplashScreen.hideAsync()
+    const hideSplash = async () => {
+      if (sessionChecked && !isLoading && (loaded || error)) {
+        await SplashScreen.hideAsync()
       }
     }
 
-    if ((loaded || error) && !sessionChecked) {
-      prepareApp()
-    }
-  }, [loaded, error, sessionChecked, setId, setAvatarUrl])
+    hideSplash()
+  }, [sessionChecked, isLoading, loaded, error])
 
-  if (!loaded && !error) {
-    return null
-  }
-
-  if (initialRoute === null) {
+  if ((!loaded && !error) || isLoading || !sessionChecked) {
     return null
   }
 
   return (
     <QueryClientProvider client={queryClient}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <BottomSheetModalProvider>
-          <ThemeProvider>
-            <SafeAreaProvider>
-              <StatusBar
-                style="auto"
-                translucent
-              />
-              <NavigationContainer
-                ref={navigationRef}
-                linking={linking}
-                onReady={() => {
-                  setIsNavigationReady(true)
-                }}
-              >
-                <Stack.Navigator
-                  initialRouteName={initialRoute}
-                  screenOptions={{
-                    headerShown: false,
-                    headerStyle: {
-                      backgroundColor: "#f0fdf4",
-                    },
-                    headerTitleStyle: {
-                      fontFamily: "Inter-Bold",
-                    },
-                    headerShadowVisible: false,
-                    title: "Acua",
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <BottomSheetModalProvider>
+            <ThemeProvider>
+              <SafeAreaProvider>
+                <StatusBar
+                  style="auto"
+                  translucent
+                />
+                <NavigationContainer
+                  ref={navigationRef}
+                  linking={linking}
+                  onReady={() => {
+                    setIsNavigationReady(true)
                   }}
                 >
-                  <Stack.Screen
-                    name="SignIn"
-                    component={SignInScreen}
-                  />
-                  <Stack.Screen
-                    name="Welcome"
-                    component={WelcomeScreen}
-                  />
-                  <Stack.Screen
-                    name="SignUp"
-                    component={SignUpScreen}
-                  />
-                  <Stack.Screen
-                    name="RecoverPassword"
-                    component={RecoverPassword}
-                  />
-                  <Stack.Screen
-                    name="ConfirmEmail"
-                    component={ConfirmEmail}
-                  />
-                  <Stack.Screen
-                    name="Tabs"
-                    component={TabNavigator}
-                  />
-                  <Stack.Screen
-                    name="Embalse"
-                    component={EmbalseScreen}
-                    options={{
-                      headerShown: true,
-                      title: "",
-                      headerTitleAlign: "left",
-                      headerStyle: {
-                        backgroundColor: "#effcf3",
-                      },
-                      headerBackVisible: true,
-                      headerBackButtonDisplayMode: "minimal",
-                      headerRight: () => null,
-                      headerLeft: () => null,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="CatchReport"
-                    component={CatchReportScreen}
-                    options={{
-                      headerShown: true,
-                      title: "",
-                      headerTitleAlign: "left",
-                      headerStyle: {
-                        backgroundColor: "#effcf3",
-                      },
-                      headerBackVisible: true,
-                      headerBackButtonDisplayMode: "minimal",
-                    }}
-                  />
-
-                  <Stack.Screen
-                    name="Gallery"
-                    component={CatchGalleryScreen}
-                    options={{
-                      headerShown: true,
-                      title: "",
-                      headerTitleAlign: "left",
-                      headerStyle: {
-                        backgroundColor: "#effcf3",
-                      },
-                    }}
-                  />
-                </Stack.Navigator>
-              </NavigationContainer>
-            </SafeAreaProvider>
-          </ThemeProvider>
-        </BottomSheetModalProvider>
-      </GestureHandlerRootView>
+                  {isUserSignedIn ? <AppNavigator /> : <AuthNavigator />}
+                </NavigationContainer>
+              </SafeAreaProvider>
+            </ThemeProvider>
+          </BottomSheetModalProvider>
+        </GestureHandlerRootView>
+      </TouchableWithoutFeedback>
     </QueryClientProvider>
   )
 }

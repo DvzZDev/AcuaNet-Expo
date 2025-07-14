@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, View, Platform } from "react-native"
+import { Text, TouchableOpacity, View, Platform, Alert } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { StatusBar } from "expo-status-bar"
 import { TextInput } from "react-native-gesture-handler"
@@ -15,25 +15,22 @@ import { useState } from "react"
 export default function SignIn() {
   const navigation = useNavigation<RootStackNavigationProp<"SignIn">>()
   const [pwVisible, setPwVisible] = useState(false)
-
+  const [focused, setFocused] = useState<"email" | "password" | null>(null)
   const form = useForm({
     defaultValues: {
       email: "",
       password: "",
     },
     onSubmit: async ({ value }) => {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: value.email,
         password: value.password,
       })
 
       if (error) {
-        console.error("Error al iniciar sesión:", error.message)
-        alert("Error al iniciar sesión: " + error.message)
+        Alert.alert("Error", "No se pudo iniciar sesión. Por favor, verifica tus credenciales.")
         return
       }
-      console.log("Usuario logueado:", data.user)
-      navigation.navigate("Tabs")
     },
   })
   return (
@@ -79,7 +76,7 @@ export default function SignIn() {
               <form.Field
                 name="email"
                 validators={{
-                  onChange: ({ value }) => {
+                  onSubmit: ({ value }) => {
                     if (!value) return "El email es requerido"
                     if (!/\S+@\S+\.\S+/.test(value)) return "Email inválido"
                     return undefined
@@ -87,8 +84,19 @@ export default function SignIn() {
                 }}
               >
                 {(field) => (
-                  <View className="flex-col gap-2">
-                    <View className="flex-row items-center gap-2 rounded-full bg-green-100 px-2">
+                  <View className="flex-col">
+                    <View
+                      className="flex-row items-center gap-2 rounded-full bg-green-100 px-2"
+                      style={{
+                        borderWidth: 2,
+                        borderColor:
+                          field.state.meta.errors.length > 0
+                            ? "#ef4444"
+                            : focused === "email"
+                              ? "#10b981"
+                              : "transparent",
+                      }}
+                    >
                       <HugeiconsIcon
                         icon={Mail01Icon}
                         size={24}
@@ -102,9 +110,15 @@ export default function SignIn() {
                         aria-labelledby="labelEmail"
                         value={field.state.value}
                         onChangeText={field.handleChange}
-                        onBlur={field.handleBlur}
+                        onFocus={() => setFocused("email")}
+                        onBlur={() => {
+                          setFocused(null)
+                          field.handleBlur()
+                        }}
                         keyboardType="email-address"
                         autoCapitalize="none"
+                        autoCorrect={false}
+                        spellCheck={false}
                         returnKeyType="next"
                         autoComplete="email"
                         textAlignVertical="center"
@@ -122,15 +136,26 @@ export default function SignIn() {
               <form.Field
                 name="password"
                 validators={{
-                  onChange: ({ value }) => {
+                  onSubmit: ({ value }) => {
                     if (!value) return "La contraseña es requerida"
                     return undefined
                   },
                 }}
               >
                 {(field) => (
-                  <View className="flex-col gap-2">
-                    <View className="flex-row items-center gap-2 rounded-full bg-green-100 px-2">
+                  <View className="flex-col">
+                    <View
+                      className="flex-row items-center gap-2 rounded-full bg-green-100 px-2"
+                      style={{
+                        borderWidth: 2,
+                        borderColor:
+                          field.state.meta.errors.length > 0
+                            ? "#ef4444"
+                            : focused === "password"
+                              ? "#10b981"
+                              : "transparent",
+                      }}
+                    >
                       <HugeiconsIcon
                         icon={LockPasswordIcon}
                         size={24}
@@ -145,7 +170,11 @@ export default function SignIn() {
                         secureTextEntry={!pwVisible}
                         value={field.state.value}
                         onChangeText={field.handleChange}
-                        onBlur={field.handleBlur}
+                        onFocus={() => setFocused("password")}
+                        onBlur={() => {
+                          setFocused(null)
+                          field.handleBlur()
+                        }}
                         returnKeyType="done"
                         textAlignVertical="center"
                         autoComplete="off"

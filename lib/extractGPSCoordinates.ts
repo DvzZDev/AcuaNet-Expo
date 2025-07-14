@@ -5,7 +5,7 @@ import * as MediaLibrary from "expo-media-library"
 import * as FileSystem from "expo-file-system"
 import * as PIEXIF from "piexifjs"
 
-export interface GPSCoordinates {
+export interface a {
   lat: number
   lng: number
   date?: string | null
