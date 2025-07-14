@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Alert } from "react-native"
+import { View, Text, TouchableOpacity, Alert, Platform, TextInput, ActivityIndicator } from "react-native"
 import { useEffect, useRef, useState } from "react"
 import {
   BottomSheetBackdrop,
@@ -8,7 +8,6 @@ import {
   BottomSheetView,
 } from "@gorhom/bottom-sheet"
 import { HugeiconsIcon } from "@hugeicons/react-native"
-import { EditUser02Icon } from "@hugeicons/core-free-icons"
 import { useForm } from "@tanstack/react-form"
 import { UserData } from "types/index"
 import { Image } from "expo-image"
@@ -17,6 +16,7 @@ import { emailVerification, supabase } from "lib/supabase"
 import { uploadImage } from "lib/uploadImage"
 import { useQueryClient } from "@tanstack/react-query"
 import { useStore } from "store"
+import { EyeIcon, ViewOffIcon, LockPasswordIcon, EditUser02Icon, UserIcon } from "@hugeicons/core-free-icons"
 
 export default function EditProfileBottomSheet({
   setOpen,
@@ -45,7 +45,7 @@ export default function EditProfileBottomSheet({
       className="flex-1 rounded-t-[20px]"
       style={[
         {
-          backgroundColor: "#defce2",
+          backgroundColor: "#14141c",
         },
         style,
       ]}
@@ -55,6 +55,7 @@ export default function EditProfileBottomSheet({
   const [isLoading, setIsLoading] = useState(false)
   const [image, setImage] = useState<string | null>(null)
   const [imageBase64, setImageBase64] = useState<string | null>(null)
+  const [pwVisible, setPwVisible] = useState(false)
 
   const showErrorAlert = (message: string) => {
     Alert.alert("Error", message, [{ text: "Entendido", style: "cancel" }], { cancelable: true })
@@ -62,7 +63,7 @@ export default function EditProfileBottomSheet({
 
   const showSuccessAlert = (message: string, onConfirm?: () => void) => {
     Alert.alert(
-      "Éxito",
+      "Completado",
       message,
       [
         {
@@ -212,7 +213,11 @@ export default function EditProfileBottomSheet({
 
   const handlePickImage = () => {
     pickImage({
-      setError: (error) => showErrorAlert(error ?? "Ocurrió un error"),
+      setError: (error) => {
+        if (typeof error === "string" && error) {
+          showErrorAlert(error)
+        }
+      },
       setImage,
       setImageBase64,
     })
@@ -235,28 +240,43 @@ export default function EditProfileBottomSheet({
       }}
     >
       <BottomSheetView className="h-auto px-4 pb-6">
-        <View className="flex-row items-center justify-center gap-1 self-start rounded-xl border border-emerald-800 bg-emerald-200 p-2">
+        <View className="flex-row items-center justify-center gap-2 self-center px-3 py-1">
           <HugeiconsIcon
             icon={EditUser02Icon}
             size={24}
-            color="#064e3b"
+            color="#a7f3d0"
             strokeWidth={1.5}
           />
-          <Text>Editar Perfil</Text>
+          <Text className="font-Inter-Medium text-lg text-emerald-200">Editar Perfil</Text>
         </View>
 
         <form.Field name="nombre">
           {(field) => (
             <View className="mt-5 w-full">
               <View className="flex-row items-center justify-between">
-                <Text className="font-Inter-SemiBold text-xl text-emerald-950">Nombre</Text>
+                <Text className="font-Inter-SemiBold text-lg text-emerald-300">Nombre</Text>
               </View>
-              <BottomSheetTextInput
-                className="font-Inter-Regular mt-2 w-full rounded-lg border border-emerald-800 bg-green-100 px-3 py-2 text-base text-emerald-900"
-                value={field.state.value}
-                onChangeText={field.handleChange}
-                style={{ fontFamily: "Inter-Regular" }}
-              />
+              <View className="mt-3 flex-row items-center gap-2 rounded-full bg-green-100 px-2">
+                <HugeiconsIcon
+                  icon={UserIcon}
+                  size={24}
+                  color="#047857"
+                  strokeWidth={1.5}
+                />
+                <TextInput
+                  style={{ lineHeight: Platform.OS === "ios" ? 0 : undefined }}
+                  className="h-12 flex-1 font-Inter-Medium text-base text-emerald-900"
+                  aria-label="input"
+                  value={field.state.value}
+                  onChangeText={field.handleChange}
+                  onBlur={field.handleBlur}
+                  returnKeyType="done"
+                  textAlignVertical="center"
+                  autoComplete="off"
+                  placeholder="Nombre"
+                  placeholderTextColor="#047857"
+                />
+              </View>
             </View>
           )}
         </form.Field>
@@ -265,14 +285,29 @@ export default function EditProfileBottomSheet({
           {(field) => (
             <View className="mt-5 w-full">
               <View className="flex-row items-center justify-between">
-                <Text className="font-Inter-SemiBold text-xl text-emerald-950">Apellidos</Text>
+                <Text className="font-Inter-SemiBold text-lg text-emerald-300">Apellidos</Text>
               </View>
-              <BottomSheetTextInput
-                className="mt-2 w-full rounded-lg border border-emerald-800 bg-green-100 px-3 py-2 text-base text-emerald-900"
-                value={field.state.value}
-                onChangeText={field.handleChange}
-                style={{ fontFamily: "Inter-Regular" }}
-              />
+              <View className="mt-3 flex-row items-center gap-2 rounded-full bg-green-100 px-2">
+                <HugeiconsIcon
+                  icon={UserIcon}
+                  size={24}
+                  color="#047857"
+                  strokeWidth={1.5}
+                />
+                <TextInput
+                  style={{ lineHeight: Platform.OS === "ios" ? 0 : undefined }}
+                  className="h-12 flex-1 font-Inter-Medium text-base text-emerald-900"
+                  aria-label="input"
+                  value={field.state.value}
+                  onChangeText={field.handleChange}
+                  onBlur={field.handleBlur}
+                  returnKeyType="done"
+                  textAlignVertical="center"
+                  autoComplete="off"
+                  placeholder="Apellidos"
+                  placeholderTextColor="#047857"
+                />
+              </View>
             </View>
           )}
         </form.Field>
@@ -281,15 +316,30 @@ export default function EditProfileBottomSheet({
           {(field) => (
             <View className="mt-5 w-full">
               <View className="flex-row items-center justify-between">
-                <Text className="font-Inter-SemiBold text-xl text-emerald-950">Email</Text>
+                <Text className="font-Inter-SemiBold text-lg text-emerald-300">Email</Text>
               </View>
-              <BottomSheetTextInput
-                className="mt-2 w-full rounded-lg border border-emerald-800 bg-green-100 px-3 py-2 text-base text-emerald-900"
-                value={field.state.value}
-                onChangeText={field.handleChange}
-                keyboardType="email-address"
-                style={{ fontFamily: "Inter-Regular" }}
-              />
+              <View className="mt-3 flex-row items-center gap-2 rounded-full bg-green-100 px-2">
+                <HugeiconsIcon
+                  icon={UserIcon}
+                  size={24}
+                  color="#047857"
+                  strokeWidth={1.5}
+                />
+                <BottomSheetTextInput
+                  style={{ lineHeight: Platform.OS === "ios" ? 0 : undefined }}
+                  className="h-12 flex-1 font-Inter-Medium text-base text-emerald-900"
+                  aria-label="input"
+                  value={field.state.value}
+                  onChangeText={field.handleChange}
+                  onBlur={field.handleBlur}
+                  returnKeyType="done"
+                  textAlignVertical="center"
+                  autoComplete="off"
+                  keyboardType="email-address"
+                  placeholder="Email"
+                  placeholderTextColor="#047857"
+                />
+              </View>
             </View>
           )}
         </form.Field>
@@ -298,16 +348,42 @@ export default function EditProfileBottomSheet({
           {(field) => (
             <View className="mt-5 w-full">
               <View className="flex-row items-center justify-between">
-                <Text className="font-Inter-SemiBold text-xl text-emerald-950">Cambiar contraseña</Text>
+                <Text className="font-Inter-SemiBold text-lg text-emerald-300">Cambiar contraseña</Text>
               </View>
-              <BottomSheetTextInput
-                className="mt-2 w-full rounded-lg border border-emerald-800 bg-green-100 px-3 py-2 text-base text-emerald-900"
-                value={field.state.value}
-                onChangeText={field.handleChange}
-                style={{ fontFamily: "Inter-Regular" }}
-                placeholder="Nueva contraseña"
-                secureTextEntry
-              />
+              <View className="mt-3 flex-row items-center gap-2 rounded-full bg-green-100 px-2">
+                <HugeiconsIcon
+                  icon={LockPasswordIcon}
+                  size={24}
+                  color="#047857"
+                  strokeWidth={1.5}
+                />
+                <BottomSheetTextInput
+                  style={{ lineHeight: Platform.OS === "ios" ? 0 : undefined }}
+                  className="h-12 flex-1 font-Inter-Medium text-base text-emerald-900"
+                  aria-label="input"
+                  aria-labelledby="labelPassword"
+                  secureTextEntry={!pwVisible}
+                  value={field.state.value}
+                  onChangeText={field.handleChange}
+                  onBlur={field.handleBlur}
+                  returnKeyType="done"
+                  textAlignVertical="center"
+                  autoComplete="off"
+                  placeholder="Ingresa tu contraseña"
+                  placeholderTextColor="#047857"
+                />
+                <TouchableOpacity
+                  onPress={() => setPwVisible(!pwVisible)}
+                  className="ml-2"
+                >
+                  <HugeiconsIcon
+                    icon={pwVisible ? ViewOffIcon : EyeIcon}
+                    size={24}
+                    color="#047857"
+                    strokeWidth={1.5}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         </form.Field>
@@ -316,11 +392,11 @@ export default function EditProfileBottomSheet({
           {(field) => (
             <View className="mt-5 w-full">
               <View className="flex-row items-center justify-between">
-                <Text className="font-Inter-SemiBold text-xl text-emerald-950">Imagen de perfil</Text>
+                <Text className="font-Inter-SemiBold text-lg text-emerald-300">Imagen de perfil</Text>
               </View>
               <TouchableOpacity
                 onPress={handlePickImage}
-                className="mt-2 h-24 w-24 self-start overflow-hidden rounded-full border-2 border-emerald-800"
+                className="mt-3 h-24 w-24 self-start overflow-hidden rounded-full border-2 border-emerald-800"
               >
                 <Image
                   source={{
@@ -338,13 +414,21 @@ export default function EditProfileBottomSheet({
         </form.Field>
 
         <TouchableOpacity
-          className={`mt-6 self-center rounded-xl ${isLoading ? "bg-emerald-400" : "bg-emerald-600"} px-6 py-3`}
+          className={`mb-6 mt-6 w-full items-center justify-center rounded-2xl ${isLoading ? "bg-emerald-400" : "bg-emerald-600"} px-6 py-3`}
           onPress={() => form.handleSubmit()}
           disabled={isLoading}
         >
-          <Text className="font-Inter-SemiBold text-lg text-white">
-            {isLoading ? "Guardando..." : "Guardar cambios"}
-          </Text>
+          {isLoading ? (
+            <View className="flex-row items-center justify-center gap-2">
+              <ActivityIndicator
+                size={"small"}
+                color={"white"}
+              />
+              <Text className="font-Inter-SemiBold text-lg text-white">Guardando...</Text>
+            </View>
+          ) : (
+            <Text className="font-Inter-SemiBold text-lg text-white">Guardar cambios</Text>
+          )}
         </TouchableOpacity>
       </BottomSheetView>
     </BottomSheetModal>

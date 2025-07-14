@@ -118,15 +118,16 @@ export default function SignUpScreen() {
                     >
                       {(field) => (
                         <View className="flex-1 flex-col gap-2">
-                          <View className="flex-row items-center gap-2 rounded-full bg-green-100 px-2">
+                          <View className="h-12 flex-row items-center gap-2 rounded-full bg-green-100 px-2">
                             <HugeiconsIcon
                               icon={UserIcon}
                               size={24}
-                              color="#000000"
+                              color="#047857"
                               strokeWidth={1.5}
                             />
                             <TextInput
-                              className="h-12 flex-1 rounded-md font-Inter-Medium text-base text-emerald-900"
+                              style={{ lineHeight: Platform.OS === "ios" ? 0 : undefined }}
+                              className="flex-1 rounded-md font-Inter-Medium text-base text-emerald-900"
                               aria-label="input"
                               aria-labelledby="labelName"
                               value={field.state.value}
@@ -157,10 +158,11 @@ export default function SignUpScreen() {
                             <HugeiconsIcon
                               icon={UserIcon}
                               size={24}
-                              color="#000000"
+                              color="#047857"
                               strokeWidth={1.5}
                             />
                             <TextInput
+                              style={{ lineHeight: Platform.OS === "ios" ? 0 : undefined }}
                               className="h-12 flex-1 rounded-md font-Inter-Medium text-base text-emerald-900"
                               aria-label="input"
                               aria-labelledby="labelLastName"
@@ -197,10 +199,11 @@ export default function SignUpScreen() {
                           <HugeiconsIcon
                             icon={Mail01Icon}
                             size={24}
-                            color="#000000"
+                            color="#047857"
                             strokeWidth={1.5}
                           />
                           <TextInput
+                            style={{ lineHeight: Platform.OS === "ios" ? 0 : undefined }}
                             className="h-12 flex-1 rounded-md font-Inter-Medium text-base text-emerald-900"
                             aria-label="input"
                             aria-labelledby="labelEmail"
@@ -239,10 +242,11 @@ export default function SignUpScreen() {
                           <HugeiconsIcon
                             icon={LockPasswordIcon}
                             size={24}
-                            color="#000000"
+                            color="#047857"
                             strokeWidth={1.5}
                           />
                           <TextInput
+                            style={{ lineHeight: Platform.OS === "ios" ? 0 : undefined }}
                             className="h-12 flex-1 font-Inter-Medium text-base text-emerald-900"
                             aria-label="input"
                             aria-labelledby="labelPassword"
@@ -264,7 +268,7 @@ export default function SignUpScreen() {
                             <HugeiconsIcon
                               icon={pwVisible ? ViewOffIcon : EyeIcon}
                               size={24}
-                              color="#000000"
+                              color="#047857"
                               strokeWidth={1.5}
                             />
                           </TouchableOpacity>
@@ -286,16 +290,16 @@ export default function SignUpScreen() {
                       <View className="flex-col gap-2">
                         <View className="flex-row items-center gap-2 rounded-full px-2">
                           <Checkbox
-                            className="h-6 w-6 rounded-md border-2 border-green-900 bg-emerald-200 p-1"
                             value={field.state.value}
                             onValueChange={(value) => field.handleChange(value)}
-                            color={field.state.value ? "green" : undefined}
+                            color={field.state.value ? "lightgreen" : undefined}
                             aria-label="Checkbox for accepting terms and conditions"
+                            style={{ borderRadius: 6, width: 24, height: 24, borderColor: "#d1fae5", borderWidth: 2 }}
                           />
                           <View className="flex-row items-center justify-center">
-                            <Text className="font-Inter-Medium text-sm text-emerald-100">Acepto los </Text>
+                            <Text className="font-Inter-Medium text-base text-emerald-100">Acepto los </Text>
                             <TouchableOpacity onPress={() => Linking.openURL("https://acuanet.com/terms")}>
-                              <Text className="text-sm text-emerald-300">términos y condiciones</Text>
+                              <Text className="text-base text-emerald-300">términos y condiciones</Text>
                             </TouchableOpacity>
                           </View>
                         </View>
@@ -315,7 +319,7 @@ export default function SignUpScreen() {
                         <TouchableOpacity
                           onPress={form.handleSubmit}
                           disabled={!isFormValid}
-                          className={`w-full rounded-md border-2 border-[#83ffc5] p-2 ${
+                          className={`w-full rounded-md border border-[#83ffc5] p-2 ${
                             isFormValid ? "bg-emerald-500" : "bg-emerald-900 opacity-60"
                           }`}
                           style={{

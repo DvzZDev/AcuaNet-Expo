@@ -208,10 +208,6 @@ export default function Page() {
           <Text className="font-Inter-Black text-2xl text-[#14141c]">Favoritos</Text>
         </View>
 
-        <TouchableOpacity onPress={() => navigation.navigate("ConfirmEmail", { email: "estebandavid578@gmail.com" })}>
-          <Text>ASDADAS</Text>
-        </TouchableOpacity>
-
         {isLoading ? (
           <View className="mx-4 w-[23rem] flex-col gap-2 rounded-lg bg-emerald-50 p-4 shadow-xl">
             <Text className="font-Inter-SemiBold text-xl text-green-950">Cargando embalses favoritos...</Text>

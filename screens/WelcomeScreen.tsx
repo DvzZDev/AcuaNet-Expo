@@ -62,25 +62,25 @@ export default function WelcomeScreen() {
           </Animated.Text>
 
           <View className="mx-4 mt-3 w-[25rem] self-start overflow-hidden rounded-3xl p-1">
-            <Text className="text-center font-Black-Rolmer text-[1.9rem] text-emerald-100">
-              Planificar tus salidas de pesca y organizar tus capturas nunca fue tan fácil.
+            <Text className="text-center font-Black-Rolmer text-[1.9rem] text-white">
+              <Text className="text-[#a5d5a8]">Planificar</Text> tus salidas de pesca y organizar tus capturas nunca fue tan <Text className="text-[#a5d5a8]">fácil</Text>.
             </Text>
           </View>
         </View>
 
         <View className="mb-20 mt-auto">
-          <TouchableOpacity className="mx-4 mt-3 w-[25rem] flex-row items-center justify-center gap-3 overflow-hidden rounded-3xl border border-green-400/40 bg-green-800/40 px-4 py-4">
+          <TouchableOpacity className="mx-4 mt-3 w-[25rem] flex-row items-center justify-center gap-3 overflow-hidden rounded-3xl border border-green-400/40 bg-emerald-800/70 px-4 py-4">
             <Apple />
             <Text className="text-center font-Inter-Medium text-2xl text-green-50">Continuar con Apple</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="mx-4 mt-3 w-[25rem] flex-row items-center justify-center gap-3 overflow-hidden rounded-3xl border border-green-400/40 bg-green-800/40 px-4 py-4">
+          <TouchableOpacity className="mx-4 mt-3 w-[25rem] flex-row items-center justify-center gap-3 overflow-hidden rounded-3xl border border-green-400/40 bg-emerald-800/70 px-4 py-4">
             <Google />
             <Text className="text-center font-Inter-Medium text-2xl text-green-50">Continuar con Google</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="mx-4 mt-3 w-[25rem] flex-row items-center justify-center gap-3 overflow-hidden rounded-3xl border border-green-400/40 bg-green-800/40 px-4 py-4"
+            className="mx-4 mt-3 w-[25rem] flex-row items-center justify-center gap-3 overflow-hidden rounded-3xl border border-green-400/40 bg-emerald-800/70 px-4 py-4"
             onPress={() => navigation.navigate("SignIn")}
           >
             <HugeiconsIcon
@@ -93,13 +93,13 @@ export default function WelcomeScreen() {
           </TouchableOpacity>
 
           <View className="mt-3 flex-row items-center justify-center gap-4">
-            <View className="h-[2px] w-[40%] bg-green-200" />
-            <Text className="font-Inter-Medium text-xl text-green-100">o</Text>
-            <View className="h-[2px] w-[40%] bg-green-200" />
+            <View className="h-[2px] w-[40%] bg-emerald-100" />
+            <Text className="font-Inter-Medium text-xl leading-none text-green-100">o</Text>
+            <View className="h-[2px] w-[40%] bg-emerald-100" />
           </View>
 
           <TouchableOpacity
-            className="mx-4 mt-3 w-[25rem] flex-row items-center justify-center gap-3 overflow-hidden rounded-3xl border border-green-400/40 bg-green-800/40 px-4 py-4"
+            className="mx-4 mt-3 w-[25rem] flex-row items-center justify-center gap-3 overflow-hidden rounded-3xl border border-green-400/40 bg-emerald-800/70 px-4 py-4"
             onPress={() => navigation.navigate("SignUp")}
           >
             <HugeiconsIcon

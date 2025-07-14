@@ -15,6 +15,7 @@ import {
   ArrowRight01Icon,
   Delete02Icon,
   EditUser02Icon,
+  FireIcon,
   Invoice03Icon,
   Logout02Icon,
   Notification01Icon,
@@ -68,7 +69,10 @@ export default function AccountScreen() {
           text: "Cerrar sesión",
           onPress: async () => {
             await supabase.auth.signOut()
-            navigation.navigate("Welcome")
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Welcome" }],
+            })
           },
           style: "destructive",
         },
@@ -172,7 +176,7 @@ export default function AccountScreen() {
             </View>
           </View>
 
-          <View className="mx-10 mt-8 flex-col rounded-xl bg-green-100 shadow-md">
+          <View className="mx-10 mt-8 flex-col rounded-xl bg-green-50 shadow-md">
             <TouchableOpacity
               onPress={() => setIsBtsEditrOpen(true)}
               style={{ borderBottomWidth: 1, borderColor: "#a7f3d0" }}
@@ -237,9 +241,9 @@ export default function AccountScreen() {
               <Text className="font-Inter-Medium text-xl text-emerald-600">Mi suscripción</Text>
               <View className="ml-auto">
                 <HugeiconsIcon
-                  icon={ArrowRight01Icon}
-                  size={25}
-                  color="#059669"
+                  icon={FireIcon}
+                  size={24}
+                  color="white"
                   strokeWidth={1.5}
                 />
               </View>
@@ -294,7 +298,7 @@ export default function AccountScreen() {
             </TouchableOpacity>
           </View>
 
-          <View className="mx-10 mt-5 flex-col rounded-xl bg-red-100 shadow-md">
+          <View className="mx-10 mt-5 flex-col rounded-xl bg-red-100">
             <TouchableOpacity
               onPress={() => signOut()}
               style={{ borderBottomWidth: 1, borderColor: "#a7f3d0" }}
@@ -310,7 +314,7 @@ export default function AccountScreen() {
             </TouchableOpacity>
           </View>
 
-          <View className="mx-10 mt-2 flex-col rounded-xl bg-gray-300 shadow-md">
+          <View className="mx-10 mt-2 flex-col rounded-xl bg-gray-300">
             <TouchableOpacity
               onPress={deleteAccount}
               style={{ borderBottomWidth: 1, borderColor: "#a7f3d0" }}
