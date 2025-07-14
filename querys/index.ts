@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import CacheClient from "cache"
 import hashTextToSha256 from "lib/HashText"
 import { supabase } from "lib/supabase"
-import type { catchReport, CatchReportDB, EmbalseDataHistorical, FavSection } from "types/index"
+import type { catchReport, CatchReportDB, EmbalseDataHistorical, FavSection, UserData } from "types/index"
 import { v4 as uuidv4 } from "uuid"
 import * as FileSystem from "expo-file-system"
 import * as ImageManipulator from "expo-image-manipulator"
@@ -560,5 +560,28 @@ export const useDeleteCatchReporte = () => {
     onSuccess: (_data, catchId) => {
       queryClient.invalidateQueries({ queryKey: ["userCatchReports"] })
     },
+  })
+}
+
+export const getAccountData = async (user_id: string): Promise<UserData> => {
+  const { data, error } = await supabase.from("profiles").select().eq("id", user_id).single()
+  if (error) {
+    console.error("Error fetching account data:", error)
+    throw new Error(error.message)
+  }
+  return data
+}
+
+export const useAccountData = (userId: string) => {
+  return useQuery({
+    queryKey: ["accountData", userId],
+    queryFn: ({ queryKey }) => {
+      const [_key, userId] = queryKey as [string, string]
+
+      return getAccountData(userId)
+    },
+    enabled: !!userId,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 15,
   })
 }

@@ -8,15 +8,11 @@ import { useNavigation } from "@react-navigation/native"
 
 import { supabase } from "lib/supabase"
 import { RootStackNavigationProp } from "types/index"
-// import Google from "@assets/icons/google"
-// import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin"
-export default function SignIn() {
-  const navigation = useNavigation<RootStackNavigationProp>()
-  // GoogleSignin.configure({
-  //   scopes: ["https://www.googleapis.com/auth/drive.readonly"],
-  //   webClientId: "758524626613-b6ejefvee8qjc9l2idg72lo3fm1n87g5.apps.googleusercontent.com",
-  // })
+import { HugeiconsIcon } from "@hugeicons/react-native"
+import { LockPasswordIcon, Mail01Icon } from "@hugeicons/core-free-icons"
 
+export default function SignIn() {
+  const navigation = useNavigation<RootStackNavigationProp<"SignIn">>()
   const form = useForm({
     defaultValues: {
       email: "",
@@ -34,9 +30,7 @@ export default function SignIn() {
         return
       }
       console.log("Usuario logueado:", data.user)
-      navigation.navigate("Tabs", {
-        screen: "Home",
-      })
+      navigation.navigate("Tabs")
     },
   })
   return (
@@ -58,10 +52,7 @@ export default function SignIn() {
           />
         </View>
 
-        <SafeAreaView
-          className="flex-1 bg-[#14141c]"
-          edges={["left", "right"]}
-        >
+        <View className="flex-1 bg-[#14141c]">
           <KeyboardAvoidingView
             className="flex-1"
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -72,15 +63,15 @@ export default function SignIn() {
               contentContainerStyle={{ flexGrow: 1 }}
               keyboardShouldPersistTaps="handled"
             >
-              <View className="flex-1 items-center justify-center px-6 py-8">
+              <View className="mt-7 flex-1 items-center px-6 py-8">
                 <Image
                   style={{ width: 250, height: 70 }}
                   source={require("@assets/LogoHorizontalPng.png")}
                   className="mb-8"
                 />
 
-                <View className="mb-8 items-center gap-2">
-                  <Text className=" text-center font-Inter-SemiBold text-4xl text-green-100">Inicia sesión</Text>
+                <View className="mb-5 mt-20 items-center gap-2">
+                  <Text className="text-center font-Inter-SemiBold text-4xl text-green-100">Inicia sesión</Text>
 
                   <View className="flex-row items-center justify-center">
                     <Text className="text-center font-Inter-Medium text-sm text-green-100">
@@ -92,7 +83,7 @@ export default function SignIn() {
                   </View>
                 </View>
 
-                <View className="z-40 w-full rounded-3xl bg-emerald-100 p-6">
+                <View className="z-40 w-full gap-1 rounded-3xl p-4">
                   <form.Field
                     name="email"
                     validators={{
@@ -104,31 +95,32 @@ export default function SignIn() {
                     }}
                   >
                     {(field) => (
-                      <View className="mb-4">
-                        <Text
-                          className="mb-2 font-Inter-SemiBold text-base text-emerald-700"
-                          aria-label="Label for Email"
-                          nativeID="labelEmail"
-                        >
-                          Email
-                        </Text>
-                        <TextInput
-                          className="h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base leading-[1.2rem] text-emerald-900"
-                          aria-label="input"
-                          aria-labelledby="labelEmail"
-                          value={field.state.value}
-                          onChangeText={field.handleChange}
-                          onBlur={field.handleBlur}
-                          keyboardType="email-address"
-                          autoCapitalize="none"
-                          returnKeyType="next"
-                          autoComplete="email"
-                          textAlignVertical="center"
-                          placeholder="Ingresa tu email"
-                          placeholderTextColor="#6b7280"
-                        />
+                      <View className="flex-col gap-2">
+                        <View className="flex-row items-center gap-2 rounded-full bg-green-100 px-2">
+                          <HugeiconsIcon
+                            icon={Mail01Icon}
+                            size={24}
+                            color="#000000"
+                            strokeWidth={1.5}
+                          />
+                          <TextInput
+                            className="h-12 flex-1 rounded-md font-Inter-Medium text-base text-emerald-900"
+                            aria-label="input"
+                            aria-labelledby="labelEmail"
+                            value={field.state.value}
+                            onChangeText={field.handleChange}
+                            onBlur={field.handleBlur}
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            returnKeyType="next"
+                            autoComplete="email"
+                            textAlignVertical="center"
+                            placeholder="Ingresa tu email"
+                            placeholderTextColor="#047857"
+                          />
+                        </View>
                         {field.state.meta.errors && (
-                          <Text className="mt-1 text-sm text-red-500">{field.state.meta.errors[0]}</Text>
+                          <Text className="px-4 text-sm text-red-500">{field.state.meta.errors[0]}</Text>
                         )}
                       </View>
                     )}
@@ -144,30 +136,31 @@ export default function SignIn() {
                     }}
                   >
                     {(field) => (
-                      <View className="mb-6">
-                        <Text
-                          className="mb-2 font-Inter-SemiBold text-base text-emerald-700"
-                          aria-label="Label for Password"
-                          nativeID="labelPassword"
-                        >
-                          Contraseña
-                        </Text>
-                        <TextInput
-                          className="h-12 w-full rounded-md bg-emerald-200 px-4 font-Inter-Medium text-base leading-[1.2rem] text-emerald-900"
-                          aria-label="input"
-                          aria-labelledby="labelPassword"
-                          secureTextEntry={true}
-                          value={field.state.value}
-                          onChangeText={field.handleChange}
-                          onBlur={field.handleBlur}
-                          returnKeyType="done"
-                          textAlignVertical="center"
-                          autoComplete="off"
-                          placeholder="Ingresa tu contraseña"
-                          placeholderTextColor="#6b7280"
-                        />
+                      <View className="flex-col gap-2">
+                        <View className="flex-row items-center gap-2 rounded-full bg-green-100 px-2">
+                          <HugeiconsIcon
+                            icon={LockPasswordIcon}
+                            size={24}
+                            color="#000000"
+                            strokeWidth={1.5}
+                          />
+                          <TextInput
+                            className="h-12 flex-1 font-Inter-Medium text-base text-emerald-900"
+                            aria-label="input"
+                            aria-labelledby="labelPassword"
+                            secureTextEntry={true}
+                            value={field.state.value}
+                            onChangeText={field.handleChange}
+                            onBlur={field.handleBlur}
+                            returnKeyType="done"
+                            textAlignVertical="center"
+                            autoComplete="off"
+                            placeholder="Ingresa tu contraseña"
+                            placeholderTextColor="#047857"
+                          />
+                        </View>
                         {field.state.meta.errors && (
-                          <Text className="mt-1 text-sm text-red-500">{field.state.meta.errors[0]}</Text>
+                          <Text className="px-4 text-sm text-red-500">{field.state.meta.errors[0]}</Text>
                         )}
                       </View>
                     )}
@@ -178,79 +171,40 @@ export default function SignIn() {
                       <TouchableOpacity
                         onPress={form.handleSubmit}
                         disabled={!canSubmit}
-                        className={`border-1 h-14 w-full rounded-md border-[#83ffc5] ${
-                          canSubmit ? "bg-[#25e089]" : "bg-gray-400 opacity-50"
+                        className={`w-full rounded-md border-2 border-[#83ffc5] p-2 ${
+                          canSubmit ? "bg-emerald-500" : "bg-emerald-900 opacity-60"
                         }`}
+                        style={{
+                          minHeight: 30,
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
                       >
-                        <View className="flex-1 items-center justify-center">
-                          <Text className="font-Inter-SemiBold text-xl text-green-950">
-                            {isSubmitting ? "Iniciando sesión..." : "Iniciar sesión"}
-                          </Text>
-                        </View>
+                        <Text
+                          className={`font-Inter-SemiBold text-xl ${canSubmit ? "text-green-950" : "text-green-100"}`}
+                          style={{
+                            textAlign: "center",
+                          }}
+                        >
+                          {isSubmitting ? "Iniciando sesión..." : "Iniciar sesión"}
+                        </Text>
                       </TouchableOpacity>
                     )}
                   </form.Subscribe>
                 </View>
 
-                {/* <TouchableOpacity
-                  onPress={async () => {
-                    console.log("Iniciando sesión con Google...")
-                    try {
-                      console.log("Verificando Play Services...")
-                      await GoogleSignin.hasPlayServices()
-                      console.log("Play Services disponibles")
-
-                      console.log("Iniciando proceso de sign in...")
-                      const userInfo = await GoogleSignin.signIn()
-                      console.log("User Info:", userInfo)
-                      console.log("User Info estructura completa:", JSON.stringify(userInfo, null, 2))
-
-                      if (userInfo.data && userInfo.data.idToken) {
-                        console.log("ID Token encontrado, enviando a Supabase...")
-                        const { data, error } = await supabase.auth.signInWithIdToken({
-                          provider: "google",
-                          token: userInfo.data.idToken,
-                        })
-
-                        if (error) {
-                          console.error("Error en Supabase:", error)
-                          alert("Error al iniciar sesión con Google: " + error.message)
-                        } else {
-                          console.log("Éxito en Supabase:", data)
-                          navigation.navigate("/home")
-                        }
-                      } else {
-                        console.error("No se encontró ID token en la respuesta")
-                        console.log("Estructura de userInfo sin idToken:", JSON.stringify(userInfo, null, 2))
-                        throw new Error("no ID token present!")
-                      }
-                    } catch (error: any) {
-                      console.error("Error completo:", error)
-                      console.error("Error code:", error.code)
-                      console.error("Error message:", error.message)
-
-                      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-                        console.log("Usuario canceló el login")
-                      } else if (error.code === statusCodes.IN_PROGRESS) {
-                        console.log("Operación ya en progreso")
-                      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-                        console.log("Play Services no disponibles")
-                        alert("Google Play Services no están disponibles")
-                      } else {
-                        console.log("Otro tipo de error:", error)
-                        alert("Error al iniciar sesión con Google: " + (error.message || "Error desconocido"))
-                      }
-                    }
-                  }}
-                  className="my-6 w-full flex-row items-center justify-center gap-2 rounded-xl border border-[#a4fcc3] bg-green-200 p-2"
-                >
-                  <Google />
-                  <Text className="font-Inter-Medium">Inicia con Google</Text>
-                </TouchableOpacity> */}
+                <View className="mt-5 items-center justify-center">
+                  <Text className="text-center font-Inter-Medium text-sm text-green-100">
+                    ¿Has olvidado la contraseña?
+                  </Text>
+                  <TouchableOpacity onPress={() => navigation.navigate("RecoverPassword")}>
+                    <Text className="font-Inter-Medium text-sm leading-relaxed text-emerald-300">Pincha Aquí</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </ScrollView>
           </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View>
       </View>
     </>
   )

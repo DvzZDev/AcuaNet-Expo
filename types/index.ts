@@ -4,12 +4,17 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 export type RootStackParamList = {
   SignIn: undefined
   SignUp: undefined
+  RecoverPassword: undefined
+  Account: undefined
   Tabs: undefined
+  Search: undefined
+  ConfirmEmail: undefined
   Embalse: { embalse: string }
   CatchReport: {
     catchReportId?: string
   }
   Gallery: undefined
+  Welcome: undefined
 }
 
 export type RootStackNavigationProp<T extends keyof RootStackParamList> = NativeStackNavigationProp<
@@ -242,4 +247,12 @@ export type TabStackParamList = {
   Home: undefined
   Account: undefined
   CatchMap: { catchReportId?: string }
+}
+
+export interface UserData {
+  avatar: string
+  email: string
+  id: string
+  lastname: string
+  name: string
 }

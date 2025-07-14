@@ -1,14 +1,14 @@
 import { Image } from "expo-image"
 import { LinearGradient } from "expo-linear-gradient"
-import { StyleSheet, Text, View } from "react-native"
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { useFavSection } from "querys"
-import { FavSection } from "types/index"
+import { FavSection, RootStackNavigationProp } from "types/index"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import ReorderableEmbalseList from "components/ReorderableEmbalseList"
 import { HugeiconsIcon } from "@hugeicons/react-native"
 import { UserIcon } from "@hugeicons/core-free-icons"
-import { useFocusEffect } from "@react-navigation/native"
+import { useFocusEffect, useNavigation } from "@react-navigation/native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useStore } from "store"
 
@@ -98,6 +98,8 @@ const processSpainData = (rawData: FavSection[]): FavSection[] => {
 }
 
 export default function Page() {
+  const navigation = useNavigation<RootStackNavigationProp<"Tabs">>()
+
   const userId = useStore((state) => state.id)
   const hour = new Date().getHours()
   const [favData, setFavData] = useState<FavSection[]>([])
@@ -205,6 +207,10 @@ export default function Page() {
           <Text className="font-Inter-SemiBold text-2xl text-emerald-950">Embalses</Text>
           <Text className="font-Inter-Black text-2xl text-[#14141c]">Favoritos</Text>
         </View>
+
+        <TouchableOpacity onPress={() => navigation.navigate("ConfirmEmail", { email: "estebandavid578@gmail.com" })}>
+          <Text>ASDADAS</Text>
+        </TouchableOpacity>
 
         {isLoading ? (
           <View className="mx-4 w-[23rem] flex-col gap-2 rounded-lg bg-emerald-50 p-4 shadow-xl">

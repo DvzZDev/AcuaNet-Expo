@@ -7,12 +7,15 @@ interface StoreState {
   setId: (newId: string) => void
   setAvatarUrl: (newUrl: string | null) => void
   setDirtyFavs: (dirty: boolean) => void
+  setNewEmail: (newEmail: string) => void
+  newEmail: string | null
 }
 
 export const useStore = create<StoreState>((set) => ({
   id: "",
   avatarUrl: null,
   dirtyFavs: false,
+  newEmail: null,
   setId: (newId: string) =>
     set(() => ({
       id: newId,
@@ -24,5 +27,9 @@ export const useStore = create<StoreState>((set) => ({
   setDirtyFavs: (dirty: boolean) =>
     set(() => ({
       dirtyFavs: dirty,
+    })),
+  setNewEmail: (newEmail: string) =>
+    set(() => ({
+      newEmail: newEmail,
     })),
 }))
