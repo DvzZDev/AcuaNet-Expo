@@ -22,6 +22,8 @@ module.exports = {
         "Inter-SemiBold": ["Inter-SemiBold", "sans-serif"],
         "Inter-Thin": ["Inter-Thin", "sans-serif"],
         "Inter-Black-Italic": ["Inter-Black-Italic", "sans-serif"],
+        "Black-Rolmer": ["Black-Rolmer", "sans-serif"],
+        "Black-Oblique": ["Black-Oblique", "sans-serif"],
       },
     },
   },
