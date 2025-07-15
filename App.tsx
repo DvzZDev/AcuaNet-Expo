@@ -21,13 +21,10 @@ import CatchReportScreen from "./screens/CatchReportScreen"
 import CatchGalleryScreen from "screens/CatchGalleryScreen"
 import WelcomeScreen from "screens/WelcomeScreen"
 import RecoverPassword from "screens/RecoverPassword"
-import * as Linking from "expo-linking"
-import ConfirmEmail from "screens/ConfirmEmail"
 import { Alert, Keyboard, TouchableWithoutFeedback } from "react-native"
 import { RootStackParamList } from "./types"
+import ConfirmEmail from "screens/ConfirmEmail"
 
-// Moved outside component to prevent recreation
-const prefix = Linking.createURL("/")
 const queryClient = new QueryClient()
 
 type AuthStackParamList = Pick<RootStackParamList, "Welcome" | "SignIn" | "SignUp" | "RecoverPassword" | "ConfirmEmail">
@@ -36,7 +33,6 @@ type AppStackParamList = Pick<RootStackParamList, "Tabs" | "Embalse" | "CatchRep
 const AuthStack = createNativeStackNavigator<AuthStackParamList>()
 const AppStack = createNativeStackNavigator<AppStackParamList>()
 
-// Optimized navigators using React.memo
 const AuthNavigator = React.memo(() => (
   <AuthStack.Navigator
     initialRouteName="Welcome"
@@ -128,40 +124,14 @@ const AppNavigator = React.memo(() => (
 export default function App() {
   const [sessionChecked, setSessionChecked] = useState(false)
   const [isUserSignedIn, setIsUserSignedIn] = useState(false)
-  const [isNavigationReady, setIsNavigationReady] = useState(false)
+  const isRecoverySession = useStore((state) => state.isRecoverySession)
+
+  console.log("recovery session:", isRecoverySession)
 
   const setId = useStore((state) => state.setId)
   const setAvatarUrl = useStore((state) => state.setAvatarUrl)
 
   const navigationRef = React.useRef<any>(null)
-
-  const linking = useMemo(
-    () => ({
-      prefixes: [prefix, "acuanet://", "exp+acuanet://"],
-      config: {
-        screens: {
-          Welcome: "welcome",
-          SignIn: "signin",
-          SignUp: "signup",
-          RecoverPassword: { path: "recover-password", parse: { token: (token: any) => token } },
-          ConfirmEmail: { path: "confirm-email" },
-          Tabs: {
-            path: "tabs",
-            screens: {
-              Home: "home",
-              Search: "search",
-              CatchMap: "catch-map",
-              Account: "account",
-            },
-          },
-          Embalse: "embalse",
-          CatchReport: "catch-report",
-          Gallery: "gallery",
-        },
-      },
-    }),
-    []
-  )
 
   const handleSessionChange = useCallback(
     async (session: any) => {
@@ -169,6 +139,10 @@ export default function App() {
         setId(null)
         setAvatarUrl(null)
         setIsUserSignedIn(false)
+        return
+      }
+
+      if (isRecoverySession) {
         return
       }
 
@@ -185,24 +159,7 @@ export default function App() {
         setAvatarUrl(null)
       }
     },
-    [setId, setAvatarUrl]
-  )
-
-  const handleDeepLink = useCallback(
-    (url: string | null) => {
-      if (!url || !isNavigationReady || !navigationRef.current) return
-
-      try {
-        if (url.includes("type=email_change")) {
-          navigationRef.current.navigate("ConfirmEmail")
-        } else if (url.includes("type=")) {
-          Alert.alert("Error", "Este enlace ya ha sido usado o ha ocurrido un error", [{ text: "OK" }])
-        }
-      } catch (error) {
-        console.error("Deep link error:", error)
-      }
-    },
-    [isNavigationReady]
+    [isRecoverySession, setId, setAvatarUrl]
   )
 
   const [fontsLoaded] = useFonts({
@@ -251,20 +208,6 @@ export default function App() {
   }, [fontsLoaded, handleSessionChange])
 
   useEffect(() => {
-    if (!isNavigationReady) return
-
-    const processInitialURL = async () => {
-      const url = await Linking.getInitialURL()
-      handleDeepLink(url)
-    }
-
-    const subscription = Linking.addEventListener("url", ({ url }) => handleDeepLink(url))
-
-    processInitialURL()
-    return () => subscription.remove()
-  }, [isNavigationReady, handleDeepLink])
-
-  useEffect(() => {
     if (sessionChecked) {
       NavigationBar.setPositionAsync("absolute")
       NavigationBar.setBackgroundColorAsync("#ffffff01")
@@ -289,11 +232,7 @@ export default function App() {
                   style="auto"
                   translucent
                 />
-                <NavigationContainer
-                  ref={navigationRef}
-                  linking={linking}
-                  onReady={() => setIsNavigationReady(true)}
-                >
+                <NavigationContainer ref={navigationRef}>
                   {isUserSignedIn ? <AppNavigator /> : <AuthNavigator />}
                 </NavigationContainer>
               </SafeAreaProvider>
